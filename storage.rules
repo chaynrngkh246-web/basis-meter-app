@@ -1,0 +1,16 @@
+rules_version = '2';
+
+// Same lightweight-auth tradeoff as firestore.rules: no request.auth, so
+// this only restricts *what* can be uploaded (meter photos, under 15MB
+// each), not who by. Keep the app URL / Firebase config internal to the
+// 8 technicians.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /readings/{pointId}/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size < 15 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if true;
+    }
+  }
+}

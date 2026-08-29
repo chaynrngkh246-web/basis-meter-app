@@ -1,0 +1,47 @@
+rules_version = '2';
+
+// This app uses a lightweight PIN-based login (see README) instead of
+// Firebase Auth, so there is no `request.auth` to check here. That means
+// these rules cannot verify *who* is writing — only *what* is being
+// written. Treat this as an internal tool: nobody outside the 8
+// technicians should ever be given the app URL / Firebase config.
+// Deletes are blocked everywhere so a bug or accidental tap can't wipe
+// history; "deactivate" (active: false) is used instead of delete.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /technicians/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(
+          ['name', 'pinHash', 'active', 'createdAt']
+        )
+        && request.resource.data.name is string
+        && request.resource.data.pinHash is string;
+      allow update: if request.resource.data.diff(resource.data)
+        .affectedKeys().hasOnly(['pinHash', 'active', 'name']);
+      allow delete: if false;
+    }
+
+    match /points/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(
+          ['name', 'type', 'order', 'unit', 'active']
+        )
+        && request.resource.data.type in ['electric', 'water'];
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    match /readings/{id} {
+      allow read: if true;
+      allow create, update: if request.resource.data.keys().hasAll(
+          ['pointId', 'technicianId', 'technicianName', 'value', 'date',
+           'photoPaths', 'photoURLs', 'createdAt']
+        )
+        && request.resource.data.value is number
+        && request.resource.data.photoURLs.size() > 0
+        && id == request.resource.data.pointId + '_' + request.resource.data.date;
+      allow delete: if false;
+    }
+  }
+}
