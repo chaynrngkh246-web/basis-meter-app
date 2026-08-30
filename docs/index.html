@@ -1216,7 +1216,11 @@ function teamLink() {
   let cfg = null;
   try { cfg = JSON.parse(localStorage.getItem(LS_CFG) || "null"); } catch (e) {}
   if (!cfg) return location.href;
-  return location.origin + location.pathname + "#cfg=" + b64e(cfg);
+  // A query param (?cfg=...), not a #fragment: some chat apps' "open in
+  // browser" hand-off drops everything after a '#' before the page ever
+  // loads, silently losing the database connection. Query strings don't
+  // have that failure mode and GitHub Pages ignores them either way.
+  return location.origin + location.pathname + "?cfg=" + b64e(cfg);
 }
 
 /* ================= lightbox ================= */
@@ -1498,12 +1502,16 @@ async function refreshMonth(m) {
 render();
 
 (async function boot() {
-  // a team link carries the database config in its hash; keep it, then tidy the URL
-  const hash = location.hash.match(/cfg=([A-Za-z0-9\-_]+)/);
-  if (hash) {
+  // A team link carries the database config as ?cfg=... (older links some
+  // people may still have saved use #cfg=... — both are read here so
+  // neither breaks). Save it to this device, then strip it from the
+  // address bar so refreshing or re-sharing the plain URL doesn't repost it.
+  const carried = new URLSearchParams(location.search).get("cfg")
+    || (location.hash.match(/cfg=([A-Za-z0-9\-_]+)/) || [])[1];
+  if (carried) {
     try {
-      localStorage.setItem(LS_CFG, JSON.stringify(b64d(hash[1])));
-      history.replaceState(null, "", location.pathname + location.search);
+      localStorage.setItem(LS_CFG, JSON.stringify(b64d(carried)));
+      history.replaceState(null, "", location.pathname);
     } catch (e) {}
   }
   let cfg = null;

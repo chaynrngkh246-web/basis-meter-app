@@ -324,7 +324,7 @@ await step('settings offers a link carrying the database config', async () => {
   await page.click('[data-act="stab"][data-t="data"]')
   await page.waitForSelector('#tl')
   const link = await page.locator('#tl').innerText()
-  if (!link.includes('#cfg=')) throw new Error('no config in link: ' + link)
+  if (!link.includes('?cfg=')) throw new Error('no config in link: ' + link)
 })
 await step('a fresh device opening that link connects straight away', async () => {
   const link = await page.locator('#tl').innerText()
