@@ -212,8 +212,49 @@ await step('daily table lists a row per day with a month total', async () => {
   if (!tot.join(' ').includes('163.06')) throw new Error('month total missing: ' + tot.join('|'))
 })
 
+console.log('\n— month grid —')
+await step('grid tab shows a column per meter and a row per day', async () => {
+  await page.click('[data-act="go"][data-v="grid"]')
+  await page.waitForSelector('table.gt', { timeout: 8000 })
+  const heads = await page.locator('table.gt').first().locator('thead th').allInnerTexts()
+  // date column + 2 electric meters (Academic, Science) + total column
+  if (heads.length !== 4) throw new Error('expected 4 header cells, got ' + heads.length + ': ' + heads.join('|'))
+  if (!heads[1].includes('Academic')) throw new Error('first meter column is ' + heads[1])
+})
+await step('grid runs from the first recorded day to today, not from the 1st', async () => {
+  const rows = await page.locator('table.gt').first().locator('tbody tr').count()
+  if (rows !== 2) throw new Error('expected the 2 recorded days, got ' + rows)
+  const firstCell = await page.locator('table.gt').first().locator('tbody tr .c0').first().innerText()
+  const y = new Date(); y.setDate(y.getDate() - 1)
+  if (!firstCell.startsWith(String(y.getDate()) + ' ')) throw new Error('grid starts at ' + firstCell)
+})
+await step('grid cells carry each meter\'s own daily usage', async () => {
+  const tf = await page.locator('table.gt').first().locator('tfoot td').allInnerTexts()
+  if (!tf.join('|').includes('63.06')) throw new Error('Academic total missing: ' + tf.join('|'))
+  if (!tf.join('|').includes('100')) throw new Error('Science total missing: ' + tf.join('|'))
+  if (tf[tf.length - 1] !== '163.06') throw new Error('grand total was ' + tf[tf.length - 1])
+})
+await step('a second grid covers water separately', async () => {
+  const n = await page.locator('table.gt').count()
+  if (n !== 2) throw new Error('expected an electric and a water grid, got ' + n)
+  const tf = await page.locator('table.gt').nth(1).locator('tfoot td').allInnerTexts()
+  if (tf[tf.length - 1] !== '14') throw new Error('water grand total was ' + tf[tf.length - 1])
+})
+await step('toggling to meter readings shows the numbers on the dial', async () => {
+  await page.click('[data-act="gmode"][data-m="read"]')
+  await page.waitForTimeout(200)
+  const body = await page.locator('table.gt').first().locator('tbody').innerText()
+  if (!body.includes('1,026,200')) throw new Error('reading not shown in read mode')
+  const tf = await page.locator('table.gt').first().locator('tfoot').count()
+  if (tf) throw new Error('totals row should be hidden when showing raw readings')
+  await page.click('[data-act="gmode"][data-m="use"]')
+  await page.waitForTimeout(200)
+})
+
 console.log('\n— the document for accounting —')
 await step('print view opens as an A4 sheet', async () => {
+  await page.click('[data-act="go"][data-v="rep"]')
+  await page.waitForSelector('[data-act="paper"]', { timeout: 8000 })
   await page.click('[data-act="paper"]')
   await page.waitForSelector('.paper', { timeout: 5000 })
   const hidden = await page.locator('.wrap').isHidden()
@@ -222,8 +263,14 @@ await step('print view opens as an A4 sheet', async () => {
 await step('document carries org, month, totals and signatures', async () => {
   const txt = await page.locator('.paper').innerText()
   for (const want of ['รายงานการใช้น้ำและไฟฟ้า', 'BISB', 'Academic', 'Science and Canteen',
-                      '163.06', 'ยอดใช้รายวัน', 'ผู้บันทึก', 'ฝ่ายบัญชี'])
+                      '163.06', 'ยอดใช้รายวัน — ไฟฟ้า', 'ยอดใช้รายวัน — น้ำ', 'ผู้บันทึก', 'ฝ่ายบัญชี'])
     if (!txt.includes(want)) throw new Error('missing "' + want + '"')
+})
+await step('printed grid has a column per meter, not just a daily total', async () => {
+  const heads = await page.locator('.paper table.pt.grid').first().locator('thead th').allInnerTexts()
+  if (heads.length !== 4) throw new Error('expected date + 2 meters + total, got ' + heads.length)
+  if (!/Academic/i.test(heads[1])) throw new Error('grid header was ' + heads[1])
+  if (!heads[1].includes('ไฟฟ้า')) throw new Error('meter label missing from header: ' + heads[1])
 })
 await step('document groups meters under their point', async () => {
   const grp = await page.locator('.paper tr.grp').allInnerTexts()
@@ -252,7 +299,7 @@ await step('closes back to the app', async () => {
 })
 
 console.log('\n— CSV exports —')
-for (const [kind, must] of [['sum', 'เลขต้นเดือน'], ['day', 'ใช้ไป'], ['det', 'ผู้บันทึก']]) {
+for (const [kind, must] of [['sum', 'เลขต้นเดือน'], ['day', 'ใช้ไป'], ['grid', 'รวมทั้งเดือน'], ['det', 'ผู้บันทึก']]) {
   await step('CSV "' + kind + '" downloads with Thai headers', async () => {
     const dl = page.waitForEvent('download', { timeout: 8000 })
     await page.click(`[data-act="csv"][data-kind="${kind}"]`)
@@ -263,6 +310,10 @@ for (const [kind, must] of [['sum', 'เลขต้นเดือน'], ['day'
     if (!text.startsWith('﻿')) throw new Error('missing BOM')
     if (!text.includes(must)) throw new Error('missing header ' + must)
     if (kind === 'day' && !text.includes('163.06')) throw new Error('daily CSV missing the total')
+    if (kind === 'grid') {
+      if (!text.includes('Academic - ไฟฟ้า')) throw new Error('grid CSV missing a meter column')
+      if (!text.includes('163.06')) throw new Error('grid CSV missing the grand total')
+    }
     console.log('    ' + d.suggestedFilename())
   })
 }

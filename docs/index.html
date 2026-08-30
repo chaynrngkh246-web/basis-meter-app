@@ -84,6 +84,8 @@ main{flex:1;padding:15px 15px 96px}
 
 .tabs{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 .tabs-inner{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tabs-inner.tabs5{grid-template-columns:repeat(5,1fr)}
+.tabs5 .tab{font-size:10px}
 .tab{background:none;border:none;padding:9px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;font-weight:500;color:var(--ink-3);border-top:2px solid transparent;margin-top:-1px}
 .tab svg{width:21px;height:21px;stroke-width:1.7}
 .tab[aria-current="page"]{color:var(--action);border-top-color:var(--action)}
@@ -195,6 +197,23 @@ table.sum td.n{text-align:right;font-family:"IBM Plex Mono",monospace;font-varia
 table.sum tr:last-child td{border-bottom:none}
 .scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch}
 
+/* the month log as a matrix — days down, meters across */
+.gwrap{overflow:auto;-webkit-overflow-scrolling:touch;max-height:72vh;border-radius:var(--radius)}
+table.gt{border-collapse:separate;border-spacing:0;font-size:11.5px;background:var(--panel)}
+table.gt th,table.gt td{padding:5px 8px;white-space:nowrap;border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
+table.gt thead th{position:sticky;top:0;z-index:2;background:var(--panel-2);font-size:9.5px;letter-spacing:.3px;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600;text-align:right;vertical-align:bottom}
+table.gt thead th .pt{display:block;font-size:10.5px;text-transform:none;letter-spacing:0;color:var(--ink-2)}
+table.gt .c0{position:sticky;left:0;z-index:1;background:var(--panel);text-align:left;min-width:76px;
+  border-right:1px solid var(--line-2)}
+table.gt thead .c0{z-index:3;background:var(--panel-2)}
+table.gt td.n{text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+table.gt td.z{color:var(--line-2)}
+table.gt tr.blank .c0{color:var(--ink-3)}
+table.gt .sum{background:var(--panel-2);font-weight:600}
+table.gt tfoot td{position:sticky;bottom:0;background:var(--panel-2);font-weight:600;border-top:1px solid var(--line-2)}
+table.gt tfoot .c0{z-index:3}
+
 .note{font-size:12.5px;color:var(--ink-3);line-height:1.6}
 .empty{text-align:center;padding:40px 20px;color:var(--ink-3)}
 .empty svg{width:38px;height:38px;stroke-width:1.4;color:var(--line-2);margin-bottom:10px}
@@ -270,6 +289,10 @@ table.pt td{padding:6px 9px;border:1px solid #dce1e9;vertical-align:top}
 table.pt td.n{text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
 table.pt tr.tot td{background:#f0f3f7;font-weight:600}
 table.pt tr.grp td{background:#fafbfd;font-weight:600;font-size:11.5px}
+table.pt.grid{font-size:9.5px;table-layout:fixed;width:100%}
+table.pt.grid th,table.pt.grid td{padding:3px 5px;overflow:hidden}
+table.pt.grid th{white-space:normal;word-break:break-word;font-size:8.5px;line-height:1.3;text-align:right;
+  text-transform:none;letter-spacing:0}
 .psign{display:flex;gap:44px;margin-top:46px;page-break-inside:avoid}
 .psign div{flex:1;text-align:center;font-size:12px;color:#4d5665}
 .psign .ln{border-bottom:1px dotted #14181f;height:34px;margin-bottom:7px}
@@ -283,6 +306,9 @@ table.pt tr.grp td{background:#fafbfd;font-weight:600;font-size:11.5px}
   .paperscroll{padding:0;overflow:visible;background:#fff}
   .paper{width:auto;min-height:0;box-shadow:none;padding:0;margin:0}
   table.pt{font-size:10.5px}
+  table.pt.grid{font-size:8.5px;table-layout:fixed;width:100%}
+  table.pt.grid th,table.pt.grid td{padding:3px 4px;overflow:hidden}
+  table.pt.grid th{white-space:normal;word-break:break-word;font-size:7.5px;line-height:1.25;text-transform:none}
   table.pt th{background:#f0f3f7!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   table.pt tr.tot td,table.pt tr.grp td{background:#f0f3f7!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   tr,.psign{page-break-inside:avoid}
@@ -337,6 +363,7 @@ const ICON = {
   gauge:'<circle cx="12" cy="12" r="9"/><path d="M12 12 16 8"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/>',
   left:'<path d="m14 6-6 6 6 6"/>', right:'<path d="m10 6 6 6-6 6"/>',
   print:'<path d="M7 8V3h10v5"/><path d="M7 18H4v-7h16v7h-3"/><path d="M7 14h10v7H7z"/>',
+  table:'<path d="M3 5h18v14H3z"/><path d="M3 10h18M9 10v9M15 10v9"/>',
 };
 const svg = (k, cls) => '<svg class="' + (cls||"") + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICON[k] + "</svg>";
 
@@ -542,6 +569,43 @@ function dayTotals(ds, series) {
   });
   return { byUnit, byPoint };
 }
+const daysInMonth = (ms) => { const [y, m] = ms.split("-").map(Number); return new Date(y, m, 0).getDate(); };
+
+/**
+ * The paper log, as a matrix: one row per day of the month, one column per
+ * meter of `unit`. `mode` is "use" (units consumed that day) or "read" (the
+ * number written on the meter face).
+ */
+function buildGrid(month, unit, series, mode) {
+  const cols = series.filter((s) => s.m.unit === unit);
+  const last = month === thisMonth() ? Number(today().slice(8, 10)) : daysInMonth(month);
+  // Start at the first day anyone recorded rather than the 1st: a month whose
+  // readings begin late would otherwise open on a wall of empty rows, burying
+  // today's numbers below a long scroll. Gaps *between* recorded days stay
+  // visible, which is the part worth noticing.
+  let first = last + 1;
+  cols.forEach((s) => s.rows.forEach((r) => {
+    const d = Number(r.day);
+    if (d < first) first = d;
+  }));
+  const rows = [];
+  for (let d = first; d <= last; d++) {
+    const dd = pad2(d);
+    const cells = cols.map((s) => {
+      const r = s.rows.find((x) => x.day === dd);
+      if (!r) return null;
+      return mode === "read" ? r.v : r.use;
+    });
+    rows.push({
+      day: dd, cells: cells,
+      total: mode === "use" ? r2(cells.reduce((a, c) => a + (c || 0), 0)) : null,
+      any: cells.some((c) => c != null),
+    });
+  }
+  const totals = cols.map((_, i) => r2(rows.reduce((a, r) => a + (r.cells[i] || 0), 0)));
+  return { cols, rows, totals, grand: r2(totals.reduce((a, b) => a + b, 0)) };
+}
+
 /** one row per calendar day that has any reading */
 function dailyTable(month, series) {
   const units = unitOrder(series);
@@ -558,13 +622,14 @@ function dailyTable(month, series) {
 /* ================= shell ================= */
 function shell(title, sub, body, tab, opts) {
   const o = opts || {};
-  const tabs = [["home","หน้าหลัก","home"],["hist","ประวัติ","book"],["rep","รายงาน","out"],["set","ตั้งค่า","gear"]];
+  const tabs = [["home","หน้าหลัก","home"],["hist","ประวัติ","book"],["grid","ตาราง","table"],
+    ["rep","รายงาน","out"],["set","ตั้งค่า","gear"]];
   return '<div class="wrap"><header class="topbar">' +
     (o.back ? '<button class="iconbtn" data-act="back" aria-label="ย้อนกลับ">' + svg("left") + "</button>" : "") +
     "<h1>" + esc(title) + (sub ? '<div class="sub">' + esc(sub) + "</div>" : "") + "</h1>" +
     (S.me ? '<button class="who" data-act="go" data-v="set">' + esc(S.me.name) + "</button>" : "") +
     "</header><main>" + body + "</main>" + (o.dock || "") +
-    (tab ? '<nav class="tabs"><div class="tabs-inner">' + tabs.map(([k,l,ic]) =>
+    (tab ? '<nav class="tabs"><div class="tabs-inner tabs5">' + tabs.map(([k,l,ic]) =>
       '<button class="tab" data-act="go" data-v="' + k + '"' + (tab===k?' aria-current="page"':"") + ">" +
       svg(ic) + "<span>" + l + "</span></button>").join("") + "</div></nav>" : "") + "</div>";
 }
@@ -769,6 +834,54 @@ function vHist() {
   return shell("ประวัติการบันทึก", "", monthBar() + (cards || emptyBox("book", "ยังไม่มีข้อมูลในเดือนนี้")), "hist");
 }
 
+/* ================= month grid ================= */
+const GRID = { mode: "use" };
+
+function gridTable(g, unit, mode) {
+  return '<div class="card gwrap"><table class="gt"><thead><tr>' +
+    '<th class="c0">วันที่</th>' +
+    g.cols.map((s) => '<th><span class="pt">' + esc(s.p.name) + "</span>" + esc(s.m.label) + "</th>").join("") +
+    (mode === "use" ? '<th class="sum">รวม</th>' : "") +
+    "</tr></thead><tbody>" +
+    g.rows.map((r) => '<tr' + (r.any ? "" : ' class="blank"') + '>' +
+      '<td class="c0">' + thDate(S.month + "-" + r.day) + "</td>" +
+      r.cells.map((c) => '<td class="n' + (c == null ? " z" : "") + '">' +
+        (c == null ? "—" : fmt(c)) + "</td>").join("") +
+      (mode === "use" ? '<td class="n sum">' + (r.any ? fmt(r.total) : "—") + "</td>" : "") +
+      "</tr>").join("") +
+    "</tbody>" +
+    (mode === "use" ? "<tfoot><tr><td class=\"c0\">รวมทั้งเดือน</td>" +
+      g.totals.map((t) => '<td class="n">' + fmt(t) + "</td>").join("") +
+      '<td class="n">' + fmt(g.grand) + "</td></tr></tfoot>" : "") +
+    "</table></div>";
+}
+
+function vGrid() {
+  const series = monthSeries(S.month);
+  const units = unitOrder(series);
+  const mode = GRID.mode;
+
+  const body = monthBar() +
+    '<div class="seg" style="margin-bottom:13px">' +
+      '<button data-act="gmode" data-m="use" aria-pressed="' + (mode === "use") + '">หน่วยที่ใช้</button>' +
+      '<button data-act="gmode" data-m="read" aria-pressed="' + (mode === "read") + '">เลขมิเตอร์</button>' +
+    "</div>" +
+    (series.length ? units.map((u) => {
+      const g = buildGrid(S.month, u.unit, series, mode);
+      if (!g.cols.length) return "";
+      return '<div class="eyebrow" style="margin-bottom:8px">' +
+          (u.type === "electric" ? "ไฟฟ้า" : "น้ำ") + " · " + esc(u.unit) + "</div>" +
+        gridTable(g, u.unit, mode) +
+        '<div style="height:14px"></div>';
+    }).join("") +
+    '<p class="note">เลื่อนตารางไปทางซ้าย-ขวาเพื่อดูจุดอื่น · ' +
+      (mode === "use" ? "ตัวเลขคือหน่วยที่ใช้ในวันนั้น (เลขวันนั้น ลบ เลขครั้งก่อน)"
+        : "ตัวเลขคือเลขที่อ่านได้จากหน้าปัดมิเตอร์") + "</p>"
+    : emptyBox("book", "ยังไม่มีข้อมูลในเดือนนี้"));
+
+  return shell("ตารางรายเดือน", thMonth(S.month), body, "grid");
+}
+
 /* ================= report ================= */
 function vRep() {
   const series = monthSeries(S.month);
@@ -787,7 +900,7 @@ function vRep() {
     '<button class="btn block" data-act="paper" style="margin-bottom:13px">' +
       "เปิดเอกสารส่งบัญชี (พิมพ์ / บันทึก PDF)</button>" +
 
-    '<div class="eyebrow" style="margin-bottom:8px">ยอดใช้รายวัน</div>' +
+    '<div class="eyebrow" style="margin-bottom:8px">ยอดใช้รายวัน (รวมทุกจุด)</div>' +
     '<div class="card scrollx" style="margin-bottom:13px"><table class="sum"><thead><tr><th>วันที่</th>' +
       daily.units.map((u) => '<th style="text-align:right">' + esc(u.unit) + "</th>").join("") + "</tr></thead><tbody>" +
       daily.rows.map((r) => "<tr><td>" + thDate(S.month + "-" + r.day) + "</td>" +
@@ -809,6 +922,7 @@ function vRep() {
     '<div class="stack">' +
       '<button class="btn ghost block" data-act="csv" data-kind="sum">ดาวน์โหลดสรุปรายเดือน (CSV)</button>' +
       '<button class="btn ghost block" data-act="csv" data-kind="day">ดาวน์โหลดยอดใช้รายวัน (CSV)</button>' +
+      '<button class="btn ghost block" data-act="csv" data-kind="grid">ดาวน์โหลดตารางรายเดือน (CSV)</button>' +
       '<button class="btn ghost block" data-act="csv" data-kind="det">ดาวน์โหลดรายละเอียดทุกมิเตอร์ (CSV)</button></div>' +
     '<p class="note" style="margin-top:11px">ไฟล์ CSV เปิดด้วย Excel ได้ทันที ส่วนเอกสารส่งบัญชีสั่งพิมพ์ หรือเลือก "บันทึกเป็น PDF" ในหน้าต่างพิมพ์ได้เลย</p>'
   ) : emptyBox("out", "ยังไม่มีข้อมูลในเดือนนี้<br>บันทึกค่ามิเตอร์ก่อนจึงจะออกรายงานได้"));
@@ -867,14 +981,25 @@ function buildPaper() {
           "ทั้งหมด</td><td></td><td></td>" + '<td class="n">' + fmt(byUnit[u.unit] || 0) + "</td><td>" + esc(u.unit) + "</td></tr>").join("") +
         "</tbody></table>" +
 
-      '<div class="psec">ยอดใช้รายวัน</div>' +
-      '<table class="pt"><thead><tr><th>วันที่</th>' +
-        daily.units.map((u) => '<th style="text-align:right">' + esc(u.unit) + "</th>").join("") + "</tr></thead><tbody>" +
-        daily.rows.map((r) => "<tr><td>" + thDate(S.month + "-" + r.day) + "</td>" +
-          r.cells.map((c) => '<td class="n">' + (c == null ? "—" : fmt(c)) + "</td>").join("") + "</tr>").join("") +
-        '<tr class="tot"><td>รวมทั้งเดือน</td>' +
-          daily.totals.map((t) => '<td class="n">' + fmt(t) + "</td>").join("") + "</tr>" +
-        "</tbody></table>" +
+      // the full log: every day of the month against every meter, one table
+      // per utility so each stays narrow enough to read on an A4 page
+      units.map((u) => {
+        const g = buildGrid(S.month, u.unit, series, "use");
+        if (!g.cols.length) return "";
+        return '<div class="psec">ยอดใช้รายวัน — ' +
+            (u.type === "electric" ? "ไฟฟ้า" : "น้ำ") + " (" + esc(u.unit) + ")</div>" +
+          '<table class="pt grid"><thead><tr><th>วันที่</th>' +
+            g.cols.map((c) => "<th>" + esc(c.p.name) + "<br><span style=\"font-weight:400\">" +
+              esc(c.m.label) + "</span></th>").join("") +
+            '<th style="text-align:right">รวม</th></tr></thead><tbody>' +
+            g.rows.map((r) => "<tr><td>" + thDate(S.month + "-" + r.day) + "</td>" +
+              r.cells.map((c) => '<td class="n">' + (c == null ? "—" : fmt(c)) + "</td>").join("") +
+              '<td class="n"><b>' + (r.any ? fmt(r.total) : "—") + "</b></td></tr>").join("") +
+            '<tr class="tot"><td>รวมทั้งเดือน</td>' +
+              g.totals.map((t) => '<td class="n">' + fmt(t) + "</td>").join("") +
+              '<td class="n">' + fmt(g.grand) + "</td></tr>" +
+          "</tbody></table>";
+      }).join("") +
 
       '<div class="psign"><div><div class="ln"></div>ผู้บันทึก / ช่างเทคนิค</div>' +
         '<div><div class="ln"></div>หัวหน้าช่าง</div>' +
@@ -922,6 +1047,21 @@ function doCsv(kind) {
     d.rows.forEach((r) => rows.push([thDate(S.month + "-" + r.day)].concat(r.cells.map((c) => c == null ? "" : c))));
     rows.push(["รวมทั้งเดือน"].concat(d.totals));
     name = "BISB-daily-usage-" + S.month + ".csv";
+  } else if (kind === "grid") {
+    // the matrix accounting reads: a block per utility, days down, meters across
+    rows = [];
+    unitOrder(series).forEach((u) => {
+      const g = buildGrid(S.month, u.unit, series, "use");
+      if (!g.cols.length) return;
+      if (rows.length) rows.push([]);
+      rows.push([(u.type === "electric" ? "ไฟฟ้า" : "น้ำ") + " (" + u.unit + ")"]);
+      rows.push(["วันที่"].concat(g.cols.map((c) => c.p.name + " - " + c.m.label)).concat(["รวม"]));
+      g.rows.forEach((r) => rows.push([thDate(S.month + "-" + r.day)]
+        .concat(r.cells.map((c) => c == null ? "" : c))
+        .concat([r.any ? r.total : ""])));
+      rows.push(["รวมทั้งเดือน"].concat(g.totals).concat([g.grand]));
+    });
+    name = "BISB-month-grid-" + S.month + ".csv";
   } else {
     rows = [["วันที่", "จุด", "มิเตอร์", "ประเภท", "เลขมิเตอร์", "หน่วยที่ใช้", "หน่วยนับ", "ผู้บันทึก", "หมายเหตุ"]];
     series.forEach((s) => s.rows.forEach((d) => rows.push([
@@ -1112,7 +1252,8 @@ function render() {
   }
   if (!S.me) { app.innerHTML = vGate(); return; }
   app.innerHTML = S.view === "rec" ? vRecord() : S.view === "hist" ? vHist()
-    : S.view === "rep" ? vRep() : S.view === "set" ? vSet() : vHome();
+    : S.view === "grid" ? vGrid() : S.view === "rep" ? vRep()
+    : S.view === "set" ? vSet() : vHome();
 
   document.querySelectorAll(".reg input[data-m]").forEach((el) => {
     el.addEventListener("input", (ev) => {
@@ -1133,6 +1274,11 @@ function render() {
   });
   const nt = $("#nt");
   if (nt) nt.addEventListener("input", (e) => { R.note = e.target.value; });
+
+  // the newest day sits at the bottom of the grid; open there
+  if (S.view === "grid") {
+    document.querySelectorAll(".gwrap").forEach((w) => { w.scrollTop = w.scrollHeight; });
+  }
 }
 
 /* ================= actions ================= */
@@ -1161,7 +1307,7 @@ document.addEventListener("click", async (ev) => {
 
   if (a === "go") {
     const v = el.dataset.v;
-    if (v === "hist" || v === "rep") { S.month = thisMonth(); await refreshMonth(S.month); }
+    if (v === "hist" || v === "rep" || v === "grid") { S.month = thisMonth(); await refreshMonth(S.month); }
     if (v === "set") { SET.tab = "points"; SET.open = null; }
     S.view = v; render(); return;
   }
@@ -1176,6 +1322,7 @@ document.addEventListener("click", async (ev) => {
   if (a === "doprint") { print(); return; }
   if (a === "mv") { S.month = shiftMonth(S.month, Number(el.dataset.k)); await refreshMonth(S.month); render(); return; }
   if (a === "stab") { SET.tab = el.dataset.t; render(); if (SET.tab === "data") countPhotos(); return; }
+  if (a === "gmode") { GRID.mode = el.dataset.m; render(); return; }
   if (a === "shot") { pickPhoto(); return; }
   if (a === "rmshot") { R.shots.splice(Number(el.dataset.i), 1); render(); return; }
 
@@ -1323,16 +1470,23 @@ async function prune(btn) {
 /** load a month plus the closing value each meter carried into it */
 async function refreshMonth(m) {
   await loadMonth(m, true);
-  const pm = await loadMonth(shiftMonth(m, -1));
+  // Look back up to three months, the same window the record screen uses:
+  // a meter skipped for a whole month still gets its opening value, so the
+  // first day of the month is never silently left without a usage figure.
+  const back = [];
+  for (let i = 1; i <= 3; i++) back.push(await loadMonth(shiftMonth(m, -i)));
   const priors = {};
   S.points.forEach((p) => {
-    const days = pm[p.id] || {};
-    const keys = Object.keys(days).sort().reverse();
     const per = {};
     activeMeters(p).forEach((mt) => {
-      for (const k of keys) {
-        const v = (days[k].vals || {})[mt.id];
-        if (v != null) { per[mt.id] = v; break; }
+      for (const pm of back) {
+        const days = pm[p.id] || {};
+        let found = null;
+        for (const k of Object.keys(days).sort().reverse()) {
+          const v = (days[k].vals || {})[mt.id];
+          if (v != null) { found = v; break; }
+        }
+        if (found != null) { per[mt.id] = found; break; }
       }
     });
     priors[p.id] = per;
