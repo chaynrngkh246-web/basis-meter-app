@@ -328,6 +328,11 @@ table.pt tr.grp td{background:#fafbfd;font-weight:600;font-size:11.5px}
 .pmeta i{font-style:normal;color:#9aa5b5}
 .pnotes{margin-top:8px;font-size:10px;color:#4d5665;line-height:1.6}
 .pnotes b{color:#14181f}
+/* a sheet with many meters is wider than a portrait page — it scrolls in the
+   preview and turns sideways when printed, the way the workbook's own wide
+   tabs are printed */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.wideh{font-size:10px;color:#7d8797;margin:6px 0 0}
 table.pt.log{font-size:11px}
 table.pt.log th{text-align:center;vertical-align:middle;padding:4px 6px;line-height:1.25;
   text-transform:none;letter-spacing:0;font-size:9.5px}
@@ -355,13 +360,36 @@ table.pt.log tr.avg td{font-weight:500;color:#4d5665}
   border-top:1px solid #dce1e9;padding-top:8px}
 
 @page{size:A4;margin:14mm}
+@page land{size:A4 landscape;margin:11mm}
 @media print{
+  /* a wide sheet turns sideways, and everything around its table tightens so
+     the month still lands on a single page — one sheet, one piece of paper */
+  .psheet.wide{page:land}
+  .psheet.wide table.pt.log{font-size:7.5px}
+  .psheet.wide table.pt.log th{padding:2px 3px;line-height:1.15}
+  .psheet.wide table.pt.log td{padding:1px 3px;line-height:1.15}
+  .psheet.wide .ph{padding-bottom:6px}
+  .psheet.wide .ph h2{font-size:14px}
+  .psheet.wide .ph .org{display:none}
+  .psheet.wide .idbox{font-size:9px;min-width:176px}
+  .psheet.wide .idbox div{padding:2px 7px}
+  .psheet.wide .idbox b{font-size:10px}
+  .psheet.wide .pmeta{font-size:8.5px;padding:4px 8px;margin:6px 0}
+  .psheet.wide .pnotes{margin-top:5px;font-size:8.5px}
+  .psheet.wide .pcheck{margin-top:9px;font-size:9px}
+  .psheet.wide .pfoot{margin-top:11px;font-size:8.5px}
+  .tw{overflow:visible}
+  .wideh{display:none}
   html,body{background:#fff!important}
   .wrap,.tabs,.dock,.paperbar,.lb{display:none!important}
   #paperwrap{display:block!important}
   .paperscroll{padding:0;overflow:visible;background:#fff}
   .paper{width:auto;min-height:0;box-shadow:none;padding:0;margin:0}
   table.pt{font-size:10.5px}
+  /* the round-by-round summary is a list, not a form: it can sit tighter so a
+     school with every meter installed still opens on a single page */
+  table.pt.psum th{padding:5px 8px}
+  table.pt.psum td{padding:3px 8px}
   table.pt th{background:#f0f3f7!important}
   table.pt tr.tot td,table.pt tr.grp td,table.pt tr.avg td{background:#f0f3f7!important}
   table.pt.log tbody tr:nth-child(even) td{background:#fbfcfe!important}
@@ -408,7 +436,9 @@ function thDate(ds) { const [y,m,d] = ds.split("-").map(Number); return d + " " 
 function thMonth(ms) { const [y,m] = ms.split("-").map(Number); return TH_L[m-1] + " " + (y+543); }
 function shiftMonth(ms, k) { const [y,m] = ms.split("-").map(Number); const d = new Date(y, m-1+k, 1);
   return d.getFullYear() + "-" + pad2(d.getMonth()+1); }
-const fmt = (n) => (n == null || Number.isNaN(n) ? "—" : Number(n).toLocaleString("en-US", { maximumFractionDigits: 2 }));
+/* 3 decimals, because the TOU sheet's demand registers are written that way
+   (0.535 K-Var); ordinary readings carry none and are unaffected */
+const fmt = (n) => (n == null || Number.isNaN(n) ? "—" : Number(n).toLocaleString("en-US", { maximumFractionDigits: 3 }));
 /** meters read to 2 decimals; round every subtraction so accounting never sees 63.06000000005588 */
 const r2 = (n) => Math.round(n * 100) / 100;
 
@@ -476,6 +506,68 @@ function seedPoints() {
   }));
 }
 const activeMeters = (p) => (p.meters || []).filter((m) => m.active !== false);
+
+/* ---------- the workbook's four sheets ----------
+   The team walks the school point by point, but accounting has always been
+   handed one sheet per tab of the Excel file. A meter therefore belongs to
+   two things at once: the round it is read on, and the sheet it is printed
+   on. The rounds live in `points`; this is the sheet side. */
+const SHEETS = [
+  { id: "tou", name: "TOU", en: "Record Electrical Meter", sub: "MAIN For MEA — มิเตอร์ TOU ของการไฟฟ้า" },
+  { id: "kwh", name: "Kwh", en: "Record Electrical Meter", sub: "มิเตอร์ไฟฟ้าย่อยในโรงเรียน" },
+  { id: "coffee", name: "Coffee", en: "Record Electrical Meter", sub: "Coffee Store at BASIS International School" },
+  { id: "water", name: "น้ำ (MW meter)", en: "Record Water Meter", sub: "มิเตอร์น้ำหลักและมิเตอร์น้ำย่อย" },
+];
+/** a meter written before sheets existed still has to print somewhere */
+const sheetOf = (m) => (SHEETS.some((x) => x.id === m.sheet) ? m.sheet : m.type === "water" ? "water" : "kwh");
+const sheetMeta = (id) => SHEETS.find((x) => x.id === id) || SHEETS[1];
+
+/* Every meter column of the workbook, sheet by sheet: [sheet, label, unit,
+   type, round it is walked on, snapshot?]. A "snapshot" register (max demand,
+   K-Var) is read, not consumed — nothing is subtracted from the day before.
+   The round is a guess wherever the sheet does not say; "" parks the meter in
+   a holding round for someone to place in ตั้งค่า. */
+const KWH_UNKNOWN = 7;   // the Kwh sheet's own column headers are not legible yet
+const EXCEL = [
+  ["tou", "Total Con Sump.", "kWh", "electric", "MEA มิเตอร์การไฟฟ้า"],
+  ["tou", "Con Sump. On Peak", "kWh", "electric", "MEA มิเตอร์การไฟฟ้า"],
+  ["tou", "Con Sump. Off Peak", "kWh", "electric", "MEA มิเตอร์การไฟฟ้า"],
+  ["tou", "Max Demand On Peak", "KW-H", "electric", "MEA มิเตอร์การไฟฟ้า", true],
+  ["tou", "Max Demand", "KW-H", "electric", "MEA มิเตอร์การไฟฟ้า", true],
+  ["tou", "Max K-Var On Peak", "K-Var", "electric", "MEA มิเตอร์การไฟฟ้า", true],
+  ["tou", "Max K-Var Off Peak", "K-Var", "electric", "MEA มิเตอร์การไฟฟ้า", true],
+  ["coffee", "A1EPCF (Coffee)", "kWh", "electric", "Arts and Coffee"],
+  ["coffee", "A1PCF (Coffee)", "kWh", "electric", "Arts and Coffee"],
+  ["coffee", "Canteen (CTx5)", "kWh", "electric", "Science and Canteen"],
+  ["coffee", "Canteen (Emergency)", "kWh", "electric", "Science and Canteen"],
+  ["coffee", "Pantry (Kinder)", "kWh", "electric", "Kinder"],
+  ["coffee", "West Teasment", "kWh", "electric", ""],
+  ["water", "Main Meter", M3, "water", ""],
+  ["water", "Softenner", M3, "water", ""],
+  ["water", "Canteen", M3, "water", "Science and Canteen"],
+  ["water", "Pool", M3, "water", "Pool & Swimming Pool System"],
+  ["water", 'Irrigation (3")', M3, "water", "Irrigation Water Meter"],
+];
+const PARK = "ยังไม่ระบุจุด";
+
+/** rebuild every point's meters from the workbook, keeping the rounds as they are */
+function excelMeters(points) {
+  const out = points.map((p) => ({ ...p, meters: [] }));
+  const park = () => {
+    let p = out.find((x) => x.name === PARK);
+    if (!p) { p = { id: rid("p"), name: PARK, location: "", order: out.length, active: true, meters: [] }; out.push(p); }
+    return p;
+  };
+  const rows = EXCEL.concat(
+    Array.from({ length: KWH_UNKNOWN }, (_, i) => ["kwh", "Kwh " + (i + 1), "kWh", "electric", ""]));
+  rows.forEach(([sheet, label, unit, type, at, snap]) => {
+    const p = (at && out.find((x) => x.name === at)) || park();
+    const m = { id: rid("m"), type: type, label: label, unit: unit, sheet: sheet };
+    if (snap) m.snap = true;
+    p.meters.push(m);
+  });
+  return out;
+}
 
 /* ================= firestore adapter =================
    Wraps Firestore in the small surface the app uses, so the data layer
@@ -595,14 +687,16 @@ async function shrink(file) {
 }
 
 /* ================= usage maths ================= */
-function meterRows(pid, mid, days, prior) {
+/** `snap` marks a register that is read rather than consumed — a max-demand
+    figure has no "used since yesterday", so nothing is subtracted */
+function meterRows(pid, mid, days, prior, snap) {
   let prev = prior;
   const out = [];
   Object.keys(days).sort().forEach((k) => {
     const v = (days[k].vals || {})[mid];
     if (v == null) return;
     out.push({ day: k, v: v, by: days[k].by, note: days[k].note, photos: days[k].photos || [],
-      use: prev == null ? null : r2(Math.max(v - prev, 0)) });
+      use: snap || prev == null ? null : r2(Math.max(v - prev, 0)) });
     prev = v;
   });
   return out;
@@ -617,20 +711,26 @@ function monthSeries(month) {
     if (!days) return;
     activeMeters(p).forEach((m) => {
       const prior = (priors[p.id] || {})[m.id];
-      const rows = meterRows(p.id, m.id, days, prior == null ? null : prior);
+      const rows = meterRows(p.id, m.id, days, prior == null ? null : prior, m.snap);
       if (!rows.length) return;
       const open = prior == null ? rows[0].v : prior;
       const close = rows[rows.length - 1].v;
-      out.push({ p: p, m: m, rows: rows, open: open, close: close,
-        use: r2(Math.max(close - open, 0)), n: rows.length });
+      out.push({ p: p, m: m, rows: rows, open: open, close: close, snap: !!m.snap,
+        // a snapshot register's month is its highest reading, not a difference
+        use: m.snap ? Math.max(...rows.map((r) => r.v)) : r2(Math.max(close - open, 0)),
+        n: rows.length });
     });
   });
   return out;
 }
-/** units in a stable order: electricity first, then water, then anything else */
+/** units in a stable order: electricity first, then water, then anything else.
+    Snapshot registers are left out — a max-demand figure is not a total. */
 function unitOrder(series) {
   const seen = [];
-  series.forEach((s) => { if (!seen.some((u) => u.unit === s.m.unit)) seen.push({ unit: s.m.unit, type: s.m.type }); });
+  series.forEach((s) => {
+    if (s.snap) return;
+    if (!seen.some((u) => u.unit === s.m.unit)) seen.push({ unit: s.m.unit, type: s.m.type });
+  });
   const rank = (t) => (t === "electric" ? 0 : t === "water" ? 1 : 2);
   return seen.sort((a, b) => rank(a.type) - rank(b.type) || a.unit.localeCompare(b.unit));
 }
@@ -822,8 +922,12 @@ function meterCard(m) {
       'data-m="' + esc(m.id) + '" aria-label="เลขมิเตอร์ ' + esc(m.label) + '" value="' + esc(raw) + '"></div>' +
     '<div class="mfoot"><span>ครั้งก่อน <b>' + (pv == null ? "—" : fmt(pv)) + "</b>" +
       (R.prevs[m.id] ? " <span style=\"opacity:.75\">(" + thDate(R.prevs[m.id].date) + ")</span>" : "") + "</span>" +
-      '<span class="u">ใช้ไป <b id="u_' + esc(m.id) + '">' + (use == null || use < 0 ? "—" : fmt(use)) + "</b> " + esc(m.unit) + "</span></div>" +
-    '<div class="mwarn" id="w_' + esc(m.id) + '"' + (back ? "" : " hidden") + ">เลขน้อยกว่าครั้งก่อน — ตรวจสอบอีกครั้ง หรือใส่หมายเหตุถ้าเปลี่ยนมิเตอร์ใหม่</div>" +
+      // a max-demand register is read, not consumed: there is nothing to subtract
+      (m.snap ? '<span class="u">ค่าที่อ่านได้</span>'
+        : '<span class="u">ใช้ไป <b id="u_' + esc(m.id) + '">' + (use == null || use < 0 ? "—" : fmt(use)) + "</b> " + esc(m.unit) + "</span>") +
+    "</div>" +
+    (m.snap ? "" : '<div class="mwarn" id="w_' + esc(m.id) + '"' + (back ? "" : " hidden") +
+      ">เลขน้อยกว่าครั้งก่อน — ตรวจสอบอีกครั้ง หรือใส่หมายเหตุถ้าเปลี่ยนมิเตอร์ใหม่</div>") +
     "</div>";
 }
 
@@ -986,7 +1090,7 @@ function vRep() {
   const series = monthSeries(S.month);
   const units = unitOrder(series);
   const byUnit = {};
-  series.forEach((s) => { byUnit[s.m.unit] = r2((byUnit[s.m.unit] || 0) + s.use); });
+  series.forEach((s) => { if (!s.snap) byUnit[s.m.unit] = r2((byUnit[s.m.unit] || 0) + s.use); });
   const daily = dailyTable(S.month, series);
 
   const body = monthBar() + (series.length ? (
@@ -1030,28 +1134,38 @@ function vRep() {
 }
 
 /**
- * One sheet of the team's workbook: every calendar day of the month down the
- * page — a day nobody read stays as a blank line, the way the paper sheet
- * shows it — each meter as the pair of columns accounting expects (the number
- * on the dial, then what it used since the previous reading), plus the time
- * the round was walked and who walked it.
+ * One sheet of the workbook: every calendar day of the month down the page —
+ * a day nobody read stays as a blank line, the way the paper sheet shows it —
+ * each meter as the pair of columns accounting expects (the number on the
+ * dial, then what it used since the previous reading), plus the time the
+ * reading was taken and who took it. The meters on a sheet may be walked on
+ * different rounds, so a day's time is the earliest of them and its Record By
+ * names everyone who wrote a number that day.
  */
-function sheetRows(point, ms, month) {
-  const days = (S.months[month] || {})[point.id] || {};
+function sheetRows(ms, month) {
+  const md = S.months[month] || {};
   const last = month === thisMonth() ? Number(today().slice(8, 10)) : daysInMonth(month);
+  const pts = [];
+  ms.forEach((s) => { if (!pts.some((p) => p.id === s.p.id)) pts.push(s.p); });
   const out = [];
   for (let d = 1; d <= last; d++) {
     const dd = pad2(d);
-    const e = days[dd];
     const cells = ms.map((s) => {
       const r = s.rows.find((x) => x.day === dd);
       return r ? { v: r.v, use: r.use } : null;
     });
+    const es = pts.map((p) => ({ p: p, e: (md[p.id] || {})[dd] })).filter((x) => x.e);
+    const times = es.map((x) => x.e.ts).filter(Boolean);
+    const by = [];
+    es.forEach((x) => { if (x.e.by && !by.includes(x.e.by)) by.push(x.e.by); });
     out.push({
       day: dd,
-      time: e && e.ts ? new Date(e.ts) : null,
-      by: (e && e.by) || "",
-      note: (e && e.note) || "",
+      time: times.length ? new Date(Math.min.apply(null, times)) : null,
+      by: by.join(", "),
+      // a note belongs to the round it was written on, so name it when a sheet
+      // draws on more than one
+      notes: es.filter((x) => x.e.note)
+        .map((x) => (pts.length > 1 ? x.p.name + ": " : "") + x.e.note),
       cells: cells,
       read: cells.some((c) => c),
     });
@@ -1059,7 +1173,13 @@ function sheetRows(point, ms, month) {
   return out;
 }
 
-/** the same series, bucketed under the point it belongs to, in walking order */
+/** the series bucketed by the sheet each meter is printed on, in workbook order */
+function sheetGroups(series) {
+  return SHEETS.map((sh) => ({ sh: sh, ms: series.filter((s) => sheetOf(s.m) === sh.id) }))
+    .filter((g) => g.ms.length);
+}
+
+/** the same series, bucketed under the round it is walked on */
 function pointGroups(series) {
   const groups = [];
   series.forEach((s) => {
@@ -1118,16 +1238,16 @@ function buildPaper() {
   const series = monthSeries(S.month);
   const units = unitOrder(series);
   const byUnit = {};
-  series.forEach((s) => { byUnit[s.m.unit] = r2((byUnit[s.m.unit] || 0) + s.use); });
+  series.forEach((s) => { if (!s.snap) byUnit[s.m.unit] = r2((byUnit[s.m.unit] || 0) + s.use); });
   const days = series.reduce((a, s) => Math.max(a, s.n), 0);
   const printed = new Date();
   const stamp = thDate(dstr(printed)) + " เวลา " + pad2(printed.getHours()) + ":" + pad2(printed.getMinutes());
 
-  const groups = pointGroups(series);
-  const flags = monthFlags(S.month, groups);
-  // a point read on no day of the month has no sheet to print
-  const sheets = groups
-    .map((g) => ({ g: g, rows: sheetRows(g.p, g.ms, S.month) }))
+  const rounds = pointGroups(series);
+  const flags = monthFlags(S.month, rounds);
+  // the team walks by round; accounting is handed the workbook's four sheets
+  const sheets = sheetGroups(series)
+    .map((g) => ({ g: g, rows: sheetRows(g.ms, S.month) }))
     .filter((x) => x.rows.some((r) => r.read));
   const pages = sheets.length + 1;
 
@@ -1144,28 +1264,32 @@ function buildPaper() {
       '<div class="pkpi">' + units.map((u) =>
         "<div><div class=\"k\">" + (u.type === "electric" ? "ไฟฟ้ารวมทั้งเดือน" : "น้ำรวมทั้งเดือน") + "</div>" +
         '<div class="v">' + fmt(byUnit[u.unit] || 0) + " <span style=\"font-size:12px;font-weight:500\">" + esc(u.unit) + "</span></div></div>").join("") +
-        "<div><div class=\"k\">จุดที่บันทึก</div><div class=\"v\">" + groups.length +
+        "<div><div class=\"k\">จุดที่บันทึก</div><div class=\"v\">" + rounds.length +
           " <span style=\"font-size:12px;font-weight:500\">จุด</span></div></div>" +
         "<div><div class=\"k\">จำนวนวันที่บันทึก</div><div class=\"v\">" + days +
           " <span style=\"font-size:12px;font-weight:500\">วัน</span></div></div>" +
       "</div>" +
 
-      '<div class="psec">สรุปการใช้แยกตามจุด <i>· Consumption by point</i></div>' +
-      '<table class="pt"><thead><tr><th>จุด / มิเตอร์</th><th style="text-align:right">เลขต้นเดือน</th>' +
+      // by round, because that is how the school reads it — with the sheet each
+      // meter prints on named, so the two views can be checked against each other
+      '<div class="psec">สรุปการใช้แยกตามจุดที่เดินเก็บ <i>· Consumption by round</i></div>' +
+      '<table class="pt psum"><thead><tr><th>จุด / มิเตอร์</th><th>แผ่นพิมพ์</th>' +
+        '<th style="text-align:right">เลขต้นเดือน</th>' +
         '<th style="text-align:right">เลขปลายเดือน</th><th style="text-align:right">หน่วยที่ใช้</th>' +
         '<th>หน่วยนับ</th><th style="text-align:right">วันที่บันทึก</th></tr></thead><tbody>' +
-        groups.map((g) =>
-          '<tr class="grp"><td colspan="6">' + esc(g.p.name) + "</td></tr>" +
+        rounds.map((g) =>
+          '<tr class="grp"><td colspan="7">' + esc(g.p.name) + "</td></tr>" +
+          // the sheet and the unit already say what kind of meter it is
           g.ms.map((s) => {
-            // only name the utility when the meter's own label doesn't already say it
-            const tn = s.m.type === "electric" ? "ไฟฟ้า" : "น้ำ";
-            const tag = s.m.label.includes(tn) ? "" : ' <span style="color:#7d8797">(' + tn + ")</span>";
-            return "<tr><td style=\"padding-left:20px\">" + esc(s.m.label) + tag + "</td>" +
+            return "<tr><td style=\"padding-left:20px\">" + esc(s.m.label) + "</td>" +
+              "<td>" + esc(sheetMeta(sheetOf(s.m)).name) + "</td>" +
               '<td class="n">' + fmt(s.open) + '</td><td class="n">' + fmt(s.close) + "</td>" +
-              '<td class="n"><b>' + fmt(s.use) + "</b></td><td>" + esc(s.m.unit) + "</td>" +
+              '<td class="n"><b>' + fmt(s.use) + "</b>" +
+              (s.snap ? ' <span style="color:#7d8797;font-weight:400">สูงสุด</span>' : "") + "</td>" +
+              "<td>" + esc(s.m.unit) + "</td>" +
               '<td class="n">' + s.n + "</td></tr>";
           }).join("")).join("") +
-        units.map((u) => '<tr class="tot"><td>รวม' + (u.type === "electric" ? "ไฟฟ้า" : "น้ำ") +
+        units.map((u) => '<tr class="tot"><td colspan="2">รวม' + (u.type === "electric" ? "ไฟฟ้า" : "น้ำ") +
           "ทั้งหมด</td><td></td><td></td>" + '<td class="n">' + fmt(byUnit[u.unit] || 0) +
           "</td><td>" + esc(u.unit) + "</td><td></td></tr>").join("") +
         "</tbody></table>" +
@@ -1187,55 +1311,73 @@ function buildPaper() {
 
       pageFoot("ออกเอกสารเมื่อ " + stamp + " · ข้อมูลจากการบันทึกมิเตอร์ประจำวันของทีมช่าง", 1, pages) +
 
-      // then one sheet per point, laid out the way the team's own workbook
-      // does it: days down the page, every meter a pair of columns (the
-      // number on the dial, then what it used), a Total row, and a sign-off
+      // then the workbook's own sheets, one printed page each, laid out the way
+      // the team's Excel does it: days down the page, every meter a pair of
+      // columns (the number on the dial, then what it used), a Total row and a
+      // sign-off. A max-demand register is read, not consumed, so it keeps a
+      // single column and its month is summed as the highest reading.
       sheets.map(({ g, rows }, i) => {
-        const tot = g.ms.map((s) => r2(s.rows.reduce((a, x) => a + (x.use || 0), 0)));
-        const nUse = g.ms.map((s) => s.rows.filter((x) => x.use != null).length);
-        return '<div class="psheet">' +
-          paperHead("บันทึกค่ามิเตอร์ประจำวัน · " + g.p.name, "Daily Meter Record",
-            ORG, i + 2, pages) +
-          '<div class="pmeta">' + g.ms.map((s) => {
-            const tn = s.m.type === "electric" ? "ไฟฟ้า" : "น้ำ";
-            return "<span><b>" + esc(s.m.label) + "</b> <i>" +
-              (s.m.label.includes(tn) ? "" : tn + " · ") + esc(s.m.unit) + "</i>" +
-              (s.m.no ? ' <i>Meter No.</i> <b>' + esc(s.m.no) + "</b>" : "") + "</span>";
-          }).join("") + "</div>" +
-          '<table class="pt log"><thead><tr>' +
+        const tot = g.ms.map((s) => s.snap
+          ? Math.max.apply(null, s.rows.map((x) => x.v))
+          : r2(s.rows.reduce((a, x) => a + (x.use || 0), 0)));
+        const nUse = g.ms.map((s) => s.rows.filter((x) => (s.snap ? x.v : x.use) != null).length);
+        const at = [];
+        g.ms.forEach((s) => { if (!at.includes(s.p.name)) at.push(s.p.name); });
+        const wide = g.ms.reduce((a, s) => a + (s.snap ? 1 : 2), 0) > 6;
+        return '<div class="psheet' + (wide ? " wide" : "") + '">' +
+          paperHead("บันทึกค่ามิเตอร์ประจำวัน · แผ่น " + g.sh.name, g.sh.en, g.sh.sub, i + 2, pages) +
+          '<div class="pmeta">' +
+            (at.length === 1 ? "<span><i>เดินเก็บที่</i> <b>" + esc(at[0]) + "</b></span>" : "") +
+            g.ms.map((s) =>
+              "<span><b>" + esc(s.m.label) + "</b> <i>" + esc(s.m.unit) +
+              (s.snap ? " · ค่าที่อ่านได้" : "") +
+              (at.length > 1 ? " · " + esc(s.p.name) : "") + "</i>" +
+              (s.m.no ? ' <i>Meter No.</i> <b>' + esc(s.m.no) + "</b>" : "") + "</span>").join("") +
+          "</div>" +
+          '<div class="tw"><table class="pt log"><thead><tr>' +
             '<th rowspan="2">วันที่<br><span style="font-weight:400">Date</span></th>' +
             '<th rowspan="2">เวลา<br><span style="font-weight:400">Time</span></th>' +
-            g.ms.map((s) => '<th colspan="2" class="mh">' + esc(s.m.label) + "</th>").join("") +
+            g.ms.map((s) => '<th class="mh"' + (s.snap ? ' rowspan="2"' : ' colspan="2"') + ">" +
+              esc(s.m.label) +
+              // two rounds can each have a meter called "ไฟฟ้า"; say which is which
+              (at.length > 1 ? '<br><span style="font-weight:400">' + esc(s.p.name) + "</span>" : "") +
+              (s.snap ? '<br><span style="font-weight:400">' + esc(s.m.unit) + "</span>" : "") +
+              "</th>").join("") +
             '<th rowspan="2">ผู้บันทึก<br><span style="font-weight:400">Record By</span></th>' +
           "</tr><tr>" +
-            g.ms.map((s) => '<th class="sub">เลขมิเตอร์<br><span style="font-weight:400">Reading</span></th>' +
+            g.ms.map((s) => s.snap ? "" :
+              '<th class="sub">เลขมิเตอร์<br><span style="font-weight:400">Reading</span></th>' +
               '<th class="sub">จำนวนที่ใช้<br><span style="font-weight:400">(' +
               esc(s.m.unit) + ")</span></th>").join("") +
           "</tr></thead><tbody>" +
             rows.map((r) => '<tr' + (r.read ? "" : ' class="miss"') + '><td class="d">' + Number(r.day) + "</td>" +
               '<td class="d">' + (r.time ? pad2(r.time.getHours()) + ":" + pad2(r.time.getMinutes()) : "—") + "</td>" +
-              r.cells.map((c) => '<td class="n">' + (c ? fmt(c.v) : "—") + "</td>" +
-                '<td class="n use">' + (c && c.use != null ? fmt(c.use) : "—") + "</td>").join("") +
+              r.cells.map((c, k) => '<td class="n">' + (c ? fmt(c.v) : "—") + "</td>" +
+                (g.ms[k].snap ? "" : '<td class="n use">' + (c && c.use != null ? fmt(c.use) : "—") + "</td>")).join("") +
               "<td>" + esc(r.by) + "</td></tr>").join("") +
             '<tr class="tot"><td colspan="2">รวม / Total</td>' +
-              tot.map((t) => '<td></td><td class="n">' + fmt(t) + "</td>").join("") +
+              g.ms.map((s, k) => (s.snap ? "" : "<td></td>") +
+                '<td class="n">' + (s.snap ? "สูงสุด " : "") + fmt(tot[k]) + "</td>").join("") +
               "<td></td></tr>" +
             '<tr class="avg"><td colspan="2">เฉลี่ยต่อวัน / Average</td>' +
-              tot.map((t, k) => '<td></td><td class="n">' +
-                (nUse[k] ? fmt(r2(t / nUse[k])) : "—") + "</td>").join("") +
+              g.ms.map((s, k) => (s.snap ? "" : "<td></td>") + '<td class="n">' +
+                (s.snap || !nUse[k] ? "—" : fmt(r2(tot[k] / nUse[k]))) + "</td>").join("") +
               "<td></td></tr>" +
-          "</tbody></table>" +
+          "</tbody></table></div>" +
+          (wide ? '<p class="wideh">แผ่นนี้กว้างกว่าหน้าจอ — เลื่อนตารางซ้าย-ขวาเพื่อดูทุกคอลัมน์ ' +
+            "เวลาพิมพ์จะออกเป็นแนวนอนเต็มแผ่นเดียว</p>" : "") +
           // what the technician wrote that day — the line accounting needs when
           // a number jumps, and the paper sheet has nowhere to put
-          (rows.some((r) => r.note)
-            ? '<div class="pnotes"><b>หมายเหตุ / Notes:</b> ' + rows.filter((r) => r.note)
-                .map((r) => "วันที่ " + Number(r.day) + " — " + esc(r.note)).join(" · ") + "</div>"
+          (rows.some((r) => r.notes.length)
+            ? '<div class="pnotes"><b>หมายเหตุ / Notes:</b> ' + rows.filter((r) => r.notes.length)
+                .map((r) => "วันที่ " + Number(r.day) + " — " + esc(r.notes.join(" / "))).join(" · ") + "</div>"
             : "") +
           '<div class="pcheck">' +
             "<div><span>ตรวจสอบโดย<i>CHECK BY</i></span><b></b></div>" +
             "<div><span>หัวหน้าไซต์งาน<i>SITE SUPERVISOR</i></span><b></b></div>" +
             "<div><span>วันที่<i>DATE</i></span><b></b></div></div>" +
-          pageFoot(esc(g.p.name) + " · " + thMonth(S.month), i + 2, pages) +
+          pageFoot("แผ่น " + esc(g.sh.name) + " · เดินเก็บที่ " + at.map(esc).join(", ") +
+            " · " + thMonth(S.month), i + 2, pages) +
         "</div>";
       }).join("") +
     "</div></div>";
@@ -1263,13 +1405,13 @@ function doCsv(kind) {
   if (!series.length) return toast("ยังไม่มีข้อมูลในเดือนนี้", true);
   let rows, name;
   if (kind === "sum") {
-    rows = [["จุด", "มิเตอร์", "ประเภท", "เลขต้นเดือน", "เลขปลายเดือน", "หน่วยที่ใช้", "หน่วยนับ", "จำนวนวันที่บันทึก"]];
-    series.forEach((s) => rows.push([s.p.name, s.m.label, s.m.type === "electric" ? "ไฟฟ้า" : "น้ำ",
-      s.open, s.close, s.use, s.m.unit, s.n]));
+    rows = [["จุด", "แผ่นพิมพ์", "มิเตอร์", "ประเภท", "เลขต้นเดือน", "เลขปลายเดือน", "หน่วยที่ใช้", "หน่วยนับ", "จำนวนวันที่บันทึก"]];
+    series.forEach((s) => rows.push([s.p.name, sheetMeta(sheetOf(s.m)).name, s.m.label,
+      s.m.type === "electric" ? "ไฟฟ้า" : "น้ำ", s.open, s.close, s.use, s.m.unit, s.n]));
     const byUnit = {};
-    series.forEach((s) => { byUnit[s.m.unit] = r2((byUnit[s.m.unit] || 0) + s.use); });
+    series.forEach((s) => { if (!s.snap) byUnit[s.m.unit] = r2((byUnit[s.m.unit] || 0) + s.use); });
     rows.push([]);
-    Object.keys(byUnit).forEach((u) => rows.push(["รวมทั้งหมด", "", "", "", "", byUnit[u], u, ""]));
+    Object.keys(byUnit).forEach((u) => rows.push(["รวมทั้งหมด", "", "", "", "", "", byUnit[u], u, ""]));
     name = "BISB-summary-" + S.month + ".csv";
   } else if (kind === "day") {
     const d = dailyTable(S.month, series);
@@ -1293,9 +1435,10 @@ function doCsv(kind) {
     });
     name = "BISB-month-grid-" + S.month + ".csv";
   } else {
-    rows = [["วันที่", "จุด", "มิเตอร์", "ประเภท", "เลขมิเตอร์", "หน่วยที่ใช้", "หน่วยนับ", "ผู้บันทึก", "หมายเหตุ"]];
+    rows = [["วันที่", "จุด", "แผ่นพิมพ์", "มิเตอร์", "ประเภท", "เลขมิเตอร์", "หน่วยที่ใช้", "หน่วยนับ", "ผู้บันทึก", "หมายเหตุ"]];
     series.forEach((s) => s.rows.forEach((d) => rows.push([
-      thDate(S.month + "-" + d.day), s.p.name, s.m.label, s.m.type === "electric" ? "ไฟฟ้า" : "น้ำ",
+      thDate(S.month + "-" + d.day), s.p.name, sheetMeta(sheetOf(s.m)).name, s.m.label,
+      s.m.type === "electric" ? "ไฟฟ้า" : "น้ำ",
       d.v, d.use == null ? "" : d.use, s.m.unit, d.by || "", d.note || "" ])));
     name = "BISB-meter-detail-" + S.month + ".csv";
   }
@@ -1325,14 +1468,32 @@ function setPoints() {
         '<button class="btn ghost sm" data-act="popen" data-id="' + esc(p.id) + '">' + (open ? "ปิด" : "มิเตอร์") + "</button>" +
         '<button class="btn ghost sm" data-act="togp" data-id="' + esc(p.id) + '">' + (p.active === false ? "เปิดใช้" : "ปิด") + "</button>" +
         "</div>" +
-        (open ? (p.meters || []).map((m) => '<div class="rowline" style="padding-left:20px">' +
-            '<span class="dot ' + (m.type==="electric"?"e":"w") + '">' + mIcon(m.type) + "</span>" +
-            '<span class="pmain"><span style="font-size:12.5px;font-weight:600">' + esc(m.label) + "</span>" +
-            '<span class="note" style="font-size:11px">' + esc(m.unit) + "</span></span>" +
-            '<input class="inp" data-act="mno" data-p="' + esc(p.id) + '" data-m="' + esc(m.id) + '"' +
-              ' value="' + esc(m.no || "") + '" placeholder="เลขมิเตอร์" aria-label="หมายเลขมิเตอร์ ' + esc(m.label) + '"' +
-              ' style="width:104px;padding:7px 9px;font-size:12px">' +
-            '<button class="btn ghost sm" data-act="delm" data-p="' + esc(p.id) + '" data-m="' + esc(m.id) + '">ลบ</button></div>').join("") +
+        (open ? (p.meters || []).map((m) => '<div class="mrow">' +
+            '<div class="rowline" style="padding-left:20px">' +
+              '<span class="dot ' + (m.type==="electric"?"e":"w") + '">' + mIcon(m.type) + "</span>" +
+              '<span class="pmain"><span style="font-size:12.5px;font-weight:600">' + esc(m.label) + "</span>" +
+              '<span class="note" style="font-size:11px">' + esc(m.unit) +
+                (m.snap ? " · ค่าที่อ่านได้ (ไม่คิดส่วนต่าง)" : "") + "</span></span>" +
+              '<input class="inp" data-act="mno" data-p="' + esc(p.id) + '" data-m="' + esc(m.id) + '"' +
+                ' value="' + esc(m.no || "") + '" placeholder="เลขมิเตอร์" aria-label="หมายเลขมิเตอร์ ' + esc(m.label) + '"' +
+                ' style="width:104px;padding:7px 9px;font-size:12px">' +
+              '<button class="btn ghost sm" data-act="delm" data-p="' + esc(p.id) + '" data-m="' + esc(m.id) + '">ลบ</button>' +
+            "</div>" +
+            // a meter belongs to a round (where it is walked) and to a sheet
+            // (where it is printed); both are set right here
+            '<div class="rowline" style="padding-left:48px;gap:7px;font-size:11px;color:var(--ink-3)">' +
+              "<span>พิมพ์ในแผ่น</span>" +
+              '<select class="inp" data-act="msheet" data-p="' + esc(p.id) + '" data-m="' + esc(m.id) + '"' +
+                ' aria-label="แผ่นพิมพ์ของ ' + esc(m.label) + '" style="flex:1;padding:6px 8px;font-size:12px">' +
+                SHEETS.map((sh) => '<option value="' + sh.id + '"' +
+                  (sheetOf(m) === sh.id ? " selected" : "") + ">" + esc(sh.name) + "</option>").join("") +
+              "</select>" +
+              "<span>เดินเก็บที่</span>" +
+              '<select class="inp" data-act="mmove" data-p="' + esc(p.id) + '" data-m="' + esc(m.id) + '"' +
+                ' aria-label="จุดที่เดินเก็บ ' + esc(m.label) + '" style="flex:1;padding:6px 8px;font-size:12px">' +
+                list.map((o) => '<option value="' + esc(o.id) + '"' +
+                  (o.id === p.id ? " selected" : "") + ">" + esc(o.name) + "</option>").join("") +
+              "</select></div></div>").join("") +
           '<div class="rowline" style="padding-left:20px;gap:7px">' +
             '<input class="inp" id="ml_' + esc(p.id) + '" placeholder="ชื่อมิเตอร์" style="flex:1;padding:8px 10px;font-size:13px">' +
             '<select class="inp" id="mt_' + esc(p.id) + '" style="width:78px;padding:8px 6px;font-size:13px"><option value="electric">ไฟฟ้า</option><option value="water">น้ำ</option></select>' +
@@ -1342,6 +1503,12 @@ function setPoints() {
     }).join("") + "</div>"
     : emptyBox("gauge", "ยังไม่มีจุดมิเตอร์",
         '<button class="btn sm" data-act="seed" style="flex:none;padding:10px 18px">ติดตั้ง 10 จุดของ BISB</button>')) +
+  (list.length ? '<div class="card" style="padding:13px;margin-bottom:13px">' +
+    '<div class="eyebrow" style="margin-bottom:10px">ชุดมิเตอร์ตามไฟล์ Excel</div>' +
+    '<p class="note" style="margin:0 0 10px">แทนที่มิเตอร์ทั้งหมดด้วยคอลัมน์จริงจากสมุด Excel ' +
+      "4 แผ่น (TOU 7 · Kwh 7 · Coffee 6 · น้ำ 5) จุดที่เดินเก็บระบบเดาให้เท่าที่รู้ " +
+      'ตัวที่ยังไม่รู้จะไปกองที่จุด "' + PARK + '" ให้ย้ายเองทีหลัง</p>' +
+    '<button class="btn ghost block sm" data-act="excel">ติดตั้งชุดมิเตอร์จาก Excel</button></div>' : "") +
   '<div class="card" style="padding:13px">' +
     '<div class="eyebrow" style="margin-bottom:10px">เพิ่มจุดใหม่</div>' +
     '<input class="inp" id="pn" placeholder="ชื่อจุด เช่น Library" style="margin-bottom:9px">' +
@@ -1520,14 +1687,31 @@ function render() {
 }
 
 /* ================= actions ================= */
-/** the meter's own number, typed straight into the settings list and kept on blur */
+/** what a meter is — its number, the sheet it prints on, the round it is
+    walked on — is edited in place in the settings list and kept on change */
 document.addEventListener("change", async (ev) => {
-  const el = ev.target.closest('input[data-act="mno"]');
+  const el = ev.target.closest('[data-act="mno"],[data-act="msheet"],[data-act="mmove"]');
   if (!el) return;
-  const pid = el.dataset.p, mid = el.dataset.m, no = el.value.trim();
-  const items = S.points.map((p) => p.id === pid
-    ? { ...p, meters: (p.meters || []).map((m) => m.id === mid ? { ...m, no: no } : m) } : p);
-  try { await S.db.doc(P_POINTS).set({ items: items }); toast("บันทึกเลขมิเตอร์แล้ว"); }
+  const a = el.dataset.act, pid = el.dataset.p, mid = el.dataset.m, v = el.value.trim();
+  let items, msg;
+  if (a === "mmove") {
+    if (v === pid) return;
+    const meter = ((S.points.find((p) => p.id === pid) || {}).meters || []).find((m) => m.id === mid);
+    if (!meter) return;
+    // readings are filed under the round they were walked on, so they stay behind
+    if (!confirm("ย้าย \"" + meter.label + "\" ไปอีกจุด?\nค่าที่เคยบันทึกไว้ในจุดเดิมจะไม่ย้ายตามไปด้วย")) {
+      return render();
+    }
+    items = S.points.map((p) => p.id === pid ? { ...p, meters: p.meters.filter((m) => m.id !== mid) }
+      : p.id === v ? { ...p, meters: (p.meters || []).concat([meter]) } : p);
+    msg = "ย้ายมิเตอร์แล้ว";
+  } else {
+    const patch = a === "mno" ? { no: v } : { sheet: v };
+    items = S.points.map((p) => p.id === pid
+      ? { ...p, meters: (p.meters || []).map((m) => m.id === mid ? { ...m, ...patch } : m) } : p);
+    msg = a === "mno" ? "บันทึกเลขมิเตอร์แล้ว" : "เปลี่ยนแผ่นพิมพ์แล้ว";
+  }
+  try { await S.db.doc(P_POINTS).set({ items: items }); toast(msg); }
   catch (e) { toast(dbErr(e), true); }
 });
 
@@ -1614,6 +1798,16 @@ document.addEventListener("click", async (ev) => {
     el.disabled = true; el.textContent = "กำลังติดตั้ง…";
     try { await S.db.doc(P_POINTS).set({ items: seedPoints() }); toast("ติดตั้ง 10 จุดเรียบร้อย"); }
     catch (e) { toast(dbErr(e), true); render(); }
+    return;
+  }
+  if (a === "excel") {
+    if (!confirm("แทนที่มิเตอร์ทั้งหมดด้วยชุดจากไฟล์ Excel (4 แผ่น)?\n" +
+      "จุดที่เดินเก็บยังอยู่ครบ แต่ค่าที่เคยบันทึกไว้จะไม่ผูกกับมิเตอร์ชุดใหม่")) return;
+    el.disabled = true; el.textContent = "กำลังติดตั้ง…";
+    try {
+      await S.db.doc(P_POINTS).set({ items: excelMeters(S.points) });
+      toast("ติดตั้งชุดมิเตอร์จาก Excel แล้ว");
+    } catch (e) { toast(dbErr(e), true); render(); }
     return;
   }
 
