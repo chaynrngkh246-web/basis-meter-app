@@ -187,8 +187,12 @@ main{flex:1;padding:15px 15px 96px}
 .ledrow .vv{text-align:right;flex:none;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
 .ledrow .vv b{font-size:12.5px;font-weight:600}
 .ledrow .vv i{font-style:normal;font-size:11px;color:var(--ok);margin-left:6px}
-.thumb{width:30px;height:30px;border-radius:7px;border:1px solid var(--line);flex:none;background:var(--panel-2);padding:0;overflow:hidden}
-.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb{width:30px;height:30px;border-radius:7px;border:1px solid var(--line);flex:none;
+  background:var(--panel-2);padding:0;position:relative;display:grid;place-items:center;color:var(--ink-3)}
+.thumb svg{width:15px;height:15px;stroke-width:1.8}
+.thumb .n{position:absolute;right:-4px;top:-5px;background:var(--action);color:var(--action-ink);
+  font-size:9px;font-weight:600;line-height:1;padding:2px 4px;border-radius:99px}
+.thumb:active{background:var(--line)}
 
 table.sum{width:100%;border-collapse:collapse;font-size:13px}
 table.sum th{text-align:left;font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:var(--ink-3);font-weight:600;padding:9px 10px;border-bottom:1px solid var(--line-2);white-space:nowrap}
@@ -213,6 +217,16 @@ table.gt tr.blank .c0{color:var(--ink-3)}
 table.gt .sum{background:var(--panel-2);font-weight:600}
 table.gt tfoot td{position:sticky;bottom:0;background:var(--panel-2);font-weight:600;border-top:1px solid var(--line-2)}
 table.gt tfoot .c0{z-index:3}
+
+.ledrow{cursor:pointer}
+.ledrow:active{background:var(--panel-2)}
+.ledrow .go{flex:none;color:var(--line-2);display:flex}
+.ledrow .go svg{width:15px;height:15px;stroke-width:2}
+.daylink{background:none;border:none;padding:0;font:inherit;color:var(--action);text-align:left;
+  text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--line-2)}
+.dayhead{display:flex;align-items:center;gap:10px}
+.dayhead>div{flex:1;min-width:0}
+.iconbtn:disabled{opacity:.35}
 
 .note{font-size:12.5px;color:var(--ink-3);line-height:1.6}
 .empty{text-align:center;padding:40px 20px;color:var(--ink-3)}
@@ -385,6 +399,7 @@ const S = {
   db: null, ready: false, fatal: "",
   points: [], staff: [], months: {}, priors: {},
   me: null, view: "home", month: thisMonth(), photoCount: null,
+  day: today(),   // the date the home screen and record screen are looking at
 };
 const LS_ME = "bisb-meter-who", LS_CFG = "bisb-meter-cfg";
 function loadMe(){ try{ const v = JSON.parse(localStorage.getItem(LS_ME)||"null"); if(v&&v.id) S.me=v; }catch(e){} }
@@ -486,6 +501,21 @@ async function writeEntry(pid, ds, entry) {
   await ref.set({ pointId: pid, month: m, days: days });
   if (!S.months[m]) S.months[m] = {};
   S.months[m][pid] = days;
+}
+
+/** drop one day's entry for a point, and the photos that belonged to it */
+async function deleteEntry(pid, ds) {
+  const m = monthOf(ds);
+  const ref = S.db.doc("readings/" + pid + "__" + m);
+  const snap = await ref.get();
+  if (!snap.exists) return;
+  const data = snap.data() || {};
+  const days = { ...(data.days || {}) };
+  const gone = (days[ds.slice(8, 10)] || {}).photos || [];
+  delete days[ds.slice(8, 10)];
+  await ref.set({ pointId: pid, month: m, days: days });
+  if (S.months[m]) S.months[m][pid] = days;
+  for (const id of gone) { try { await S.db.doc("photos/" + id).delete(); } catch (e) {} }
 }
 
 /* ================= photos ================= */
@@ -638,9 +668,10 @@ const mIcon = (t) => svg(t === "electric" ? "bolt" : "drop");
 
 /* ================= home ================= */
 function vHome() {
-  const ds = today(), dd = ds.slice(8, 10);
-  const md = S.months[thisMonth()] || {};
-  const series = monthSeries(thisMonth());
+  const ds = S.day, dd = ds.slice(8, 10);
+  const isToday = ds === today();
+  const md = S.months[monthOf(ds)] || {};
+  const series = monthSeries(monthOf(ds));
   const { byUnit, byPoint } = dayTotals(ds, series);
   const units = unitOrder(series);
   const pts = S.points.filter((p) => p.active !== false);
@@ -654,7 +685,7 @@ function vHome() {
     totM += ms.length; doneM += n;
     if (ms.length && n === ms.length) doneP++;
     const state = !n ? "todo" : n === ms.length ? "done" : "part";
-    return '<button class="prow" data-act="rec" data-p="' + esc(p.id) + '">' +
+    return '<button class="prow" data-act="rec" data-p="' + esc(p.id) + '" data-d="' + ds + '">' +
       '<span class="stripe' + (state === "done" ? " done" : "") + '"></span>' +
       '<span class="pmain"><span class="pname">' + esc(p.name) + "</span>" +
         '<span class="mchips">' + ms.map((m) => {
@@ -670,20 +701,30 @@ function vHome() {
   }).join("");
 
   const pct = totM ? Math.round((doneM / totM) * 100) : 0;
+  const suffix = isToday ? "วันนี้" : "วันนั้น";
   const totalCards = units.length
     ? '<div class="totals">' + units.map((u) =>
         '<div class="totbox ' + (u.type === "electric" ? "e" : "w") + '">' +
-        '<div class="tl">' + mIcon(u.type) + (u.type === "electric" ? "ไฟฟ้าวันนี้" : "น้ำวันนี้") + "</div>" +
+        '<div class="tl">' + mIcon(u.type) + (u.type === "electric" ? "ไฟฟ้า" : "น้ำ") + suffix + "</div>" +
         '<div class="tv">' + fmt(byUnit[u.unit] ?? 0) + "</div>" +
         '<div class="tu">' + esc(u.unit) + "</div></div>").join("") + "</div>"
     : "";
 
-  const body = '<div class="card daycard"><div class="d1">รอบบันทึกประจำวัน</div>' +
-    '<div class="d2">' + thDate(ds) + "</div>" +
+  const body = '<div class="card daycard">' +
+    '<div class="dayhead">' +
+      '<button class="iconbtn" data-act="day" data-k="-1" aria-label="วันก่อนหน้า">' + svg("left") + "</button>" +
+      '<div><div class="d1">' + (isToday ? "รอบบันทึกประจำวัน" : "ดูย้อนหลัง") + "</div>" +
+      '<div class="d2">' + thDate(ds) + "</div></div>" +
+      '<button class="iconbtn" data-act="day" data-k="1"' + (isToday ? " disabled" : "") +
+        ' aria-label="วันถัดไป">' + svg("right") + "</button>" +
+    "</div>" +
     '<div class="meter"><i style="width:' + pct + '%"></i></div>' +
     '<div class="meterlabel"><span>ครบแล้ว <b>' + doneP + "</b> จาก <b>" + pts.length + "</b> จุด · มิเตอร์ <b>" + doneM + "</b>/<b>" + totM + "</b></span><span><b>" + pct + "</b>%</span></div>" +
     totalCards +
-    (units.length ? '<p class="note" style="margin:9px 0 0;font-size:11px">ยอดใช้วันนี้ = เลขวันนี้ ลบ เลขครั้งก่อน รวมทุกจุด</p>' : "") +
+    (units.length ? '<p class="note" style="margin:9px 0 0;font-size:11px">ยอดใช้' + suffix +
+      " = เลข" + suffix + " ลบ เลขครั้งก่อน รวมทุกจุด</p>" : "") +
+    (isToday ? "" : '<button class="btn sm block" data-act="gotoday" style="margin-top:11px">' +
+      "กลับมาวันนี้</button>") +
     "</div>" +
     (pts.length ? '<div class="stack" style="margin-top:14px">' + rows + "</div>"
       : emptyBox("gauge", "ยังไม่มีจุดมิเตอร์",
@@ -692,12 +733,12 @@ function vHome() {
 }
 
 /* ================= record ================= */
-const R = { pid: null, vals: {}, prevs: {}, note: "", shots: [], exist: null, busy: false };
+const R = { pid: null, date: null, vals: {}, prevs: {}, note: "", shots: [], exist: null, busy: false };
 
-async function openRecord(pid) {
-  const ds = today();
+async function openRecord(pid, dateStr) {
+  const ds = dateStr || S.day || today();
   const p = S.points.find((x) => x.id === pid);
-  R.pid = pid; R.vals = {}; R.prevs = {}; R.note = ""; R.shots = []; R.busy = false; R.exist = null;
+  R.pid = pid; R.date = ds; R.vals = {}; R.prevs = {}; R.note = ""; R.shots = []; R.busy = false; R.exist = null;
   S.view = "rec"; render();
 
   const days = (await loadMonth(monthOf(ds)))[pid] || {};
@@ -745,7 +786,10 @@ function vRecord() {
   const ms = activeMeters(p);
 
   const body = '<div class="stack" style="gap:13px">' +
-    (R.exist ? '<div class="banner ok">บันทึกวันนี้ไว้แล้วโดย ' + esc(R.exist.by || "—") + " — แก้ไขแล้วกดบันทึกซ้ำเพื่อทับของเดิม</div>" : "") +
+    (R.exist ? '<div class="banner ok">บันทึกไว้แล้วโดย ' + esc(R.exist.by || "—") +
+      " — แก้ไขแล้วกดบันทึกซ้ำเพื่อทับของเดิม</div>" : "") +
+    (R.date === today() ? "" : '<div class="banner info">กำลังแก้ข้อมูลย้อนหลังของวันที่ ' +
+      thDate(R.date) + "</div>") +
     '<div><div class="eyebrow" style="margin-bottom:9px">รูปถ่ายของจุดนี้</div><div class="shots">' +
       R.shots.map((s, i) => '<div class="shot">' +
         (s.loading ? '<div style="display:grid;place-items:center;height:100%;color:var(--ink-3)"><span class="spin"></span></div>'
@@ -756,14 +800,16 @@ function vRecord() {
     '<div class="eyebrow">เลขมิเตอร์ (' + ms.length + " ตัว)</div>" +
     '<div class="stack" style="gap:10px">' + ms.map(meterCard).join("") + "</div>" +
     '<div><label class="flabel" for="nt">หมายเหตุ (ถ้ามี)</label>' +
-    '<textarea class="txt" id="nt" rows="2" placeholder="เช่น เปลี่ยนมิเตอร์ใหม่, มิเตอร์ชำรุด">' + esc(R.note) + "</textarea></div></div>";
+    '<textarea class="txt" id="nt" rows="2" placeholder="เช่น เปลี่ยนมิเตอร์ใหม่, มิเตอร์ชำรุด">' + esc(R.note) + "</textarea></div>" +
+    (R.exist ? '<button class="btn ghost block sm" data-act="delentry" style="color:var(--warn)">' +
+      "ลบรายการของวันนี้ทิ้ง</button>" : "") + "</div>";
 
   const dock = '<div class="dock"><div class="dock-inner">' +
     '<button class="btn ghost" data-act="back">ยกเลิก</button>' +
     '<button class="btn" data-act="save"' + (R.busy ? " disabled" : "") + ">" +
       (R.busy ? '<span class="spin"></span> กำลังบันทึก…' : "บันทึกข้อมูล") + "</button></div></div>";
 
-  return shell(p.name, thDate(today()), body, null, { back: true, dock: dock });
+  return shell(p.name, thDate(R.date), body, null, { back: true, dock: dock });
 }
 
 async function doSave() {
@@ -783,7 +829,7 @@ async function doSave() {
   if (!R.shots.length) return toast("ถ่ายรูปมิเตอร์อย่างน้อย 1 รูป", true);
 
   R.busy = true; render();
-  const ds = today();
+  const ds = R.date;
   try {
     const keep = [];
     for (const s of R.shots) {
@@ -825,10 +871,15 @@ function vHist() {
       const tot = r2(s.rows.reduce((a, r) => a + (r.use || 0), 0));
       return '<div class="ledsub"><span class="dot ' + (s.m.type==="electric"?"e":"w") + '">' + mIcon(s.m.type) + "</span>" +
         '<span class="nm">' + esc(s.m.label) + '</span><span class="tt">' + fmt(tot) + " " + esc(s.m.unit) + "</span></div>" +
-        s.rows.map((r) => '<div class="ledrow"><span class="dt">' + thDate(S.month + "-" + r.day) + "</span>" +
-          (r.photos[0] ? '<button class="thumb" data-act="pic" data-id="' + esc(r.photos[0]) + '" aria-label="ดูรูป"></button>' : "") +
+        s.rows.map((r) => '<div class="ledrow" data-act="rec" data-p="' + esc(p.id) +
+          '" data-d="' + S.month + "-" + r.day + '" role="button" tabindex="0">' +
+          '<span class="dt">' + thDate(S.month + "-" + r.day) + "</span>" +
+          (r.photos[0] ? '<button class="thumb" data-act="pic" data-id="' + esc(r.photos[0]) +
+            '" aria-label="ดูรูปมิเตอร์">' + svg("cam") +
+            (r.photos.length > 1 ? '<span class="n">' + r.photos.length + "</span>" : "") + "</button>" : "") +
           '<span class="by">' + esc(r.by||"") + (r.note ? " · " + esc(r.note) : "") + "</span>" +
-          '<span class="vv"><b>' + fmt(r.v) + "</b>" + (r.use == null ? "" : "<i>+" + fmt(r.use) + "</i>") + "</span></div>").join("");
+          '<span class="vv"><b>' + fmt(r.v) + "</b>" + (r.use == null ? "" : "<i>+" + fmt(r.use) + "</i>") + "</span>" +
+          '<span class="go">' + svg("right") + "</span></div>").join("");
     }).join("") + "</div>").join("");
 
   return shell("ประวัติการบันทึก", "", monthBar() + (cards || emptyBox("book", "ยังไม่มีข้อมูลในเดือนนี้")), "hist");
@@ -844,7 +895,8 @@ function gridTable(g, unit, mode) {
     (mode === "use" ? '<th class="sum">รวม</th>' : "") +
     "</tr></thead><tbody>" +
     g.rows.map((r) => '<tr' + (r.any ? "" : ' class="blank"') + '>' +
-      '<td class="c0">' + thDate(S.month + "-" + r.day) + "</td>" +
+      '<td class="c0"><button class="daylink" data-act="openday" data-d="' + S.month + "-" + r.day + '">' +
+        thDate(S.month + "-" + r.day) + "</button></td>" +
       r.cells.map((c) => '<td class="n' + (c == null ? " z" : "") + '">' +
         (c == null ? "—" : fmt(c)) + "</td>").join("") +
       (mode === "use" ? '<td class="n sum">' + (r.any ? fmt(r.total) : "—") + "</td>" : "") +
@@ -1312,11 +1364,46 @@ document.addEventListener("click", async (ev) => {
   if (a === "go") {
     const v = el.dataset.v;
     if (v === "hist" || v === "rep" || v === "grid") { S.month = thisMonth(); await refreshMonth(S.month); }
+    if (v === "home" && monthOf(S.day) !== monthOf(today())) await refreshMonth(thisMonth());
+    if (v === "home") S.day = today();
     if (v === "set") { SET.tab = "points"; SET.open = null; }
     S.view = v; render(); return;
   }
   if (a === "back") { S.view = "home"; render(); return; }
-  if (a === "rec") { await openRecord(el.dataset.p); return; }
+  if (a === "rec") {
+    // the photo thumbnail sits inside a history row; let it win
+    if (ev.target.closest('[data-act="pic"]')) return;
+    const d = el.dataset.d;
+    if (d && monthOf(d) !== monthOf(S.day)) await refreshMonth(monthOf(d));
+    if (d) S.day = d;
+    await openRecord(el.dataset.p, d);
+    return;
+  }
+  if (a === "day") {
+    const [y, m, dd] = S.day.split("-").map(Number);
+    const next = dstr(new Date(y, m - 1, dd + Number(el.dataset.k)));
+    if (next > today()) return;                    // nothing to read in the future
+    if (monthOf(next) !== monthOf(S.day)) await refreshMonth(monthOf(next));
+    S.day = next; render(); return;
+  }
+  if (a === "gotoday") {
+    if (monthOf(today()) !== monthOf(S.day)) await refreshMonth(thisMonth());
+    S.day = today(); render(); return;
+  }
+  if (a === "openday") {
+    const d = el.dataset.d;
+    if (monthOf(d) !== monthOf(S.day)) await refreshMonth(monthOf(d));
+    S.day = d; S.view = "home"; render(); scrollTo(0, 0); return;
+  }
+  if (a === "delentry") {
+    if (!confirm("ลบรายการของวันที่ " + thDate(R.date) + " ทิ้ง? ข้อมูลและรูปของวันนี้จะหายไป")) return;
+    try {
+      await deleteEntry(R.pid, R.date);
+      toast("ลบรายการแล้ว");
+      S.view = "home"; render();
+    } catch (e) { toast(dbErr(e, "ลบไม่สำเร็จ"), true); }
+    return;
+  }
   if (a === "save") { await doSave(); return; }
   if (a === "csv") { doCsv(el.dataset.kind); return; }
   if (a === "pic") { await showPic(el.dataset.id); return; }

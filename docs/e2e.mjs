@@ -345,6 +345,71 @@ await step('a fresh device opening that link connects straight away', async () =
   if (askedForCfg) throw new Error('still asked for the config')
 })
 
+console.log('\n— going back to an earlier day —')
+await step('home steps back a day and shows that day instead', async () => {
+  await page.click('[data-act="go"][data-v="home"]')
+  await page.waitForSelector('.daycard', { timeout: 8000 })
+  const todayLabel = await page.locator('.daycard .d2').innerText()
+  await page.click('[data-act="day"][data-k="-1"]')
+  await page.waitForTimeout(250)
+  const back = await page.locator('.daycard .d2').innerText()
+  if (back === todayLabel) throw new Error('date did not move')
+  const head = await page.locator('.daycard .d1').innerText()
+  if (!head.includes('ย้อนหลัง')) throw new Error('no back-in-time cue: ' + head)
+})
+await step("that day's own readings are shown, not today's", async () => {
+  const chips = await page.locator('.prow').first().locator('.chip').allInnerTexts()
+  // day 1 recorded 1,026,136.94 and has no delta, so the raw reading shows
+  if (!chips.join('|').includes('1,026,136.94')) throw new Error('day 1 reading missing: ' + chips.join('|'))
+})
+await step('cannot walk into the future', async () => {
+  await page.click('[data-act="gotoday"]')
+  await page.waitForTimeout(250)
+  const disabled = await page.locator('[data-act="day"][data-k="1"]').isDisabled()
+  if (!disabled) throw new Error('next-day button is live on today')
+})
+await step('opening a point on a past day edits that day', async () => {
+  await page.click('[data-act="day"][data-k="-1"]')
+  await page.waitForTimeout(250)
+  await page.locator('[data-act="rec"]').first().click()
+  await page.waitForSelector('.reg input', { timeout: 8000 })
+  const banner = await page.locator('.banner.info').innerText()
+  if (!banner.includes('ย้อนหลัง')) throw new Error('no past-day warning: ' + banner)
+  const v = await page.locator('.reg input').first().inputValue()
+  if (v !== '1026136.94') throw new Error("loaded the wrong day's value: " + v)
+})
+await step('saving a correction lands on the day being edited', async () => {
+  await page.locator('.reg input').nth(0).fill('1026140')
+  await page.click('[data-act="save"]')
+  await page.waitForSelector('.daycard', { timeout: 10000 })
+  const chips = await page.locator('.prow').first().locator('.chip').allInnerTexts()
+  if (!chips.join('|').includes('1,026,140')) throw new Error('correction not on that day: ' + chips.join('|'))
+})
+await step("today's usage recomputes from the corrected day", async () => {
+  await page.click('[data-act="gotoday"]')
+  await page.waitForTimeout(300)
+  const t = await page.locator('.totbox .tv').allInnerTexts()
+  // Academic day 2 is 1,026,200 so the delta is now 60, plus Science's 100
+  if (t[0] !== '160') throw new Error('electric total after correction was ' + t[0])
+})
+await step('a history row opens that day for editing', async () => {
+  await page.click('[data-act="go"][data-v="hist"]')
+  await page.waitForSelector('.ledrow', { timeout: 8000 })
+  await page.locator('.ledrow').first().click()
+  await page.waitForSelector('.reg input', { timeout: 8000 })
+  const title = await page.locator('.topbar h1').innerText()
+  if (!title.includes('Academic')) throw new Error('opened ' + title)
+})
+await step('a wrong entry can be deleted', async () => {
+  page.once('dialog', (d) => d.accept())
+  await page.click('[data-act="delentry"]')
+  await page.waitForSelector('.daycard', { timeout: 10000 })
+  await page.click('[data-act="go"][data-v="hist"]')
+  await page.waitForSelector('.led', { timeout: 8000 })
+  const txt = await page.locator('.led').first().innerText()
+  if (txt.includes('1,026,140')) throw new Error('deleted reading is still listed')
+})
+
 console.log('\n— dark theme —')
 await step('renders dark without light-only colours', async () => {
   await page.emulateMedia({ colorScheme: 'dark' })
