@@ -6,7 +6,7 @@
 > ไม่ต้องพิมพ์คำสั่งสักบรรทัด — **อ่านวิธีทำที่ [`docs/SETUP.md`](docs/SETUP.md)**
 >
 > โฮสต์ฟรีด้วย GitHub Pages + ฐานข้อมูล Firestore (ฟรี ไม่ต้องผูกบัตร)
-> ทดสอบอัตโนมัติ 25 ข้อด้วย `node docs/e2e.mjs`
+> ทดสอบอัตโนมัติ 47 ข้อด้วย `npm install` แล้ว `node docs/e2e.mjs`
 >
 > <details><summary>อีก 2 เวอร์ชันในโปรเจกต์นี้ (ไม่ต้องใช้)</summary>
 >

@@ -6,9 +6,18 @@
  *   node docs/e2e.mjs
  */
 import { chromium } from 'playwright'
+import { writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
-const FILE = 'file:///home/user/basis-meter-app/docs/index.html'
-const PHOTO = '/root/.claude/uploads/f60a476b-7088-5cc9-8238-10d7a846a230/a8a3f894-image.jpg'
+const FILE = 'file://' + new URL('index.html', import.meta.url).pathname
+
+// the app insists on a photo before it saves, so the run brings its own
+const PHOTO = join(tmpdir(), 'meter-e2e.jpg')
+writeFileSync(PHOTO, Buffer.from(
+  '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0a' +
+  'HBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAA' +
+  'AAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==', 'base64'))
 const CFG = 'const firebaseConfig = { apiKey: "AIzaFAKEKEYFORTESTS", authDomain: "t.firebaseapp.com", projectId: "bisb-test", storageBucket: "t.appspot.com", messagingSenderId: "1", appId: "1:1:web:1" };'
 
 const FAKE_APP = `export function initializeApp(cfg){ return { cfg }; }`
@@ -286,9 +295,31 @@ await step('a sheet carries the reading, the usage, the time and who read it', a
   if (!/^\d{2}:\d{2}$/.test(cells[1])) throw new Error('time column was ' + cells[1])
   if (cells[cells.length - 1] !== 'สาคร') throw new Error('recorded-by was ' + cells[cells.length - 1])
 })
-await step('each sheet totals its own meters', async () => {
-  const tot = await page.locator('.paper .psheet').first().locator('tr.tot td').allInnerTexts()
+await step('a sheet runs the whole month, blanking the days nobody walked', async () => {
+  const sheet = page.locator('.paper .psheet').first()
+  const day = new Date().getDate()
+  const rows = await sheet.locator('tbody tr:not(.tot):not(.avg)').count()
+  if (rows !== day) throw new Error('expected ' + day + ' day rows, got ' + rows)
+  // only today and yesterday were walked; every earlier day is a blank line
+  const miss = await sheet.locator('tbody tr.miss').count()
+  if (miss !== day - 2) throw new Error('expected ' + (day - 2) + ' unwalked days, got ' + miss)
+})
+await step('each sheet totals and averages its own meters', async () => {
+  const sheet = page.locator('.paper .psheet').first()
+  const tot = await sheet.locator('tr.tot td').allInnerTexts()
   if (!tot.join('|').includes('63.06')) throw new Error('sheet total missing: ' + tot.join('|'))
+  // one day carries usage, so the average per recorded day is that same number
+  const avg = await sheet.locator('tr.avg td').allInnerTexts()
+  if (!avg.join('|').includes('63.06')) throw new Error('sheet average missing: ' + avg.join('|'))
+})
+await step('every sheet says which of the month it is', async () => {
+  const sheets = await page.locator('.paper .psheet').count()
+  const id = await page.locator('.paper .psheet').first().locator('.idbox').innerText()
+  if (!id.includes('2 / ' + (sheets + 1))) throw new Error('sheet numbering reads ' + id)
+})
+await step('the cover reports whether the month is complete', async () => {
+  const flag = await page.locator('.paper .pflag').innerText()
+  if (!/ขาด|ครบทุกวัน/.test(flag)) throw new Error('no completeness line: ' + flag)
 })
 await step('document groups meters under their point', async () => {
   const grp = await page.locator('.paper tr.grp').allInnerTexts()
@@ -436,6 +467,44 @@ await step('renders dark without light-only colours', async () => {
   const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor)
   const [r, g, b] = bg.match(/\d+/g).map(Number)
   if (r + g + b > 200) throw new Error('body not dark: ' + bg)
+})
+
+console.log('\n— what the document tells accounting to ask about —')
+await step('a meter number typed in settings prints on that meter\'s sheet', async () => {
+  await page.emulateMedia({ colorScheme: 'light' })
+  await page.click('[data-act="go"][data-v="set"]')
+  await page.click('[data-act="stab"][data-t="points"]')
+  await page.locator('[data-act="popen"]').first().click()
+  await page.locator('input[data-act="mno"]').first().fill('61E5481417306')
+  await page.locator('input[data-act="mno"]').first().blur()
+  await page.waitForTimeout(400)
+  await page.click('[data-act="go"][data-v="rep"]')
+  await page.waitForSelector('[data-act="paper"]', { timeout: 8000 })
+  await page.click('[data-act="paper"]')
+  const meta = await page.locator('.paper .psheet').first().locator('.pmeta').innerText()
+  if (!meta.includes('61E5481417306')) throw new Error('meter number not on the sheet: ' + meta)
+  await page.click('[data-act="closepaper"]')
+})
+await step('a reading that goes backwards is called out on the cover', async () => {
+  // a swapped meter — or a typo: either way accounting should not meet it alone
+  await page.evaluate(() => {
+    // Science still has both days; Academic's first day was deleted above
+    const p = window.__store.get('config/points').items[1]
+    for (const [path, v] of window.__store) {
+      if (!path.startsWith('readings/' + p.id)) continue
+      const last = Object.keys(v.days).sort().pop()
+      v.days[last].vals[p.meters[0].id] = 1
+    }
+    window.__persist()
+  })
+  await page.reload()
+  await page.waitForSelector('[data-act="rec"]', { timeout: 10000 })
+  await page.click('[data-act="go"][data-v="rep"]')
+  await page.waitForSelector('[data-act="paper"]', { timeout: 8000 })
+  await page.click('[data-act="paper"]')
+  const flag = await page.locator('.paper .pflag').innerText()
+  if (!flag.includes('ต่ำกว่าครั้งก่อน')) throw new Error('backwards reading not flagged: ' + flag)
+  if (!flag.includes('Science and Canteen')) throw new Error('flag does not name the point: ' + flag)
 })
 
 await browser.close()
