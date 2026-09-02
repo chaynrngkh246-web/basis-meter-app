@@ -263,14 +263,32 @@ await step('print view opens as an A4 sheet', async () => {
 await step('document carries org, month, totals and signatures', async () => {
   const txt = await page.locator('.paper').innerText()
   for (const want of ['รายงานการใช้น้ำและไฟฟ้า', 'BISB', 'Academic', 'Science and Canteen',
-                      '163.06', 'ยอดใช้รายวัน — ไฟฟ้า', 'ยอดใช้รายวัน — น้ำ', 'ผู้บันทึก', 'ฝ่ายบัญชี'])
+                      '163.06', 'บันทึกค่ามิเตอร์ประจำวัน', 'SITE', 'MONTH',
+                      'ผู้บันทึก', 'Record By', 'CHECK BY', 'SITE SUPERVISOR', 'ฝ่ายบัญชี'])
     if (!txt.includes(want)) throw new Error('missing "' + want + '"')
 })
-await step('printed grid has a column per meter, not just a daily total', async () => {
-  const heads = await page.locator('.paper table.pt.grid').first().locator('thead th').allInnerTexts()
-  if (heads.length !== 4) throw new Error('expected date + 2 meters + total, got ' + heads.length)
-  if (!/Academic/i.test(heads[1])) throw new Error('grid header was ' + heads[1])
-  if (!heads[1].includes('ไฟฟ้า')) throw new Error('meter label missing from header: ' + heads[1])
+await step('a sheet pairs each meter as reading + consumption, like the workbook', async () => {
+  const sheet = page.locator('.paper .psheet').first()
+  const top = await sheet.locator('thead tr').first().locator('th').allInnerTexts()
+  // วันที่ | เวลา | ไฟฟ้า | น้ำ | ผู้บันทึก
+  if (top.length !== 5) throw new Error('expected 5 top headers, got ' + top.length + ': ' + top.join('|'))
+  if (!top[2].includes('ไฟฟ้า')) throw new Error('first meter header was ' + top[2])
+  const sub = await sheet.locator('thead tr').nth(1).locator('th').allInnerTexts()
+  if (sub.length !== 4) throw new Error('expected a reading+usage pair per meter, got ' + sub.length)
+  if (!sub[0].includes('เลขมิเตอร์')) throw new Error('no reading column: ' + sub[0])
+  if (!sub[1].includes('kWh')) throw new Error('usage column lacks its unit: ' + sub[1])
+})
+await step('a sheet carries the reading, the usage, the time and who read it', async () => {
+  const row = page.locator('.paper .psheet').first().locator('tbody tr').nth(1)
+  const cells = await row.locator('td').allInnerTexts()
+  if (cells[2] !== '1,026,200') throw new Error('reading column was ' + cells[2])
+  if (cells[3] !== '63.06') throw new Error('usage column was ' + cells[3])
+  if (!/^\d{2}:\d{2}$/.test(cells[1])) throw new Error('time column was ' + cells[1])
+  if (cells[cells.length - 1] !== 'สาคร') throw new Error('recorded-by was ' + cells[cells.length - 1])
+})
+await step('each sheet totals its own meters', async () => {
+  const tot = await page.locator('.paper .psheet').first().locator('tr.tot td').allInnerTexts()
+  if (!tot.join('|').includes('63.06')) throw new Error('sheet total missing: ' + tot.join('|'))
 })
 await step('document groups meters under their point', async () => {
   const grp = await page.locator('.paper tr.grp').allInnerTexts()

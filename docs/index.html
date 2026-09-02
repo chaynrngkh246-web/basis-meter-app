@@ -307,6 +307,22 @@ table.pt.grid{font-size:9.5px;table-layout:fixed;width:100%}
 table.pt.grid th,table.pt.grid td{padding:3px 5px;overflow:hidden}
 table.pt.grid th{white-space:normal;word-break:break-word;font-size:8.5px;line-height:1.3;text-align:right;
   text-transform:none;letter-spacing:0}
+/* each point prints as its own sheet of the monthly workbook */
+.psheet{margin-top:34px}
+.sh{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;
+  border-bottom:2px solid #14181f;padding-bottom:7px;margin-bottom:10px;font-size:12.5px;color:#4d5665}
+.sh b{color:#14181f}
+.sh>div:first-child{font-size:14px}
+table.pt.log{font-size:11px}
+table.pt.log th{text-align:center;vertical-align:middle;padding:4px 6px;line-height:1.25;
+  text-transform:none;letter-spacing:0;font-size:9.5px}
+table.pt.log th.sub{font-size:8.5px;text-transform:none;letter-spacing:0}
+table.pt.log td{padding:3px 6px}
+table.pt.log td.use{color:#a4370f;font-weight:600}
+.pcheck{display:flex;gap:34px;margin-top:16px;font-size:11px;color:#4d5665;page-break-inside:avoid}
+.pcheck span{display:flex;align-items:flex-end;gap:8px;flex:1}
+.pcheck i{flex:1;border-bottom:1px dotted #14181f;height:13px}
+
 .psign{display:flex;gap:44px;margin-top:46px;page-break-inside:avoid}
 .psign div{flex:1;text-align:center;font-size:12px;color:#4d5665}
 .psign .ln{border-bottom:1px dotted #14181f;height:34px;margin-bottom:7px}
@@ -325,8 +341,13 @@ table.pt.grid th{white-space:normal;word-break:break-word;font-size:8.5px;line-h
   table.pt.grid th{white-space:normal;word-break:break-word;font-size:7.5px;line-height:1.25;text-transform:none}
   table.pt th{background:#f0f3f7!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   table.pt tr.tot td,table.pt tr.grp td{background:#f0f3f7!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  tr,.psign{page-break-inside:avoid}
+  tr,.psign,.pcheck,.sh{page-break-inside:avoid}
   thead{display:table-header-group}
+  .psheet{break-before:page;page-break-before:always;margin-top:0}
+  table.pt.log{font-size:9px}
+  table.pt.log th{padding:3px 4px}
+  table.pt.log td{padding:2px 4px}
+  table.pt.log td.use{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
 </head>
@@ -982,6 +1003,27 @@ function vRep() {
   return shell("รายงานส่งบัญชี", thMonth(S.month), body, "rep");
 }
 
+/**
+ * One sheet of the team's workbook: the days a point was read, each meter
+ * as the pair of columns accounting expects — the number on the dial, then
+ * what it used since the previous reading — plus the time and who read it.
+ */
+function sheetRows(point, ms, month) {
+  const days = (S.months[month] || {})[point.id] || {};
+  return Object.keys(days).sort().map((dd) => {
+    const e = days[dd];
+    return {
+      day: dd,
+      time: e.ts ? new Date(e.ts) : null,
+      by: e.by || "",
+      cells: ms.map((s) => {
+        const r = s.rows.find((x) => x.day === dd);
+        return r ? { v: r.v, use: r.use } : null;
+      }),
+    };
+  });
+}
+
 /* ================= the printable document ================= */
 function buildPaper() {
   const series = monthSeries(S.month);
@@ -1033,26 +1075,6 @@ function buildPaper() {
           "ทั้งหมด</td><td></td><td></td>" + '<td class="n">' + fmt(byUnit[u.unit] || 0) + "</td><td>" + esc(u.unit) + "</td></tr>").join("") +
         "</tbody></table>" +
 
-      // the full log: every day of the month against every meter, one table
-      // per utility so each stays narrow enough to read on an A4 page
-      units.map((u) => {
-        const g = buildGrid(S.month, u.unit, series, "use");
-        if (!g.cols.length) return "";
-        return '<div class="psec">ยอดใช้รายวัน — ' +
-            (u.type === "electric" ? "ไฟฟ้า" : "น้ำ") + " (" + esc(u.unit) + ")</div>" +
-          '<table class="pt grid"><thead><tr><th>วันที่</th>' +
-            g.cols.map((c) => "<th>" + esc(c.p.name) + "<br><span style=\"font-weight:400\">" +
-              esc(c.m.label) + "</span></th>").join("") +
-            '<th style="text-align:right">รวม</th></tr></thead><tbody>' +
-            g.rows.map((r) => "<tr><td>" + thDate(S.month + "-" + r.day) + "</td>" +
-              r.cells.map((c) => '<td class="n">' + (c == null ? "—" : fmt(c)) + "</td>").join("") +
-              '<td class="n"><b>' + (r.any ? fmt(r.total) : "—") + "</b></td></tr>").join("") +
-            '<tr class="tot"><td>รวมทั้งเดือน</td>' +
-              g.totals.map((t) => '<td class="n">' + fmt(t) + "</td>").join("") +
-              '<td class="n">' + fmt(g.grand) + "</td></tr>" +
-          "</tbody></table>";
-      }).join("") +
-
       '<div class="psign"><div><div class="ln"></div>ผู้บันทึก / ช่างเทคนิค</div>' +
         '<div><div class="ln"></div>หัวหน้าช่าง</div>' +
         '<div><div class="ln"></div>ฝ่ายบัญชี</div></div>' +
@@ -1060,6 +1082,41 @@ function buildPaper() {
       '<div class="pfoot">ออกเอกสารเมื่อ ' + thDate(dstr(printed)) + " เวลา " +
         pad2(printed.getHours()) + ":" + pad2(printed.getMinutes()) +
         " · ข้อมูลจากการบันทึกมิเตอร์ประจำวันของทีมช่าง</div>" +
+
+      // then one sheet per point, laid out the way the team's own workbook
+      // does it: days down the page, every meter a pair of columns (the
+      // number on the dial, then what it used), a Total row, and a sign-off
+      groups.map((g) => {
+        const rows = sheetRows(g.p, g.ms, S.month);
+        if (!rows.length) return "";
+        return '<div class="psheet"><div class="sh">' +
+            "<div><b>บันทึกค่ามิเตอร์ประจำวัน</b> · " + esc(g.p.name) + "</div>" +
+            "<div>SITE <b>BISB</b> · MONTH <b>" + thMonth(S.month) + "</b></div>" +
+          "</div>" +
+          '<table class="pt log"><thead><tr>' +
+            '<th rowspan="2">วันที่<br><span style="font-weight:400">Date</span></th>' +
+            '<th rowspan="2">เวลา<br><span style="font-weight:400">Time</span></th>' +
+            g.ms.map((s) => '<th colspan="2">' + esc(s.m.label) + "</th>").join("") +
+            '<th rowspan="2">ผู้บันทึก<br><span style="font-weight:400">Record By</span></th>' +
+          "</tr><tr>" +
+            g.ms.map((s) => '<th class="sub">เลขมิเตอร์<br><span style="font-weight:400">Reading</span></th>' +
+              '<th class="sub">จำนวนที่ใช้<br><span style="font-weight:400">(' +
+              esc(s.m.unit) + ")</span></th>").join("") +
+          "</tr></thead><tbody>" +
+            rows.map((r) => "<tr><td>" + Number(r.day) + "</td><td>" +
+              (r.time ? pad2(r.time.getHours()) + ":" + pad2(r.time.getMinutes()) : "—") + "</td>" +
+              r.cells.map((c) => '<td class="n">' + (c ? fmt(c.v) : "—") + "</td>" +
+                '<td class="n use">' + (c && c.use != null ? fmt(c.use) : "—") + "</td>").join("") +
+              "<td>" + esc(r.by) + "</td></tr>").join("") +
+            '<tr class="tot"><td colspan="2">Total</td>' +
+              g.ms.map((s) => '<td></td><td class="n">' +
+                fmt(r2(s.rows.reduce((a, x) => a + (x.use || 0), 0))) + "</td>").join("") +
+              "<td></td></tr>" +
+          "</tbody></table>" +
+          '<div class="pcheck"><span>CHECK BY <i></i></span>' +
+            "<span>SITE SUPERVISOR <i></i></span><span>DATE <i></i></span></div>" +
+        "</div>";
+      }).join("") +
     "</div></div>";
 }
 
