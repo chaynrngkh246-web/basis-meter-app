@@ -116,7 +116,7 @@ main{flex:1;padding:15px 15px 96px}
 .prow:active{background:var(--panel-2)}
 .stripe{width:4px;align-self:stretch;border-radius:99px;flex:none;background:var(--line-2)}
 .stripe.done{background:var(--ok)}
-.pmain{flex:1;min-width:0}
+.pmain{flex:1;min-width:0;display:flex;flex-direction:column}
 .pname{font-weight:600;font-size:14.5px;letter-spacing:-.1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mchips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
 .chip{font-size:10px;font-weight:600;padding:2px 6px;border-radius:5px;letter-spacing:.2px;display:inline-flex;align-items:center;gap:3px}
@@ -1464,7 +1464,9 @@ function setPoints() {
       return '<div class="card"><div class="rowline">' +
         '<span class="pmain"><span class="pname" style="font-size:13.5px">' + esc(p.name) +
           (p.active === false ? ' <span class="note">(ปิดอยู่)</span>' : "") + "</span>" +
-          '<span class="note" style="font-size:11px">' + activeMeters(p).length + " มิเตอร์</span></span>" +
+          '<span class="note" style="font-size:11px">' +
+            (activeMeters(p).length ? activeMeters(p).length + " มิเตอร์" : "ยังไม่มีมิเตอร์ในจุดนี้") +
+          "</span></span>" +
         '<button class="btn ghost sm" data-act="popen" data-id="' + esc(p.id) + '">' + (open ? "ปิด" : "มิเตอร์") + "</button>" +
         '<button class="btn ghost sm" data-act="togp" data-id="' + esc(p.id) + '">' + (p.active === false ? "เปิดใช้" : "ปิด") + "</button>" +
         "</div>" +
