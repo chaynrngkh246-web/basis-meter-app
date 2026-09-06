@@ -243,6 +243,12 @@ table.gt tfoot .c0{z-index:3}
 .inp:focus{outline:none;border-color:var(--action)}
 .flabel{display:block;font-size:11.5px;font-weight:600;color:var(--ink-2);margin-bottom:5px}
 .rowline{display:flex;align-items:center;gap:10px;padding:11px 12px;border-bottom:1px solid var(--line)}
+/* what one meter is: a label and a full-width control per line, so a phone
+   shows the whole of "ยังไม่ระบุจุด" rather than "ยั" */
+.mset{display:grid;grid-template-columns:auto 1fr;gap:7px 10px;align-items:center;
+  padding:9px 12px 11px 48px;border-bottom:1px solid var(--line);background:var(--panel-2)}
+.mset .k{font-size:11px;color:var(--ink-3);white-space:nowrap}
+.mset .inp{padding:7px 9px;font-size:12.5px;width:100%}
 .rowline:last-child{border-bottom:none}
 .spin{width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:99px;display:inline-block;animation:sp .7s linear infinite;vertical-align:-3px}
 @keyframes sp{to{transform:rotate(360deg)}}
@@ -1497,25 +1503,26 @@ function setPoints() {
               '<button class="btn ghost sm" data-act="delm" data-p="' + esc(p.id) + '" data-m="' + esc(m.id) + '">ลบ</button>' +
             "</div>" +
             // a meter belongs to a round (where it is walked) and to a sheet
-            // (where it is printed); both are set right here
-            '<div class="rowline" style="padding-left:48px;gap:7px;font-size:11px;color:var(--ink-3)">' +
-              "<span>พิมพ์ในแผ่น</span>" +
+            // (where it is printed); both are set right here. On a phone these
+            // fields get a line each — squeezed onto one, a select shows a
+            // single letter and nobody can tell what they are choosing.
+            '<div class="mset">' +
+              '<span class="k">พิมพ์ในแผ่น</span>' +
               '<select class="inp" data-act="msheet" data-p="' + esc(p.id) + '" data-m="' + esc(m.id) + '"' +
-                ' aria-label="แผ่นพิมพ์ของ ' + esc(m.label) + '" style="flex:1;padding:6px 8px;font-size:12px">' +
+                ' aria-label="แผ่นพิมพ์ของ ' + esc(m.label) + '">' +
                 SHEETS.map((sh) => '<option value="' + sh.id + '"' +
                   (sheetOf(m) === sh.id ? " selected" : "") + ">" + esc(sh.name) + "</option>").join("") +
               "</select>" +
-              "<span>เดินเก็บที่</span>" +
+              '<span class="k">เดินเก็บที่</span>' +
               '<select class="inp" data-act="mmove" data-p="' + esc(p.id) + '" data-m="' + esc(m.id) + '"' +
-                ' aria-label="จุดที่เดินเก็บ ' + esc(m.label) + '" style="flex:1;padding:6px 8px;font-size:12px">' +
+                ' aria-label="จุดที่เดินเก็บ ' + esc(m.label) + '">' +
                 list.map((o) => '<option value="' + esc(o.id) + '"' +
                   (o.id === p.id ? " selected" : "") + ">" + esc(o.name) + "</option>").join("") +
               "</select>" +
-              (m.snap ? "" : "<span>คูณ</span>" +
+              (m.snap ? "" : '<span class="k">คูณ (ratio)</span>' +
                 '<input class="inp" data-act="mfac" data-p="' + esc(p.id) + '" data-m="' + esc(m.id) + '"' +
                   ' inputmode="decimal" aria-label="ตัวคูณ ' + esc(m.label) + '"' +
-                  ' value="' + esc(String(meterFactor(m))) + '"' +
-                  ' style="width:62px;padding:6px 8px;font-size:12px">') +
+                  ' value="' + esc(String(meterFactor(m))) + '">') +
               "</div></div>").join("") +
           '<div class="rowline" style="padding-left:20px;gap:7px">' +
             '<input class="inp" id="ml_' + esc(p.id) + '" placeholder="ชื่อมิเตอร์" style="flex:1;padding:8px 10px;font-size:13px">' +
