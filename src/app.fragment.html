@@ -1,0 +1,1319 @@
+<title>พูดอังกฤษได้</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#14181f; --muted:#61708a; --line:#e3e8ef;
+    --brand:#2f6df6; --brand-ink:#ffffff; --brand-soft:#e8f0ff;
+    --ok:#128a5b; --ok-soft:#e2f6ec; --warn:#b26a00; --warn-soft:#fdf1dd;
+    --bad:#c8372d; --bad-soft:#fdeceb; --shadow:0 1px 2px rgba(16,24,40,.06),0 8px 24px rgba(16,24,40,.07);
+    --r:16px;
+  }
+  :root:not([data-theme="light"]){ }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1116; --card:#161b23; --ink:#eaeef6; --muted:#9aa8bf; --line:#252c37;
+      --brand:#5c8dff; --brand-ink:#0b1220; --brand-soft:#1b2740;
+      --ok:#4ad297; --ok-soft:#12301f; --warn:#f0b45c; --warn-soft:#33260f;
+      --bad:#ff8377; --bad-soft:#361a19;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1116; --card:#161b23; --ink:#eaeef6; --muted:#9aa8bf; --line:#252c37;
+    --brand:#5c8dff; --brand-ink:#0b1220; --brand-soft:#1b2740;
+    --ok:#4ad297; --ok-soft:#12301f; --warn:#f0b45c; --warn-soft:#33260f;
+    --bad:#ff8377; --bad-soft:#361a19;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Noto Sans Thai","Sarabun",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+    -webkit-text-size-adjust:100%; line-height:1.6;
+  }
+  .wrap{max-width:560px; margin:0 auto; padding:0 16px 120px}
+  .topbar{
+    position:sticky; top:0; z-index:20; background:var(--bg);
+    display:flex; align-items:center; gap:10px; padding:14px 0 10px; border-bottom:1px solid transparent;
+  }
+  .topbar.scrolled{border-bottom-color:var(--line)}
+  .topbar h1{font-size:18px; margin:0; font-weight:800; letter-spacing:-.2px}
+  .topbar .sub{font-size:12px; color:var(--muted); font-weight:500}
+  .spacer{flex:1}
+
+  button{font-family:inherit}
+  .btn{
+    appearance:none; border:1px solid var(--line); background:var(--card); color:var(--ink);
+    border-radius:12px; padding:12px 16px; font-size:15px; font-weight:700; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:48px;
+    transition:transform .06s ease, background .15s ease;
+  }
+  .btn:active{transform:scale(.98)}
+  .btn.primary{background:var(--brand); color:var(--brand-ink); border-color:transparent}
+  .btn.ghost{background:transparent}
+  .btn.wide{width:100%}
+  .btn.sm{min-height:40px; padding:8px 12px; font-size:14px; border-radius:10px}
+  .btn:disabled{opacity:.45; cursor:not-allowed}
+  .icon-btn{
+    width:44px; height:44px; min-height:44px; padding:0; border-radius:12px;
+    border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; font-size:18px;
+  }
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:16px; box-shadow:var(--shadow)}
+  .card + .card{margin-top:12px}
+  .muted{color:var(--muted)}
+  .tiny{font-size:12px}
+  .small{font-size:13px}
+
+  /* home */
+  .hero{display:flex; gap:14px; align-items:center}
+  .ring{width:74px; height:74px; flex:0 0 auto; position:relative}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .val{position:absolute; inset:0; display:grid; place-items:center; font-weight:800; font-size:15px}
+  .statrow{display:flex; gap:8px; margin-top:12px}
+  .stat{flex:1; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px; text-align:center}
+  .stat b{display:block; font-size:20px; line-height:1.2}
+  .stat span{font-size:11px; color:var(--muted)}
+
+  .sect-title{font-size:13px; font-weight:800; color:var(--muted); margin:22px 4px 8px; letter-spacing:.3px}
+
+  .unit{
+    display:flex; align-items:center; gap:12px; width:100%; text-align:right;
+    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px;
+    cursor:pointer; margin-bottom:8px; box-shadow:var(--shadow);
+  }
+  .unit:active{transform:scale(.995)}
+  .unit .num{
+    width:38px; height:38px; flex:0 0 auto; border-radius:11px; display:grid; place-items:center;
+    background:var(--brand-soft); color:var(--brand); font-weight:800; font-size:15px;
+  }
+  .unit.done .num{background:var(--ok-soft); color:var(--ok)}
+  .unit .meta{flex:1; text-align:left; min-width:0}
+  .unit .meta b{display:block; font-size:15px; font-weight:700}
+  .unit .meta span{font-size:12px; color:var(--muted)}
+  .bar{height:6px; background:var(--line); border-radius:99px; overflow:hidden; margin-top:6px}
+  .bar > i{display:block; height:100%; background:var(--brand); border-radius:99px; transition:width .3s ease}
+  .bar.ok > i{background:var(--ok)}
+
+  /* lesson */
+  .lesson-top{display:flex; align-items:center; gap:10px; margin-bottom:14px}
+  .lesson-top .bar{flex:1; margin:0}
+  .steplabel{
+    display:inline-block; font-size:12px; font-weight:800; color:var(--brand);
+    background:var(--brand-soft); padding:4px 10px; border-radius:99px; margin-bottom:10px;
+  }
+  .word-en{font-size:34px; font-weight:800; letter-spacing:-.5px; line-height:1.2; word-break:break-word}
+  .word-ph{font-size:18px; color:var(--brand); font-weight:700; margin-top:6px}
+  .word-th{font-size:17px; margin-top:8px}
+  .ex{margin-top:14px; padding-top:14px; border-top:1px dashed var(--line)}
+  .ex .en{font-size:16px; font-weight:600}
+  .ex .th{font-size:14px; color:var(--muted)}
+  .row{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap}
+  .row > *{flex:1}
+
+  .choice{
+    display:block; width:100%; text-align:left; background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:14px; font-size:16px; margin-bottom:8px; cursor:pointer; color:var(--ink); font-weight:600;
+  }
+  .choice.right{background:var(--ok-soft); border-color:var(--ok); color:var(--ok)}
+  .choice.wrong{background:var(--bad-soft); border-color:var(--bad); color:var(--bad)}
+
+  .mic{
+    width:110px; height:110px; border-radius:50%; border:none; margin:8px auto; display:grid; place-items:center;
+    background:var(--brand); color:var(--brand-ink); font-size:40px; cursor:pointer; box-shadow:0 10px 30px rgba(47,109,246,.35);
+  }
+  .mic.listening{animation:pulse 1.2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,109,246,.45)}70%{box-shadow:0 0 0 26px rgba(47,109,246,0)}100%{box-shadow:0 0 0 0 rgba(47,109,246,0)}}
+
+  .feedback{border-radius:12px; padding:12px 14px; margin-top:12px; font-weight:700}
+  .feedback.good{background:var(--ok-soft); color:var(--ok)}
+  .feedback.mid{background:var(--warn-soft); color:var(--warn)}
+  .feedback.bad{background:var(--bad-soft); color:var(--bad)}
+  .feedback .heard{font-weight:500; font-size:13px; opacity:.85; margin-top:4px}
+
+  /* chat */
+  .chat{display:flex; flex-direction:column; gap:10px; padding:4px 0 8px}
+  .msg{max-width:85%; padding:11px 14px; border-radius:16px; font-size:16px; line-height:1.5}
+  .msg .th{display:block; font-size:12.5px; opacity:.75; margin-top:3px}
+  .msg.bot{align-self:flex-start; background:var(--card); border:1px solid var(--line); border-bottom-left-radius:5px}
+  .msg.me{align-self:flex-end; background:var(--brand); color:var(--brand-ink); border-bottom-right-radius:5px}
+  .msg.sys{align-self:center; background:transparent; color:var(--muted); font-size:13px; text-align:center}
+  .hintbox{background:var(--brand-soft); color:var(--brand); border-radius:12px; padding:10px 12px; font-size:14px; font-weight:600}
+
+  .dlg-line{display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--line)}
+  .dlg-line:last-child{border-bottom:none}
+  .who{width:30px; height:30px; flex:0 0 auto; border-radius:9px; display:grid; place-items:center; font-size:12px; font-weight:800; background:var(--line)}
+  .who.you{background:var(--brand-soft); color:var(--brand)}
+  .dlg-line .t{flex:1}
+  .dlg-line .t .en{font-weight:650}
+  .dlg-line .t .th{font-size:13px; color:var(--muted)}
+
+  .tabbar{
+    position:fixed; left:0; right:0; bottom:0; z-index:30; background:var(--card); border-top:1px solid var(--line);
+    display:flex; padding:6px 8px calc(6px + env(safe-area-inset-bottom)); gap:4px;
+  }
+  .tabbar .in{max-width:560px; margin:0 auto; display:flex; width:100%}
+  .tab{
+    flex:1; border:none; background:transparent; color:var(--muted); font-size:11px; font-weight:700;
+    display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 4px; cursor:pointer; border-radius:10px;
+  }
+  .tab .ic{font-size:20px; line-height:1}
+  .tab.active{color:var(--brand); background:var(--brand-soft)}
+
+  .banner{background:var(--warn-soft); color:var(--warn); border-radius:12px; padding:12px 14px; font-size:13.5px; font-weight:600; margin-bottom:12px}
+  .hidden{display:none !important}
+  .center{text-align:center}
+  .pill{display:inline-block; font-size:11px; font-weight:800; padding:3px 9px; border-radius:99px; background:var(--line); color:var(--muted)}
+  .pill.ok{background:var(--ok-soft); color:var(--ok)}
+  input[type=text]{
+    width:100%; padding:13px 14px; border-radius:12px; border:1px solid var(--line);
+    background:var(--card); color:var(--ink); font-size:16px; font-family:inherit;
+  }
+  input[type=range]{width:100%; accent-color:var(--brand)}
+  .kv{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line)}
+  .kv:last-child{border-bottom:none}
+  .confetti{font-size:52px; text-align:center; line-height:1}
+</style>
+
+<div class="wrap">
+  <header class="topbar" id="topbar">
+    <button class="icon-btn hidden" id="backBtn" aria-label="ย้อนกลับ">←</button>
+    <div>
+      <h1 id="scrTitle">พูดอังกฤษได้</h1>
+      <div class="sub" id="scrSub">คอร์สภาษาอังกฤษ สำหรับคนเริ่มจากศูนย์</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="icon-btn" id="themeBtn" aria-label="สลับธีม">◐</button>
+  </header>
+
+  <main id="screen"></main>
+</div>
+
+<nav class="tabbar" id="tabbar">
+  <div class="in">
+    <button class="tab active" data-tab="home"><span class="ic">🏠</span>บทเรียน</button>
+    <button class="tab" data-tab="review"><span class="ic">🔁</span>ทบทวน</button>
+    <button class="tab" data-tab="talk"><span class="ic">💬</span>คุยกับติวเตอร์</button>
+    <button class="tab" data-tab="me"><span class="ic">⚙️</span>ตั้งค่า</button>
+  </div>
+</nav>
+
+<script>
+/* ================= หลักสูตร (Curriculum) =================
+   เรียงตามความถี่ในการใช้จริง: ทักทาย -> ตัวเลข -> ครอบครัว -> อาหาร ->
+   ซื้อของ -> เดินทาง -> งาน -> สุขภาพ -> คุยเล่น -> โทรศัพท์/ที่ทำงาน
+   ทุกคำมี: en (อังกฤษ), th (ไทย), ph (คำอ่านไทย), ex/exth (ประโยคตัวอย่าง)
+========================================================== */
+const COURSE = [
+{ id:"u1", emoji:"👋", title:"ทักทาย & แนะนำตัว", goal:"ทักทาย บอกชื่อ และถามสารทุกข์สุกดิบได้",
+  words:[
+   {en:"Hello", th:"สวัสดี", ph:"เฮล-โล", ex:"Hello! Nice to meet you.", exth:"สวัสดี! ยินดีที่ได้รู้จัก"},
+   {en:"Hi", th:"หวัดดี (เป็นกันเอง)", ph:"ฮาย", ex:"Hi! How are you?", exth:"หวัดดี สบายดีไหม"},
+   {en:"Good morning", th:"อรุณสวัสดิ์", ph:"กุด มอร์-นิ่ง", ex:"Good morning, teacher.", exth:"อรุณสวัสดิ์ครับคุณครู"},
+   {en:"My name is Ben", th:"ผมชื่อเบน", ph:"มาย เนม อิส เบ็น", ex:"Hello, my name is Ben.", exth:"สวัสดี ผมชื่อเบน"},
+   {en:"What is your name?", th:"คุณชื่ออะไร", ph:"วอท อิส ยัวร์ เนม", ex:"Hi! What is your name?", exth:"สวัสดี คุณชื่ออะไร"},
+   {en:"Nice to meet you", th:"ยินดีที่ได้รู้จัก", ph:"ไนซ์ ทู มีท ยู", ex:"Nice to meet you, Anna.", exth:"ยินดีที่ได้รู้จักนะแอนนา"},
+   {en:"How are you?", th:"สบายดีไหม", ph:"ฮาว อาร์ ยู", ex:"Hi Ben, how are you?", exth:"สวัสดีเบน สบายดีไหม"},
+   {en:"I am fine, thank you", th:"ผมสบายดี ขอบคุณ", ph:"ไอ แอม ไฟน์ แธ้งก์ คิว", ex:"I am fine, thank you. And you?", exth:"สบายดี ขอบคุณ แล้วคุณล่ะ"},
+   {en:"Thank you", th:"ขอบคุณ", ph:"แธ้งก์ คิว", ex:"Thank you very much.", exth:"ขอบคุณมากครับ"},
+   {en:"Sorry", th:"ขอโทษ", ph:"ซอ-รี่", ex:"Sorry, I am late.", exth:"ขอโทษครับ ผมมาสาย"},
+   {en:"Goodbye", th:"ลาก่อน", ph:"กุด-บาย", ex:"Goodbye! See you tomorrow.", exth:"ลาก่อน! พรุ่งนี้เจอกัน"},
+   {en:"See you later", th:"แล้วเจอกันนะ", ph:"ซี ยู เล-เท่อร์", ex:"OK, see you later.", exth:"โอเค แล้วเจอกันนะ"}
+  ],
+  dialog:{ title:"เจอเพื่อนใหม่ครั้งแรก", lines:[
+   {who:"A", en:"Hello! My name is Ben.", th:"สวัสดี ผมชื่อเบน"},
+   {who:"You", en:"Hi Ben. My name is Nok.", th:"สวัสดีเบน ฉันชื่อนก"},
+   {who:"A", en:"Nice to meet you, Nok.", th:"ยินดีที่ได้รู้จักนะนก"},
+   {who:"You", en:"Nice to meet you too.", th:"ยินดีที่ได้รู้จักเช่นกัน"},
+   {who:"A", en:"How are you?", th:"สบายดีไหม"},
+   {who:"You", en:"I am fine, thank you.", th:"สบายดี ขอบคุณ"},
+   {who:"A", en:"OK. See you later!", th:"โอเค แล้วเจอกันนะ"},
+   {who:"You", en:"Goodbye!", th:"ลาก่อน"}
+  ]}},
+
+{ id:"u2", emoji:"🔢", title:"ตัวเลข & เวลา", goal:"บอกเวลา นับเลข และพูดถึงวันนี้/พรุ่งนี้ได้",
+  words:[
+   {en:"One", th:"หนึ่ง", ph:"วัน", ex:"I have one brother.", exth:"ผมมีพี่ชายหนึ่งคน"},
+   {en:"Two", th:"สอง", ph:"ทู", ex:"Two coffees, please.", exth:"ขอกาแฟสองแก้วครับ"},
+   {en:"Three", th:"สาม", ph:"ธรี", ex:"I work three days.", exth:"ผมทำงานสามวัน"},
+   {en:"Five", th:"ห้า", ph:"ไฟฟ์", ex:"Five minutes, please.", exth:"ขอห้านาทีครับ"},
+   {en:"Ten", th:"สิบ", ph:"เท็น", ex:"It is ten baht.", exth:"ราคาสิบบาท"},
+   {en:"Twenty", th:"ยี่สิบ", ph:"ทเวน-ตี้", ex:"I am twenty years old.", exth:"ผมอายุยี่สิบปี"},
+   {en:"What time is it?", th:"ตอนนี้กี่โมง", ph:"วอท ไทม์ อิส อิท", ex:"Excuse me, what time is it?", exth:"ขอโทษครับ ตอนนี้กี่โมง"},
+   {en:"It is nine o'clock", th:"เก้าโมง", ph:"อิท อิส ไนน์ โอ-คล็อก", ex:"It is nine o'clock now.", exth:"ตอนนี้เก้าโมง"},
+   {en:"Today", th:"วันนี้", ph:"ทู-เดย์", ex:"I am busy today.", exth:"วันนี้ผมยุ่ง"},
+   {en:"Tomorrow", th:"พรุ่งนี้", ph:"ทู-มอ-โร่ว", ex:"See you tomorrow.", exth:"พรุ่งนี้เจอกัน"},
+   {en:"Yesterday", th:"เมื่อวาน", ph:"เยส-เต่อร์-เดย์", ex:"I was sick yesterday.", exth:"เมื่อวานผมป่วย"},
+   {en:"Now", th:"ตอนนี้", ph:"นาว", ex:"I am at home now.", exth:"ตอนนี้ผมอยู่บ้าน"}
+  ],
+  dialog:{ title:"ถามเวลาคนแปลกหน้า", lines:[
+   {who:"A", en:"Excuse me. What time is it?", th:"ขอโทษครับ ตอนนี้กี่โมง"},
+   {who:"You", en:"It is ten o'clock.", th:"สิบโมงครับ"},
+   {who:"A", en:"Thank you. Are you busy today?", th:"ขอบคุณครับ วันนี้คุณยุ่งไหม"},
+   {who:"You", en:"No, I am free today.", th:"ไม่ครับ วันนี้ผมว่าง"},
+   {who:"A", en:"Great. See you tomorrow.", th:"เยี่ยม แล้วพรุ่งนี้เจอกัน"},
+   {who:"You", en:"OK, see you tomorrow.", th:"โอเค พรุ่งนี้เจอกัน"}
+  ]}},
+
+{ id:"u3", emoji:"👨‍👩‍👧", title:"ครอบครัว & ผู้คน", goal:"แนะนำครอบครัว บอกอายุ และพูดถึงคนอื่นได้",
+  words:[
+   {en:"Family", th:"ครอบครัว", ph:"แฟ-มิ-ลี่", ex:"I love my family.", exth:"ผมรักครอบครัวของผม"},
+   {en:"Father", th:"พ่อ", ph:"ฟา-เท่อร์", ex:"My father is a driver.", exth:"พ่อผมเป็นคนขับรถ"},
+   {en:"Mother", th:"แม่", ph:"มา-เท่อร์", ex:"My mother cooks very well.", exth:"แม่ผมทำอาหารเก่งมาก"},
+   {en:"Brother", th:"พี่ชาย / น้องชาย", ph:"บรา-เท่อร์", ex:"I have one brother.", exth:"ผมมีพี่ชายหนึ่งคน"},
+   {en:"Sister", th:"พี่สาว / น้องสาว", ph:"ซิส-เท่อร์", ex:"My sister is a nurse.", exth:"พี่สาวผมเป็นพยาบาล"},
+   {en:"Friend", th:"เพื่อน", ph:"เฟรนด์", ex:"He is my friend.", exth:"เขาเป็นเพื่อนผม"},
+   {en:"This is my wife", th:"นี่คือภรรยาผม", ph:"ดิส อิส มาย ไวฟ์", ex:"This is my wife, Nok.", exth:"นี่ภรรยาผมครับ ชื่อนก"},
+   {en:"I have two children", th:"ผมมีลูกสองคน", ph:"ไอ แฮฟ ทู ชิล-เดร็น", ex:"I have two children.", exth:"ผมมีลูกสองคน"},
+   {en:"How old are you?", th:"คุณอายุเท่าไหร่", ph:"ฮาว โอลด์ อาร์ ยู", ex:"How old are you, Ben?", exth:"เบน คุณอายุเท่าไหร่"},
+   {en:"I am thirty years old", th:"ผมอายุสามสิบปี", ph:"ไอ แอม เธอร์-ตี้ เยียร์ส โอลด์", ex:"I am thirty years old.", exth:"ผมอายุสามสิบปี"},
+   {en:"He is my brother", th:"เขาเป็นพี่ชายผม", ph:"ฮี อิส มาย บรา-เท่อร์", ex:"He is my brother, Tom.", exth:"เขาเป็นพี่ชายผม ชื่อทอม"},
+   {en:"She is my mother", th:"เธอเป็นแม่ผม", ph:"ชี อิส มาย มา-เท่อร์", ex:"She is my mother.", exth:"เธอเป็นแม่ผม"}
+  ],
+  dialog:{ title:"อวดรูปครอบครัว", lines:[
+   {who:"A", en:"Is this your family?", th:"นี่ครอบครัวคุณเหรอ"},
+   {who:"You", en:"Yes. This is my wife.", th:"ใช่ นี่ภรรยาผม"},
+   {who:"A", en:"Nice! Do you have children?", th:"ดีจัง คุณมีลูกไหม"},
+   {who:"You", en:"Yes, I have two children.", th:"มีครับ ผมมีลูกสองคน"},
+   {who:"A", en:"How old are you?", th:"คุณอายุเท่าไหร่"},
+   {who:"You", en:"I am thirty years old.", th:"ผมอายุสามสิบปี"}
+  ]}},
+
+{ id:"u4", emoji:"🍜", title:"อาหาร & สั่งอาหาร", goal:"สั่งอาหาร บอกความชอบ และเรียกเก็บเงินได้",
+  words:[
+   {en:"Water", th:"น้ำ", ph:"วอ-เท่อร์", ex:"Can I have water, please?", exth:"ขอน้ำหน่อยครับ"},
+   {en:"Rice", th:"ข้าว", ph:"ไรซ์", ex:"I eat rice every day.", exth:"ผมกินข้าวทุกวัน"},
+   {en:"Chicken", th:"ไก่", ph:"ชิค-เค่น", ex:"I want fried chicken.", exth:"ผมอยากได้ไก่ทอด"},
+   {en:"Coffee", th:"กาแฟ", ph:"คอ-ฟี่", ex:"One coffee, please.", exth:"ขอกาแฟหนึ่งแก้วครับ"},
+   {en:"I am hungry", th:"ผมหิว", ph:"ไอ แอม ฮัง-กรี่", ex:"I am hungry now.", exth:"ตอนนี้ผมหิวแล้ว"},
+   {en:"I want rice", th:"ผมอยากได้ข้าว", ph:"ไอ วอนท์ ไรซ์", ex:"I want rice and chicken.", exth:"ผมอยากได้ข้าวกับไก่"},
+   {en:"Can I have the menu?", th:"ขอเมนูหน่อยได้ไหม", ph:"แคน ไอ แฮฟ เดอะ เม-นู", ex:"Excuse me, can I have the menu?", exth:"ขอโทษครับ ขอเมนูหน่อย"},
+   {en:"How much is it?", th:"ราคาเท่าไหร่", ph:"ฮาว มัช อิส อิท", ex:"How much is it?", exth:"อันนี้ราคาเท่าไหร่"},
+   {en:"Delicious", th:"อร่อย", ph:"ดิ-ลิ-เชี่ยส", ex:"This food is delicious.", exth:"อาหารนี้อร่อยมาก"},
+   {en:"Not spicy, please", th:"ขอไม่เผ็ดครับ", ph:"นอท สไป-ซี่ พลีซ", ex:"Not spicy, please.", exth:"ขอไม่เผ็ดนะครับ"},
+   {en:"The bill, please", th:"เก็บเงินด้วยครับ", ph:"เดอะ บิล พลีซ", ex:"Excuse me, the bill please.", exth:"ขอโทษครับ เก็บเงินด้วย"},
+   {en:"I am full", th:"ผมอิ่มแล้ว", ph:"ไอ แอม ฟูล", ex:"Thank you, I am full.", exth:"ขอบคุณครับ ผมอิ่มแล้ว"}
+  ],
+  dialog:{ title:"สั่งอาหารในร้าน", lines:[
+   {who:"A", en:"Hello. Can I help you?", th:"สวัสดีค่ะ รับอะไรดีคะ"},
+   {who:"You", en:"Yes. Can I have the menu?", th:"ครับ ขอเมนูหน่อยครับ"},
+   {who:"A", en:"Here you are.", th:"นี่ค่ะ"},
+   {who:"You", en:"I want rice and chicken. Not spicy, please.", th:"ผมขอข้าวกับไก่ ไม่เผ็ดนะครับ"},
+   {who:"A", en:"Anything to drink?", th:"รับเครื่องดื่มไหมคะ"},
+   {who:"You", en:"One water, please.", th:"ขอน้ำหนึ่งขวดครับ"},
+   {who:"A", en:"OK. Thank you.", th:"ได้ค่ะ ขอบคุณค่ะ"},
+   {who:"You", en:"The bill, please.", th:"เก็บเงินด้วยครับ"}
+  ]}},
+
+{ id:"u5", emoji:"🛍️", title:"ซื้อของ & ราคา", goal:"ถามราคา ต่อรอง และจ่ายเงินได้",
+  words:[
+   {en:"How much is this?", th:"อันนี้ราคาเท่าไหร่", ph:"ฮาว มัช อิส ดิส", ex:"Excuse me, how much is this?", exth:"ขอโทษครับ อันนี้เท่าไหร่"},
+   {en:"It is expensive", th:"มันแพง", ph:"อิท อิส เอ็กซ์-เพ็น-ซีฟ", ex:"Sorry, it is expensive.", exth:"ขอโทษครับ มันแพงไป"},
+   {en:"Cheap", th:"ถูก (ราคา)", ph:"ชีพ", ex:"This shop is cheap.", exth:"ร้านนี้ถูก"},
+   {en:"Do you have this in blue?", th:"มีสีน้ำเงินไหม", ph:"ดู ยู แฮฟ ดิส อิน บลู", ex:"Do you have this in blue?", exth:"อันนี้มีสีน้ำเงินไหม"},
+   {en:"I will take it", th:"ผมเอาอันนี้", ph:"ไอ วิล เทค อิท", ex:"OK, I will take it.", exth:"โอเค ผมเอาอันนี้"},
+   {en:"Too big", th:"ใหญ่เกินไป", ph:"ทู บิก", ex:"This is too big.", exth:"อันนี้ใหญ่เกินไป"},
+   {en:"Too small", th:"เล็กเกินไป", ph:"ทู สมอล", ex:"This is too small.", exth:"อันนี้เล็กเกินไป"},
+   {en:"Can I try it?", th:"ขอลองได้ไหม", ph:"แคน ไอ ทราย อิท", ex:"Can I try it, please?", exth:"ขอลองหน่อยได้ไหมครับ"},
+   {en:"Money", th:"เงิน", ph:"มัน-นี่", ex:"I do not have money today.", exth:"วันนี้ผมไม่มีเงิน"},
+   {en:"Can I pay by card?", th:"จ่ายด้วยบัตรได้ไหม", ph:"แคน ไอ เพย์ บาย คาร์ด", ex:"Can I pay by card?", exth:"จ่ายด้วยบัตรได้ไหมครับ"},
+   {en:"Can you give me a discount?", th:"ลดราคาได้ไหม", ph:"แคน ยู กิฟ มี อะ ดิส-เคานท์", ex:"Can you give me a discount?", exth:"ลดหน่อยได้ไหมครับ"},
+   {en:"Just looking, thank you", th:"ขอดูก่อนครับ ขอบคุณ", ph:"จัสท์ ลุค-กิ้ง แธ้งก์ คิว", ex:"Just looking, thank you.", exth:"ขอดูก่อนครับ ขอบคุณ"}
+  ],
+  dialog:{ title:"ซื้อเสื้อที่ตลาด", lines:[
+   {who:"A", en:"Hello! Can I help you?", th:"สวัสดีค่ะ ให้ช่วยอะไรไหมคะ"},
+   {who:"You", en:"Just looking, thank you.", th:"ขอดูก่อนครับ ขอบคุณ"},
+   {who:"A", en:"OK, take your time.", th:"ได้ค่ะ ตามสบายเลย"},
+   {who:"You", en:"Excuse me. How much is this?", th:"ขอโทษครับ อันนี้เท่าไหร่"},
+   {who:"A", en:"It is five hundred baht.", th:"ห้าร้อยบาทค่ะ"},
+   {who:"You", en:"It is expensive. Can you give me a discount?", th:"แพงจัง ลดหน่อยได้ไหมครับ"},
+   {who:"A", en:"OK, four hundred fifty.", th:"ได้ค่ะ สี่ร้อยห้าสิบ"},
+   {who:"You", en:"I will take it. Can I pay by card?", th:"ผมเอาอันนี้ จ่ายด้วยบัตรได้ไหมครับ"}
+  ]}},
+
+{ id:"u6", emoji:"🚕", title:"เดินทาง & ถามทาง", goal:"ถามทาง เรียกแท็กซี่ และบอกจุดหมายได้",
+  words:[
+   {en:"Where is the toilet?", th:"ห้องน้ำอยู่ไหน", ph:"แวร์ อิส เดอะ ทอย-เล็ท", ex:"Excuse me, where is the toilet?", exth:"ขอโทษครับ ห้องน้ำอยู่ไหน"},
+   {en:"Hotel", th:"โรงแรม", ph:"โฮ-เทล", ex:"My hotel is near here.", exth:"โรงแรมผมอยู่ใกล้ๆ นี่"},
+   {en:"Airport", th:"สนามบิน", ph:"แอร์-พอร์ท", ex:"To the airport, please.", exth:"ไปสนามบินครับ"},
+   {en:"Train station", th:"สถานีรถไฟ", ph:"เทรน สเต-ชั่น", ex:"Where is the train station?", exth:"สถานีรถไฟอยู่ไหน"},
+   {en:"Turn left", th:"เลี้ยวซ้าย", ph:"เทิร์น เลฟท์", ex:"Turn left here, please.", exth:"เลี้ยวซ้ายตรงนี้ครับ"},
+   {en:"Turn right", th:"เลี้ยวขวา", ph:"เทิร์น ไรท์", ex:"Turn right at the bank.", exth:"เลี้ยวขวาตรงธนาคาร"},
+   {en:"Go straight", th:"ตรงไป", ph:"โก สเตรท", ex:"Go straight, then turn left.", exth:"ตรงไป แล้วเลี้ยวซ้าย"},
+   {en:"It is near", th:"อยู่ใกล้", ph:"อิท อิส เนียร์", ex:"Do not worry, it is near.", exth:"ไม่ต้องห่วง มันอยู่ใกล้"},
+   {en:"It is far", th:"อยู่ไกล", ph:"อิท อิส ฟาร์", ex:"Sorry, it is far.", exth:"ขอโทษครับ มันไกล"},
+   {en:"How do I get to the hotel?", th:"ไปโรงแรมยังไง", ph:"ฮาว ดู ไอ เก็ท ทู เดอะ โฮ-เทล", ex:"How do I get to the hotel?", exth:"ผมจะไปโรงแรมยังไงครับ"},
+   {en:"Stop here, please", th:"จอดตรงนี้ครับ", ph:"สต็อป เฮียร์ พลีซ", ex:"Stop here, please.", exth:"จอดตรงนี้ครับ"},
+   {en:"I am lost", th:"ผมหลงทาง", ph:"ไอ แอม ลอสท์", ex:"Help me, please. I am lost.", exth:"ช่วยผมด้วยครับ ผมหลงทาง"}
+  ],
+  dialog:{ title:"หลงทางในเมือง", lines:[
+   {who:"A", en:"Excuse me, can I help you?", th:"ขอโทษครับ ให้ช่วยไหม"},
+   {who:"You", en:"Yes, please. I am lost.", th:"ครับ ช่วยหน่อย ผมหลงทาง"},
+   {who:"A", en:"Where do you want to go?", th:"คุณจะไปไหนครับ"},
+   {who:"You", en:"How do I get to the train station?", th:"ผมจะไปสถานีรถไฟยังไงครับ"},
+   {who:"A", en:"Go straight, then turn left. It is near.", th:"ตรงไปแล้วเลี้ยวซ้าย อยู่ใกล้ๆ นี่เอง"},
+   {who:"You", en:"Thank you very much!", th:"ขอบคุณมากครับ"}
+  ]}},
+
+{ id:"u7", emoji:"💼", title:"งาน & กิจวัตรประจำวัน", goal:"เล่าว่าทำงานอะไร และเล่ากิจวัตรของตัวเองได้",
+  words:[
+   {en:"What do you do?", th:"คุณทำงานอะไร", ph:"วอท ดู ยู ดู", ex:"Hi Ben. What do you do?", exth:"สวัสดีเบน คุณทำงานอะไร"},
+   {en:"I am a teacher", th:"ผมเป็นครู", ph:"ไอ แอม อะ ที-เช่อร์", ex:"I am a teacher.", exth:"ผมเป็นครู"},
+   {en:"I work at a factory", th:"ผมทำงานที่โรงงาน", ph:"ไอ เวิร์ค แอท อะ แฟค-ทอ-รี่", ex:"I work at a factory in Rayong.", exth:"ผมทำงานที่โรงงานในระยอง"},
+   {en:"Every day", th:"ทุกวัน", ph:"เอฟ-รี่ เดย์", ex:"I work every day.", exth:"ผมทำงานทุกวัน"},
+   {en:"I wake up at six", th:"ผมตื่นหกโมง", ph:"ไอ เวค อัพ แอท ซิกซ์", ex:"I wake up at six every day.", exth:"ผมตื่นหกโมงทุกวัน"},
+   {en:"I go to work", th:"ผมไปทำงาน", ph:"ไอ โก ทู เวิร์ค", ex:"I go to work at seven.", exth:"ผมไปทำงานตอนเจ็ดโมง"},
+   {en:"I eat lunch", th:"ผมกินข้าวเที่ยง", ph:"ไอ อีท ลันช์", ex:"I eat lunch at twelve.", exth:"ผมกินข้าวเที่ยงตอนเที่ยง"},
+   {en:"I go home", th:"ผมกลับบ้าน", ph:"ไอ โก โฮม", ex:"I go home at six.", exth:"ผมกลับบ้านตอนหกโมงเย็น"},
+   {en:"I am busy", th:"ผมยุ่ง", ph:"ไอ แอม บิ-ซี่", ex:"Sorry, I am busy now.", exth:"ขอโทษครับ ตอนนี้ผมยุ่ง"},
+   {en:"I am free", th:"ผมว่าง", ph:"ไอ แอม ฟรี", ex:"I am free tomorrow.", exth:"พรุ่งนี้ผมว่าง"},
+   {en:"Weekend", th:"วันหยุดสุดสัปดาห์", ph:"วีค-เอ็นด์", ex:"I rest on the weekend.", exth:"ผมพักผ่อนวันหยุด"},
+   {en:"I like my job", th:"ผมชอบงานของผม", ph:"ไอ ไลค์ มาย จอบ", ex:"It is hard, but I like my job.", exth:"มันหนักนะ แต่ผมชอบงานของผม"}
+  ],
+  dialog:{ title:"คุยเรื่องงานกับเพื่อนร่วมงาน", lines:[
+   {who:"A", en:"What do you do?", th:"คุณทำงานอะไรครับ"},
+   {who:"You", en:"I work at a factory.", th:"ผมทำงานที่โรงงาน"},
+   {who:"A", en:"Do you like your job?", th:"ชอบงานไหมครับ"},
+   {who:"You", en:"Yes, I like my job.", th:"ชอบครับ ผมชอบงานของผม"},
+   {who:"A", en:"What time do you start?", th:"เริ่มงานกี่โมงครับ"},
+   {who:"You", en:"I wake up at six and I go to work at seven.", th:"ผมตื่นหกโมง แล้วไปทำงานเจ็ดโมง"}
+  ]}},
+
+{ id:"u8", emoji:"🩺", title:"ความรู้สึก & สุขภาพ", goal:"บอกอาการ ขอความช่วยเหลือ และไปหาหมอได้",
+  words:[
+   {en:"I am happy", th:"ผมมีความสุข", ph:"ไอ แอม แฮ้ป-ปี้", ex:"I am happy today.", exth:"วันนี้ผมมีความสุข"},
+   {en:"I am tired", th:"ผมเหนื่อย", ph:"ไอ แอม ไท-เอิร์ด", ex:"I am very tired today.", exth:"วันนี้ผมเหนื่อยมาก"},
+   {en:"I am sick", th:"ผมป่วย", ph:"ไอ แอม ซิค", ex:"Sorry, I am sick today.", exth:"ขอโทษครับ วันนี้ผมป่วย"},
+   {en:"I have a headache", th:"ผมปวดหัว", ph:"ไอ แฮฟ อะ เฮด-เอค", ex:"I have a headache.", exth:"ผมปวดหัว"},
+   {en:"I do not feel well", th:"ผมรู้สึกไม่สบาย", ph:"ไอ ดู นอท ฟีล เวล", ex:"I do not feel well.", exth:"ผมรู้สึกไม่สบาย"},
+   {en:"Hospital", th:"โรงพยาบาล", ph:"ฮอส-พิ-ทัล", ex:"Take me to the hospital.", exth:"พาผมไปโรงพยาบาลที"},
+   {en:"Medicine", th:"ยา", ph:"เม-ดิ-ซิน", ex:"Take this medicine.", exth:"กินยานี้นะ"},
+   {en:"Help me, please", th:"ช่วยผมด้วยครับ", ph:"เฮลพ์ มี พลีซ", ex:"Help me, please!", exth:"ช่วยผมด้วยครับ"},
+   {en:"I need a doctor", th:"ผมต้องการหมอ", ph:"ไอ นีด อะ ด็อค-เท่อร์", ex:"I need a doctor now.", exth:"ผมต้องการหมอตอนนี้"},
+   {en:"It hurts here", th:"ตรงนี้เจ็บ", ph:"อิท เฮิร์ทส์ เฮียร์", ex:"It hurts here.", exth:"เจ็บตรงนี้ครับ"},
+   {en:"I am hot", th:"ผมร้อน", ph:"ไอ แอม ฮอท", ex:"I am hot. Open the window.", exth:"ผมร้อน เปิดหน้าต่างหน่อย"},
+   {en:"I am cold", th:"ผมหนาว", ph:"ไอ แอม โคลด์", ex:"I am cold today.", exth:"วันนี้ผมหนาว"}
+  ],
+  dialog:{ title:"ไปหาหมอที่คลินิก", lines:[
+   {who:"A", en:"Hello. How can I help you?", th:"สวัสดีค่ะ มีอะไรให้ช่วยคะ"},
+   {who:"You", en:"I do not feel well.", th:"ผมรู้สึกไม่สบายครับ"},
+   {who:"A", en:"What is the problem?", th:"เป็นอะไรคะ"},
+   {who:"You", en:"I have a headache and I am tired.", th:"ผมปวดหัวแล้วก็เหนื่อยครับ"},
+   {who:"A", en:"OK. Take this medicine two times a day.", th:"ได้ค่ะ กินยานี้วันละสองครั้งนะคะ"},
+   {who:"You", en:"Thank you, doctor.", th:"ขอบคุณครับคุณหมอ"}
+  ]}},
+
+{ id:"u9", emoji:"🗣️", title:"คุยเล่นกับฝรั่ง (Small talk)", goal:"เอาตัวรอดในบทสนทนา แม้ฟังไม่ทัน",
+  words:[
+   {en:"Where are you from?", th:"คุณมาจากไหน", ph:"แวร์ อาร์ ยู ฟรอม", ex:"Hi! Where are you from?", exth:"สวัสดี คุณมาจากไหน"},
+   {en:"I am from Thailand", th:"ผมมาจากประเทศไทย", ph:"ไอ แอม ฟรอม ไท-แลนด์", ex:"I am from Thailand.", exth:"ผมมาจากประเทศไทย"},
+   {en:"Do you speak English?", th:"คุณพูดอังกฤษได้ไหม", ph:"ดู ยู สปีค อิง-กลิช", ex:"Do you speak English?", exth:"คุณพูดอังกฤษได้ไหม"},
+   {en:"A little", th:"นิดหน่อย", ph:"อะ ลิท-เทิ่ล", ex:"Yes, a little.", exth:"ได้ครับ นิดหน่อย"},
+   {en:"I do not understand", th:"ผมไม่เข้าใจ", ph:"ไอ ดู นอท อัน-เดอร์-สแตนด์", ex:"Sorry, I do not understand.", exth:"ขอโทษครับ ผมไม่เข้าใจ"},
+   {en:"Please speak slowly", th:"ช่วยพูดช้าๆ หน่อย", ph:"พลีซ สปีค สโล-ลี่", ex:"Please speak slowly.", exth:"ช่วยพูดช้าๆ หน่อยครับ"},
+   {en:"Can you repeat, please?", th:"พูดอีกครั้งได้ไหม", ph:"แคน ยู รี-พีท พลีซ", ex:"Can you repeat, please?", exth:"พูดอีกครั้งได้ไหมครับ"},
+   {en:"What does it mean?", th:"มันแปลว่าอะไร", ph:"วอท ดัส อิท มีน", ex:"Sorry, what does it mean?", exth:"ขอโทษครับ มันแปลว่าอะไร"},
+   {en:"I like it", th:"ผมชอบมัน", ph:"ไอ ไลค์ อิท", ex:"Thai food? I like it!", exth:"อาหารไทยเหรอ ผมชอบ"},
+   {en:"Me too", th:"ผมก็เหมือนกัน", ph:"มี ทู", ex:"Me too!", exth:"ผมก็เหมือนกัน"},
+   {en:"Really?", th:"จริงเหรอ", ph:"เรียล-ลี่", ex:"Really? That is great!", exth:"จริงเหรอ เยี่ยมเลย"},
+   {en:"That is great", th:"เยี่ยมไปเลย", ph:"แดท อิส เกรท", ex:"That is great. Congratulations!", exth:"เยี่ยมไปเลย ยินดีด้วย"}
+  ],
+  dialog:{ title:"คุยกับนักท่องเที่ยว", lines:[
+   {who:"A", en:"Hi! Where are you from?", th:"สวัสดี คุณมาจากไหน"},
+   {who:"You", en:"I am from Thailand. And you?", th:"ผมมาจากประเทศไทย แล้วคุณล่ะ"},
+   {who:"A", en:"I am from Canada. Do you speak English?", th:"ผมมาจากแคนาดา คุณพูดอังกฤษได้ไหม"},
+   {who:"You", en:"A little. Please speak slowly.", th:"ได้นิดหน่อย ช่วยพูดช้าๆ หน่อยครับ"},
+   {who:"A", en:"No problem! Is this your first time here?", th:"ไม่มีปัญหา นี่ครั้งแรกของคุณที่นี่เหรอ"},
+   {who:"You", en:"Sorry, I do not understand. Can you repeat, please?", th:"ขอโทษครับ ผมไม่เข้าใจ พูดอีกครั้งได้ไหม"}
+  ]}},
+
+{ id:"u10", emoji:"📞", title:"ที่ทำงาน & โทรศัพท์", goal:"รับสาย นัดหมาย และคุยงานง่ายๆ ได้",
+  words:[
+   {en:"Hello, this is Ben", th:"สวัสดีครับ ผมเบนนะครับ", ph:"เฮล-โล ดิส อิส เบ็น", ex:"Hello, this is Ben from ABC.", exth:"สวัสดีครับ ผมเบนจาก ABC"},
+   {en:"Can I speak to Anna?", th:"ขอสายแอนนาได้ไหม", ph:"แคน ไอ สปีค ทู แอน-น่า", ex:"Can I speak to Anna, please?", exth:"ขอสายคุณแอนนาหน่อยครับ"},
+   {en:"Just a moment, please", th:"สักครู่นะครับ", ph:"จัสท์ อะ โม-เม่นท์ พลีซ", ex:"Just a moment, please.", exth:"รอสักครู่นะครับ"},
+   {en:"I will call you back", th:"เดี๋ยวผมโทรกลับ", ph:"ไอ วิล คอล ยู แบค", ex:"I will call you back later.", exth:"เดี๋ยวผมโทรกลับนะครับ"},
+   {en:"We have a meeting", th:"เรามีประชุม", ph:"วี แฮฟ อะ มี-ทิ่ง", ex:"We have a meeting at ten.", exth:"เรามีประชุมสิบโมง"},
+   {en:"Are you free tomorrow?", th:"พรุ่งนี้คุณว่างไหม", ph:"อาร์ ยู ฟรี ทู-มอ-โร่ว", ex:"Are you free tomorrow morning?", exth:"พรุ่งนี้เช้าคุณว่างไหม"},
+   {en:"Let us meet at two", th:"เจอกันบ่ายสองนะ", ph:"เล็ทส์ มีท แอท ทู", ex:"OK, let us meet at two.", exth:"โอเค เจอกันบ่ายสอง"},
+   {en:"I will send an email", th:"ผมจะส่งอีเมลไป", ph:"ไอ วิล เซนด์ แอน อี-เมล", ex:"I will send an email today.", exth:"วันนี้ผมจะส่งอีเมลไปนะ"},
+   {en:"No problem", th:"ไม่มีปัญหา", ph:"โน พร็อบ-เล่ม", ex:"No problem, I can do it.", exth:"ไม่มีปัญหา ผมทำได้"},
+   {en:"I am sorry I am late", th:"ขอโทษที่ผมมาสาย", ph:"ไอ แอม ซอ-รี่ ไอ แอม เลท", ex:"I am sorry I am late.", exth:"ขอโทษที่ผมมาสายครับ"},
+   {en:"Please wait", th:"รอสักครู่นะครับ", ph:"พลีซ เวท", ex:"Please wait five minutes.", exth:"รอห้านาทีนะครับ"},
+   {en:"Thank you for your help", th:"ขอบคุณสำหรับความช่วยเหลือ", ph:"แธ้งก์ คิว ฟอร์ ยัวร์ เฮลพ์", ex:"Thank you for your help.", exth:"ขอบคุณสำหรับความช่วยเหลือครับ"}
+  ],
+  dialog:{ title:"โทรหาที่ทำงาน", lines:[
+   {who:"A", en:"Hello?", th:"ฮัลโหล"},
+   {who:"You", en:"Hello, this is Ben. Can I speak to Anna?", th:"สวัสดีครับ ผมเบน ขอสายแอนนาหน่อยครับ"},
+   {who:"A", en:"Just a moment, please.", th:"รอสักครู่นะคะ"},
+   {who:"You", en:"Thank you.", th:"ขอบคุณครับ"},
+   {who:"A", en:"Sorry, she is busy now.", th:"ขอโทษค่ะ ตอนนี้เธอไม่ว่าง"},
+   {who:"You", en:"No problem. I will call you back. Thank you for your help.", th:"ไม่มีปัญหาครับ เดี๋ยวผมโทรกลับ ขอบคุณสำหรับความช่วยเหลือ"}
+  ]}}
+];
+
+/* ====== คลังคำถามสำหรับโหมด "คุยกับติวเตอร์" ====== */
+const TALK_BANK = [
+ {q:"Hello! What is your name?", qth:"สวัสดี คุณชื่ออะไร", hint:"My name is Somchai.", hintth:"ผมชื่อสมชาย", keys:["name","i am","my"]},
+ {q:"Nice to meet you. How are you today?", qth:"ยินดีที่ได้รู้จัก วันนี้เป็นยังไงบ้าง", hint:"I am fine, thank you.", hintth:"สบายดี ขอบคุณ", keys:["fine","good","ok","great","tired","happy","not"]},
+ {q:"Where are you from?", qth:"คุณมาจากไหน", hint:"I am from Thailand.", hintth:"ผมมาจากประเทศไทย", keys:["from","thailand","bangkok","i am"]},
+ {q:"How old are you?", qth:"คุณอายุเท่าไหร่", hint:"I am thirty years old.", hintth:"ผมอายุสามสิบปี", keys:["years","old","i am","am"]},
+ {q:"Do you have brothers or sisters?", qth:"คุณมีพี่น้องไหม", hint:"Yes, I have one brother.", hintth:"มีครับ ผมมีพี่ชายหนึ่งคน", keys:["yes","no","brother","sister","have"]},
+ {q:"What do you do?", qth:"คุณทำงานอะไร", hint:"I work at a factory.", hintth:"ผมทำงานที่โรงงาน", keys:["work","i am","teacher","student","driver","job"]},
+ {q:"What time do you wake up?", qth:"คุณตื่นกี่โมง", hint:"I wake up at six.", hintth:"ผมตื่นหกโมง", keys:["wake","at","o'clock","six","seven","five","eight"]},
+ {q:"What do you eat for breakfast?", qth:"มื้อเช้าคุณกินอะไร", hint:"I eat rice and eggs.", hintth:"ผมกินข้าวกับไข่", keys:["eat","rice","bread","coffee","egg","nothing","i"]},
+ {q:"Do you like coffee?", qth:"คุณชอบกาแฟไหม", hint:"Yes, I like coffee.", hintth:"ชอบครับ ผมชอบกาแฟ", keys:["yes","no","like","coffee","tea"]},
+ {q:"What is your favorite food?", qth:"อาหารที่คุณชอบที่สุดคืออะไร", hint:"My favorite food is fried rice.", hintth:"อาหารที่ผมชอบคือข้าวผัด", keys:["favorite","food","like","rice","chicken","noodle"]},
+ {q:"Are you busy today?", qth:"วันนี้คุณยุ่งไหม", hint:"No, I am free today.", hintth:"ไม่ วันนี้ผมว่าง", keys:["yes","no","busy","free","today"]},
+ {q:"How is the weather today?", qth:"วันนี้อากาศเป็นยังไง", hint:"It is hot today.", hintth:"วันนี้ร้อน", keys:["hot","cold","rain","sunny","it is","good"]},
+ {q:"Where do you live?", qth:"คุณอยู่ที่ไหน", hint:"I live in Bangkok.", hintth:"ผมอยู่กรุงเทพ", keys:["live","in","i"]},
+ {q:"How do you go to work?", qth:"คุณไปทำงานยังไง", hint:"I go by motorbike.", hintth:"ผมไปด้วยมอเตอร์ไซค์", keys:["by","go","car","bus","bike","walk","train"]},
+ {q:"What do you do on the weekend?", qth:"วันหยุดคุณทำอะไร", hint:"I stay home with my family.", hintth:"ผมอยู่บ้านกับครอบครัว", keys:["i","home","family","sleep","work","rest","go"]},
+ {q:"Do you have children?", qth:"คุณมีลูกไหม", hint:"Yes, I have two children.", hintth:"มีครับ ผมมีลูกสองคน", keys:["yes","no","children","child","have","son","daughter"]},
+ {q:"Can you speak English?", qth:"คุณพูดอังกฤษได้ไหม", hint:"A little.", hintth:"ได้นิดหน่อย", keys:["little","yes","no","speak","can"]},
+ {q:"What did you eat yesterday?", qth:"เมื่อวานคุณกินอะไร", hint:"I ate chicken and rice.", hintth:"ผมกินไก่กับข้าว", keys:["ate","eat","rice","chicken","noodle","i"]},
+ {q:"Are you tired now?", qth:"ตอนนี้คุณเหนื่อยไหม", hint:"Yes, I am a little tired.", hintth:"เหนื่อยนิดหน่อย", keys:["yes","no","tired","fine","not"]},
+ {q:"Do you like music?", qth:"คุณชอบเพลงไหม", hint:"Yes, I like music.", hintth:"ชอบครับ ผมชอบเพลง", keys:["yes","no","like","music"]},
+ {q:"What is your favorite color?", qth:"สีที่คุณชอบคือสีอะไร", hint:"My favorite color is blue.", hintth:"สีที่ผมชอบคือสีน้ำเงิน", keys:["blue","red","green","black","white","color","like"]},
+ {q:"Why do you want to speak English?", qth:"ทำไมคุณอยากพูดอังกฤษได้", hint:"I want to speak English for my job.", hintth:"ผมอยากพูดอังกฤษได้เพื่องาน", keys:["work","job","travel","talk","friend","because","want"]},
+ {q:"What time do you go home?", qth:"คุณกลับบ้านกี่โมง", hint:"I go home at six.", hintth:"ผมกลับบ้านหกโมงเย็น", keys:["go","home","at","o'clock","six","five"]},
+ {q:"Thank you for talking with me. See you tomorrow?", qth:"ขอบคุณที่คุยกันนะ พรุ่งนี้เจอกันไหม", hint:"Yes, see you tomorrow!", hintth:"ได้ แล้วพรุ่งนี้เจอกัน", keys:["yes","see you","tomorrow","ok","bye"]}
+];
+
+const PRAISE = ["Good job!","Nice!","Very good!","That is great.","Well done!","Perfect!"];
+const SOFT   = ["OK, I understand.","Thank you for telling me.","I see.","Got it."];
+</script>
+
+<script>
+/* ================== ตัวช่วยพื้นฐาน ================== */
+const $ = (s,r=document)=>r.querySelector(s);
+const el = (h)=>{const t=document.createElement("template"); t.innerHTML=h.trim(); return t.content.firstElementChild;};
+const esc = (s)=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const rnd = (a)=>a[Math.floor(Math.random()*a.length)];
+const shuffle = (a)=>{const b=a.slice(); for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]];} return b;};
+const todayKey = ()=>new Date().toISOString().slice(0,10);
+
+/* ================== เก็บความคืบหน้า ================== */
+const KEY = "speakenglish.v1";
+const DEFAULT_STATE = {
+  srs:{}, units:{}, xpByDay:{}, streak:0, lastDay:null, goal:20,
+  rate:0.85, theme:null, talkIdx:0, totalSpoken:0
+};
+let S = load();
+function load(){
+  try{ const raw = localStorage.getItem(KEY); if(!raw) return structuredClone(DEFAULT_STATE);
+       return Object.assign(structuredClone(DEFAULT_STATE), JSON.parse(raw)); }
+  catch(e){ return structuredClone(DEFAULT_STATE); }
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function addXP(n){
+  const d = todayKey();
+  if(S.lastDay !== d){
+    const y = new Date(Date.now()-864e5).toISOString().slice(0,10);
+    S.streak = (S.lastDay === y) ? (S.streak||0)+1 : 1;
+    S.lastDay = d;
+  }
+  S.xpByDay[d] = (S.xpByDay[d]||0) + n;
+  save();
+}
+const xpToday = ()=> S.xpByDay[todayKey()] || 0;
+
+/* ================== ระบบทบทวนแบบเว้นระยะ (Leitner) ================== */
+const STEPS_DAYS = [0, 1, 2, 4, 8, 16, 32];
+const cardKey = (u,i)=> u.id + "|" + i;
+function grade(u, i, ok){
+  const k = cardKey(u,i);
+  const c = S.srs[k] || {box:0, due:0, seen:0};
+  c.seen++;
+  c.box = ok ? Math.min(STEPS_DAYS.length-1, c.box+1) : 0;
+  c.due = Date.now() + STEPS_DAYS[c.box]*864e5;
+  S.srs[k] = c; save();
+}
+function dueCards(){
+  const out = [];
+  COURSE.forEach(u=>u.words.forEach((w,i)=>{
+    const c = S.srs[cardKey(u,i)];
+    if(c && c.due <= Date.now()) out.push({u,i,w,box:c.box});
+  }));
+  return out.sort((a,b)=>a.box-b.box);
+}
+const learnedCount = ()=> Object.keys(S.srs).length;
+const strongCount  = ()=> Object.values(S.srs).filter(c=>c.box>=3).length;
+
+/* ================== เสียงพูด (Text to Speech) ================== */
+let VOICE = null;
+function pickVoice(){
+  const vs = speechSynthesis.getVoices().filter(v=>/^en(-|_)?/i.test(v.lang));
+  if(!vs.length) return null;
+  const pref = ["Google US English","Samantha","Microsoft Aria","Microsoft Zira","Karen","Daniel"];
+  for(const p of pref){ const f = vs.find(v=>v.name.includes(p)); if(f) return f; }
+  return vs.find(v=>/en[-_]US/i.test(v.lang)) || vs[0];
+}
+if("speechSynthesis" in window){
+  VOICE = pickVoice();
+  speechSynthesis.onvoiceschanged = ()=>{ VOICE = pickVoice(); };
+}
+function speak(text, slow){
+  if(!("speechSynthesis" in window)) return;
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US";
+    if(VOICE) u.voice = VOICE;
+    u.rate = slow ? 0.55 : (S.rate || 0.85);
+    u.pitch = 1;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ================== ฟังเสียงผู้ใช้ (Speech Recognition) ================== */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const SR_OK = !!SR;
+let recog = null, recogBusy = false;
+function listen(onResult, onError, onEnd){
+  if(!SR_OK){ onError("unsupported"); return; }
+  if(recogBusy){ try{ recog.stop(); }catch(e){} return; }
+  try{ speechSynthesis.cancel(); }catch(e){}
+  recog = new SR();
+  recog.lang = "en-US";
+  recog.interimResults = false;
+  recog.maxAlternatives = 5;
+  recog.continuous = false;
+  recogBusy = true;
+  let got = false;
+  recog.onresult = (e)=>{
+    got = true;
+    const alts = [];
+    for(let i=0;i<e.results[0].length;i++) alts.push(e.results[0][i].transcript);
+    onResult(alts);
+  };
+  recog.onerror = (e)=>{ onError(e.error || "error"); };
+  recog.onend = ()=>{ recogBusy = false; if(!got && onEnd) onEnd(); };
+  try{ recog.start(); }catch(e){ recogBusy = false; onError("start"); }
+}
+function stopListen(){ if(recog && recogBusy){ try{ recog.stop(); }catch(e){} } }
+
+/* ================== ให้คะแนนการออกเสียง ================== */
+const CONTRACTIONS = {"i'm":"i am","it's":"it is","that's":"that is","what's":"what is","don't":"do not",
+ "doesn't":"does not","can't":"can not","cannot":"can not","i'll":"i will","you're":"you are","let's":"let us",
+ "i've":"i have","isn't":"is not","he's":"he is","she's":"she is","we're":"we are","they're":"they are",
+ "i'd":"i would","won't":"will not","didn't":"did not","aren't":"are not","there's":"there is","o'clock":"oclock"};
+const NUMWORD = {"0":"zero","1":"one","2":"two","3":"three","4":"four","5":"five","6":"six","7":"seven",
+ "8":"eight","9":"nine","10":"ten","11":"eleven","12":"twelve","13":"thirteen","14":"fourteen","15":"fifteen",
+ "16":"sixteen","17":"seventeen","18":"eighteen","19":"nineteen","20":"twenty","30":"thirty","40":"forty",
+ "50":"fifty","60":"sixty","70":"seventy","80":"eighty","90":"ninety","100":"hundred","500":"five hundred"};
+function norm(s){
+  s = String(s||"").toLowerCase().replace(/[‘’]/g,"'");
+  for(const k in CONTRACTIONS) s = s.split(k).join(CONTRACTIONS[k]);
+  s = s.replace(/[^a-z0-9'\s]/g," ").replace(/'/g,"");
+  s = s.split(/\s+/).map(w => NUMWORD[w] || w).join(" ");
+  return s.replace(/\s+/g," ").trim();
+}
+function lev(a,b){
+  const m=a.length, n=b.length;
+  if(!m) return n; if(!n) return m;
+  let prev = Array.from({length:n+1},(_,j)=>j);
+  for(let i=1;i<=m;i++){
+    const cur=[i];
+    for(let j=1;j<=n;j++){
+      cur[j] = Math.min(prev[j]+1, cur[j-1]+1, prev[j-1] + (a[i-1]===b[j-1]?0:1));
+    }
+    prev = cur;
+  }
+  return prev[n];
+}
+function sameWord(a,b){
+  if(a===b) return true;
+  const L = Math.max(a.length,b.length);
+  if(L<=3) return false;
+  return lev(a,b) <= (L>=7 ? 2 : 1);
+}
+function scoreSpeech(target, said){
+  const t = norm(target).split(" ").filter(Boolean);
+  const s = norm(said).split(" ").filter(Boolean);
+  if(!t.length) return 0;
+  const m=t.length, n=s.length;
+  let prev = Array.from({length:n+1},(_,j)=>j);
+  for(let i=1;i<=m;i++){
+    const cur=[i];
+    for(let j=1;j<=n;j++){
+      cur[j] = Math.min(prev[j]+1, cur[j-1]+1, prev[j-1] + (sameWord(t[i-1],s[j-1])?0:1));
+    }
+    prev = cur;
+  }
+  const d = prev[n];
+  return Math.max(0, Math.round(100 * (1 - d/Math.max(m,n||1))));
+}
+function bestScore(target, alts){
+  let best = 0, bestText = alts[0]||"";
+  alts.forEach(a=>{ const sc = scoreSpeech(target,a); if(sc>best){ best=sc; bestText=a; } });
+  return {score:best, text:bestText};
+}
+const micErrText = (e)=>({
+  "not-allowed":"ยังไม่ได้อนุญาตให้ใช้ไมโครโฟน — กดที่รูปกุญแจ🔒 บนแถบที่อยู่เว็บ แล้วเปิด “ไมโครโฟน”",
+  "service-not-allowed":"เบราว์เซอร์ไม่อนุญาตให้ใช้ไมโครโฟนบนหน้านี้",
+  "no-speech":"ไม่ได้ยินเสียงเลย ลองพูดดังขึ้นแล้วกดไมค์ใหม่",
+  "audio-capture":"หาไมโครโฟนไม่เจอ ลองเสียบหูฟังหรือเช็กไมค์",
+  "network":"ต้องต่ออินเทอร์เน็ตเพื่อฟังเสียง ลองเช็กสัญญาณ",
+  "unsupported":"เบราว์เซอร์นี้ยังฟังเสียงไม่ได้ ใช้ Chrome จะดีที่สุด (หรือกดพิมพ์คำตอบแทนได้)"
+}[e] || "เกิดข้อผิดพลาด ลองกดไมค์ใหม่อีกครั้ง");
+</script>
+
+<script>
+/* ================== สถานะหน้าจอ ================== */
+let VIEW = {name:"home"};
+const scr = ()=> $("#screen");
+
+function setTitle(t, sub, back){
+  $("#scrTitle").textContent = t;
+  $("#scrSub").textContent = sub || "";
+  $("#backBtn").classList.toggle("hidden", !back);
+}
+function nav(name, data){
+  stopListen(); try{ speechSynthesis.cancel(); }catch(e){}
+  VIEW = Object.assign({name}, data||{});
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active", b.dataset.tab===name));
+  window.scrollTo(0,0);
+  render();
+}
+function render(){
+  const f = ({home:viewHome, review:viewReview, talk:viewTalk, me:viewMe, lesson:viewLesson})[VIEW.name] || viewHome;
+  f();
+}
+$("#backBtn").addEventListener("click", ()=>nav("home"));
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>nav(b.dataset.tab)));
+$("#themeBtn").addEventListener("click", ()=>{
+  const cur = document.documentElement.getAttribute("data-theme");
+  const next = cur === "dark" ? "light" : cur === "light" ? "dark" : (matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "dark");
+  document.documentElement.setAttribute("data-theme", next);
+  S.theme = next; save();
+});
+if(S.theme) document.documentElement.setAttribute("data-theme", S.theme);
+addEventListener("scroll", ()=> $("#topbar").classList.toggle("scrolled", scrollY>4));
+
+/* ================== ความคืบหน้าของบท ================== */
+function unitPct(u){
+  let seen=0, strong=0;
+  u.words.forEach((w,i)=>{ const c=S.srs[cardKey(u,i)]; if(c){ seen++; if(c.box>=2) strong++; } });
+  return Math.round((seen/u.words.length)*55 + (strong/u.words.length)*45);
+}
+function nextUnit(){
+  for(const u of COURSE){ if(unitPct(u) < 80) return u; }
+  return COURSE[0];
+}
+
+/* ================== หน้าแรก ================== */
+function viewHome(){
+  setTitle("พูดอังกฤษได้", "คอร์สภาษาอังกฤษ สำหรับคนเริ่มจากศูนย์", false);
+  const goal = S.goal||20, xp = xpToday();
+  const pct = Math.min(100, Math.round(xp/goal*100));
+  const C = 2*Math.PI*32;
+  const nu = nextUnit();
+  const started = learnedCount() > 0;
+  const due = dueCards().length;
+
+  scr().innerHTML = `
+    ${SR_OK ? "" : `<div class="banner">⚠️ เบราว์เซอร์นี้ยังฟังเสียงพูดไม่ได้ ถ้าอยากให้แอปตรวจการออกเสียง ให้เปิดด้วย <b>Chrome</b> (Android/คอม) หรือ <b>Safari รุ่นใหม่</b> บน iPhone — ระหว่างนี้ยังเรียนและพิมพ์ตอบได้ปกติ</div>`}
+    <div class="card">
+      <div class="hero">
+        <div class="ring">
+          <svg width="74" height="74"><circle cx="37" cy="37" r="32" stroke="var(--line)" stroke-width="7" fill="none"/>
+          <circle cx="37" cy="37" r="32" stroke="var(--brand)" stroke-width="7" fill="none" stroke-linecap="round"
+            stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct/100)}"/></svg>
+          <div class="val">${pct}%</div>
+        </div>
+        <div style="flex:1">
+          <b style="font-size:16px">${started ? "เป้าหมายวันนี้" : "ยินดีต้อนรับ 👋"}</b>
+          <div class="small muted">${started ? `ฝึกไปแล้ว ${xp} / ${goal} ข้อ • วันละ 10–15 นาทีพอ` : "เริ่มจากศูนย์ได้เลย ไม่ต้องรู้อะไรมาก่อน"}</div>
+        </div>
+      </div>
+      <div class="statrow">
+        <div class="stat"><b>${S.streak||0}</b><span>🔥 วันติดกัน</span></div>
+        <div class="stat"><b>${learnedCount()}</b><span>คำที่เรียนแล้ว</span></div>
+        <div class="stat"><b>${strongCount()}</b><span>คำที่จำแม่น</span></div>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="goNext">${started ? "เรียนต่อ" : "เริ่มบทที่ 1"} →</button>
+      </div>
+      ${due ? `<div class="row"><button class="btn" id="goReview">🔁 ทบทวน ${due} คำที่ถึงกำหนด</button></div>` : ""}
+    </div>
+
+    ${started ? "" : `
+    <div class="card">
+      <b>แอปนี้สอนยังไง (4 ขั้น ทำซ้ำทุกบท)</b>
+      <div class="small muted" style="margin-top:8px; line-height:1.9">
+        <b>1. รู้จักคำ</b> — เห็นคำ + คำอ่านไทย + ฟังเสียงเจ้าของภาษา<br>
+        <b>2. พูดตาม</b> — พูดตามทันที แอปฟังแล้วบอกว่าชัดกี่ %<br>
+        <b>3. แปลจากไทย</b> — เห็นภาษาไทย แล้วพูดเป็นอังกฤษเอง<br>
+        <b>4. บทสนทนา</b> — สวมบทบาทคุยกับคู่สนทนาจริงๆ<br>
+        แล้วแอปจะเอาคำเก่ากลับมาให้ทบทวนตามเวลาที่กำลังจะลืมพอดี
+      </div>
+    </div>`}
+
+    <div class="sect-title">บทเรียนทั้งหมด (${COURSE.length} บท • ${COURSE.length*12} ประโยค)</div>
+    <div id="units"></div>`;
+
+  const ul = $("#units");
+  COURSE.forEach((u,idx)=>{
+    const p = unitPct(u);
+    const b = el(`<button class="unit ${p>=80?"done":""}">
+      <div class="num">${p>=80 ? "✓" : idx+1}</div>
+      <div class="meta">
+        <b>${u.emoji} ${esc(u.title)}</b>
+        <span>${esc(u.goal)}</span>
+        <div class="bar ${p>=80?"ok":""}"><i style="width:${p}%"></i></div>
+      </div>
+      <div class="tiny muted">${p}%</div>
+    </button>`);
+    b.addEventListener("click", ()=>startLesson(u));
+    ul.appendChild(b);
+  });
+  $("#goNext").addEventListener("click", ()=>startLesson(nu));
+  if($("#goReview")) $("#goReview").addEventListener("click", ()=>nav("review"));
+}
+
+/* ================== ตัวช่วยแสดง "การ์ดพูด" ================== */
+function speakCard(cfg){
+  /* cfg: {label, promptHtml, target, autoPlay, top, onDone(ok,score)} */
+  const typing = !SR_OK;
+  scr().innerHTML = (cfg.top||"") + `
+    <div class="card">
+      <span class="steplabel">${esc(cfg.label)}</span>
+      ${cfg.promptHtml}
+      <div class="row">
+        <button class="btn sm" id="pPlay">🔊 ฟัง</button>
+        <button class="btn sm" id="pSlow">🐢 ช้าๆ</button>
+        <button class="btn sm" id="pMode">${typing?"🎤 ใช้เสียง":"⌨️ พิมพ์แทน"}</button>
+      </div>
+      <div id="micArea" style="margin-top:6px"></div>
+      <div id="fb"></div>
+      <div class="row" id="navRow">
+        <button class="btn ghost sm" id="pSkip">ข้าม / ดูเฉลย</button>
+      </div>
+    </div>`;
+  let mode = typing ? "type" : "mic";
+  const micArea = $("#micArea"), fb = $("#fb");
+
+  function drawInput(){
+    if(mode==="mic"){
+      micArea.innerHTML = `<button class="mic" id="micBtn" aria-label="กดเพื่อพูด">🎤</button>
+        <div class="center small muted" id="micHint">กดปุ่มไมค์ แล้วพูดออกมาดังๆ</div>`;
+      $("#micBtn").addEventListener("click", startMic);
+    }else{
+      micArea.innerHTML = `<input type="text" id="typeIn" placeholder="พิมพ์ประโยคภาษาอังกฤษที่นี่" autocomplete="off" autocapitalize="off">
+        <div class="row"><button class="btn primary" id="typeGo">ตรวจคำตอบ</button></div>`;
+      $("#typeGo").addEventListener("click", ()=>judge([$("#typeIn").value]));
+      $("#typeIn").addEventListener("keydown", e=>{ if(e.key==="Enter") judge([$("#typeIn").value]); });
+      $("#typeIn").focus();
+    }
+  }
+  function startMic(){
+    const btn = $("#micBtn"); btn.classList.add("listening"); btn.textContent = "⏹";
+    $("#micHint").textContent = "กำลังฟัง... พูดเลย";
+    listen(
+      (alts)=>{ btn.classList.remove("listening"); btn.textContent="🎤"; judge(alts); },
+      (err)=>{ btn.classList.remove("listening"); btn.textContent="🎤";
+               fb.innerHTML = `<div class="feedback mid">${esc(micErrText(err))}</div>`; },
+      ()=>{ btn.classList.remove("listening"); btn.textContent="🎤"; $("#micHint").textContent="กดปุ่มไมค์ แล้วพูดออกมาดังๆ"; }
+    );
+  }
+  function judge(alts){
+    const {score, text} = bestScore(cfg.target, alts);
+    const ok = score >= 70;
+    const cls = score>=85 ? "good" : score>=60 ? "mid" : "bad";
+    const head = score>=85 ? "เยี่ยมมาก! ออกเสียงชัดเลย 🎉"
+               : score>=70 ? "ดีแล้ว! ใช้ได้เลย 👍"
+               : score>=45 ? "เกือบแล้ว ลองฟังแล้วพูดตามอีกครั้ง"
+               : "ยังไม่ตรง ลองกด 🐢 ฟังช้าๆ แล้วพูดตามทีละคำ";
+    fb.innerHTML = `<div class="feedback ${cls}">${head} (${score}%)
+        <div class="heard">แอปได้ยินว่า: “${esc(text||"—")}”</div>
+        <div class="heard">ประโยคที่ถูก: “${esc(cfg.target)}”</div></div>`;
+    micArea.innerHTML = "";
+    $("#navRow").innerHTML = "";
+    const again = el(`<button class="btn sm">🔁 ลองใหม่</button>`);
+    again.addEventListener("click", ()=>{ fb.innerHTML=""; $("#navRow").innerHTML=""; $("#navRow").appendChild(againNext()); drawInput(); });
+    const next = el(`<button class="btn primary">${ok?"ต่อไป":"ผ่านไปก่อน"} →</button>`);
+    next.addEventListener("click", ()=>cfg.onDone(ok, score));
+    $("#navRow").append(again, next);
+    if(ok) addXP(1);
+    S.totalSpoken = (S.totalSpoken||0)+1; save();
+  }
+  function againNext(){
+    const b = el(`<button class="btn ghost sm">ข้าม / ดูเฉลย</button>`);
+    b.addEventListener("click", ()=>{
+      fb.innerHTML = `<div class="feedback mid">เฉลย: “${esc(cfg.target)}”</div>`;
+      speak(cfg.target, true);
+      $("#navRow").innerHTML = "";
+      const n = el(`<button class="btn primary">ต่อไป →</button>`);
+      n.addEventListener("click", ()=>cfg.onDone(false, 0));
+      $("#navRow").appendChild(n);
+    });
+    return b;
+  }
+  $("#pPlay").addEventListener("click", ()=>speak(cfg.target));
+  $("#pSlow").addEventListener("click", ()=>speak(cfg.target, true));
+  $("#pMode").addEventListener("click", ()=>{
+    mode = mode==="mic" ? "type" : "mic";
+    $("#pMode").textContent = mode==="mic" ? "⌨️ พิมพ์แทน" : "🎤 ใช้เสียง";
+    fb.innerHTML=""; drawInput();
+  });
+  $("#pSkip").replaceWith(againNext());
+  drawInput();
+  if(cfg.autoPlay) setTimeout(()=>speak(cfg.target), 250);
+}
+</script>
+
+<script>
+/* ================== เครื่องยนต์บทเรียน ================== */
+let L = null; /* {u, tasks, pos} */
+
+function buildTasks(u){
+  const tasks = [];
+  const idxs = u.words.map((w,i)=>({w,i}));
+  for(let c=0;c<idxs.length;c+=4){
+    const chunk = idxs.slice(c,c+4);
+    chunk.forEach(x=>tasks.push({t:"learn", ...x}));
+    shuffle(chunk).forEach(x=>tasks.push({t:"shadow", ...x}));
+  }
+  shuffle(idxs).slice(0,6).forEach(x=>tasks.push({t:"choose", ...x}));
+  shuffle(idxs).slice(0,6).forEach(x=>tasks.push({t:"produce", ...x}));
+  tasks.push({t:"dlgIntro"});
+  u.dialog.lines.forEach((line,idx)=>tasks.push({t: line.who==="You" ? "roleplay" : "listenline", idx, line}));
+  tasks.push({t:"finish"});
+  return tasks;
+}
+function startLesson(u){
+  L = {u, tasks:buildTasks(u), pos:0, right:0, total:0};
+  nav("lesson");
+}
+function stepOn(ok){
+  if(ok) L.right++;
+  L.total++;
+  L.pos++;
+  render();
+}
+function viewLesson(){
+  if(!L){ nav("home"); return; }
+  const u = L.u, task = L.tasks[L.pos];
+  setTitle(u.emoji + " " + u.title, `ข้อ ${Math.min(L.pos+1, L.tasks.length)} จาก ${L.tasks.length}`, true);
+  if(!task){ nav("home"); return; }
+
+  const pct = Math.round(L.pos/L.tasks.length*100);
+  const top = `<div class="lesson-top"><div class="bar"><i style="width:${pct}%"></i></div><span class="tiny muted">${pct}%</span></div>`;
+
+  if(task.t === "learn"){
+    const w = task.w;
+    scr().innerHTML = top + `
+      <div class="card">
+        <span class="steplabel">ขั้นที่ 1 · รู้จักคำ</span>
+        <div class="word-en">${esc(w.en)}</div>
+        <div class="word-ph">อ่านว่า: ${esc(w.ph)}</div>
+        <div class="word-th">แปลว่า: ${esc(w.th)}</div>
+        <div class="ex">
+          <div class="en">${esc(w.ex)}</div>
+          <div class="th">${esc(w.exth)}</div>
+        </div>
+        <div class="row">
+          <button class="btn sm" id="pl">🔊 ฟัง</button>
+          <button class="btn sm" id="sl">🐢 ช้าๆ</button>
+          <button class="btn sm" id="ple">🔊 ทั้งประโยค</button>
+        </div>
+        <div class="row"><button class="btn primary wide" id="nx">เข้าใจแล้ว ต่อไป →</button></div>
+      </div>`;
+    $("#pl").onclick = ()=>speak(w.en);
+    $("#sl").onclick = ()=>speak(w.en, true);
+    $("#ple").onclick = ()=>speak(w.ex);
+    $("#nx").onclick = ()=>{ L.pos++; render(); };
+    setTimeout(()=>speak(w.en), 250);
+    return;
+  }
+
+  if(task.t === "shadow"){
+    const w = task.w;
+    speakCard({
+      label:"ขั้นที่ 2 · พูดตาม",
+      autoPlay:true, top,
+      target:w.en,
+      promptHtml:`<div class="word-en">${esc(w.en)}</div>
+                  <div class="word-ph">อ่านว่า: ${esc(w.ph)}</div>
+                  <div class="small muted" style="margin-top:6px">${esc(w.th)}</div>`,
+      onDone:(ok)=>{ grade(u, task.i, ok); stepOn(ok); }
+    });
+    return;
+  }
+
+  if(task.t === "choose"){
+    const w = task.w;
+    const wrong = shuffle(u.words.filter(x=>x.th!==w.th)).slice(0,3);
+    const opts = shuffle([w, ...wrong]);
+    scr().innerHTML = top + `
+      <div class="card">
+        <span class="steplabel">ขั้นที่ 3 · ฟังแล้วเลือก</span>
+        <div style="font-size:16px; font-weight:700; margin-bottom:4px">ฟังเสียง แล้วเลือกคำแปลที่ถูก</div>
+        <div class="row"><button class="btn" id="pl">🔊 ฟังอีกครั้ง</button><button class="btn" id="sl">🐢 ช้าๆ</button></div>
+        <div style="margin-top:14px" id="opts"></div>
+        <div id="fb"></div>
+      </div>`;
+    $("#pl").onclick = ()=>speak(w.en);
+    $("#sl").onclick = ()=>speak(w.en, true);
+    const box = $("#opts");
+    opts.forEach(o=>{
+      const b = el(`<button class="choice">${esc(o.th)}</button>`);
+      b.onclick = ()=>{
+        if(box.dataset.done) return;
+        box.dataset.done = "1";
+        const ok = o.th === w.th;
+        b.classList.add(ok?"right":"wrong");
+        if(!ok) [...box.children].forEach(c=>{ if(c.textContent===w.th) c.classList.add("right"); });
+        grade(u, task.i, ok); if(ok) addXP(1);
+        $("#fb").innerHTML = `<div class="feedback ${ok?"good":"bad"}">${ok?"ถูกต้อง! 🎉":"ยังไม่ใช่นะ"} — <b>${esc(w.en)}</b> = ${esc(w.th)}</div>`;
+        const n = el(`<div class="row"><button class="btn primary">ต่อไป →</button></div>`);
+        n.firstElementChild.onclick = ()=>stepOn(ok);
+        $("#fb").appendChild(n);
+      };
+      box.appendChild(b);
+    });
+    setTimeout(()=>speak(w.en), 250);
+    return;
+  }
+
+  if(task.t === "produce"){
+    const w = task.w;
+    speakCard({
+      label:"ขั้นที่ 4 · แปลไทย → พูดอังกฤษ",
+      autoPlay:false, top,
+      target:w.en,
+      promptHtml:`<div class="small muted">พูดประโยคนี้เป็นภาษาอังกฤษ</div>
+                  <div class="word-en" style="font-size:26px">${esc(w.th)}</div>
+                  <div class="small muted" style="margin-top:8px">ใบ้: ${esc(w.ph)}</div>`,
+      onDone:(ok)=>{ grade(u, task.i, ok); stepOn(ok); }
+    });
+    return;
+  }
+
+  if(task.t === "dlgIntro"){
+    scr().innerHTML = top + `
+      <div class="card">
+        <span class="steplabel">ขั้นที่ 5 · บทสนทนา</span>
+        <div style="font-size:18px; font-weight:800">${esc(u.dialog.title)}</div>
+        <div class="small muted" style="margin-bottom:8px">อ่านทั้งบทก่อน 1 รอบ แล้วเดี๋ยวคุณจะได้สวมบทเป็น “You” พูดเอง</div>
+        <div id="lines"></div>
+        <div class="row"><button class="btn" id="playAll">🔊 ฟังทั้งบท</button></div>
+        <div class="row"><button class="btn primary wide" id="nx">พร้อมแล้ว เริ่มพูดเลย →</button></div>
+      </div>`;
+    const lc = $("#lines");
+    u.dialog.lines.forEach(ln=>{
+      const b = el(`<div class="dlg-line"><div class="who ${ln.who==="You"?"you":""}">${ln.who==="You"?"คุณ":"เขา"}</div>
+        <div class="t"><div class="en">${esc(ln.en)}</div><div class="th">${esc(ln.th)}</div></div></div>`);
+      b.onclick = ()=>speak(ln.en);
+      lc.appendChild(b);
+    });
+    $("#playAll").onclick = ()=>{
+      let i=0;
+      const go = ()=>{ if(i>=u.dialog.lines.length) return;
+        const t = u.dialog.lines[i++].en;
+        speak(t);
+        setTimeout(go, Math.max(1600, t.length*95));
+      };
+      go();
+    };
+    $("#nx").onclick = ()=>{ L.pos++; render(); };
+    return;
+  }
+
+  if(task.t === "listenline" || task.t === "roleplay"){
+    const hist = u.dialog.lines.slice(0, task.idx).map(ln=>
+      `<div class="msg ${ln.who==="You"?"me":"bot"}">${esc(ln.en)}<span class="th">${esc(ln.th)}</span></div>`).join("");
+    if(task.t === "listenline"){
+      scr().innerHTML = top + `
+        <div class="card">
+          <span class="steplabel">บทสนทนา · ฟังเขาพูด</span>
+          <div class="chat">${hist}
+            <div class="msg bot">${esc(task.line.en)}<span class="th">${esc(task.line.th)}</span></div></div>
+          <div class="row"><button class="btn sm" id="pl">🔊 ฟังอีกครั้ง</button><button class="btn sm" id="sl">🐢 ช้าๆ</button></div>
+          <div class="row"><button class="btn primary wide" id="nx">ต่อไป →</button></div>
+        </div>`;
+      $("#pl").onclick = ()=>speak(task.line.en);
+      $("#sl").onclick = ()=>speak(task.line.en, true);
+      $("#nx").onclick = ()=>{ L.pos++; render(); };
+      setTimeout(()=>speak(task.line.en), 250);
+      return;
+    }
+    speakCard({
+      label:"บทสนทนา · ตาคุณพูด",
+      autoPlay:false, top,
+      target:task.line.en,
+      promptHtml:`<div class="chat">${hist}</div>
+        <div class="hintbox">พูดว่า: ${esc(task.line.th)}</div>
+        <details style="margin-top:8px"><summary class="small muted" style="cursor:pointer">💡 ขอดูประโยคภาษาอังกฤษ</summary>
+        <div style="font-size:18px; font-weight:700; margin-top:6px">${esc(task.line.en)}</div></details>`,
+      onDone:(ok)=>{ stepOn(ok); }
+    });
+    return;
+  }
+
+  if(task.t === "finish"){
+    const pctScore = L.total ? Math.round(L.right/L.total*100) : 0;
+    const un = S.units[u.id] || {};
+    un.done = true; un.times = (un.times||0)+1; un.best = Math.max(un.best||0, pctScore);
+    S.units[u.id] = un; save();
+    scr().innerHTML = `
+      <div class="card center">
+        <div class="confetti">${pctScore>=80?"🎉":"💪"}</div>
+        <h2 style="margin:8px 0 2px">จบบท ${esc(u.title)} แล้ว!</h2>
+        <div class="small muted">คุณตอบถูก ${L.right} จาก ${L.total} ข้อ (${pctScore}%)</div>
+        <div class="statrow">
+          <div class="stat"><b>${xpToday()}</b><span>ข้อวันนี้</span></div>
+          <div class="stat"><b>${learnedCount()}</b><span>คำสะสม</span></div>
+          <div class="stat"><b>${S.streak||0}</b><span>วันติดกัน</span></div>
+        </div>
+        <div class="small muted" style="margin-top:12px">แอปจะเอาคำเหล่านี้กลับมาให้ทบทวนในวันถัดๆ ไป ตอนที่คุณกำลังจะลืมพอดี — อย่าลืมเข้ามาทุกวันนะครับ</div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn" id="again">เรียนบทนี้ซ้ำ</button>
+          <button class="btn primary" id="talk">💬 ลองคุยกับติวเตอร์</button>
+        </div>
+        <div class="row"><button class="btn ghost wide" id="home">กลับหน้าแรก</button></div>
+      </div>`;
+    $("#again").onclick = ()=>startLesson(u);
+    $("#talk").onclick = ()=>nav("talk");
+    $("#home").onclick = ()=>nav("home");
+    return;
+  }
+}
+</script>
+
+<script>
+/* ================== หน้าทบทวน ================== */
+let R = null;
+function viewReview(){
+  setTitle("ทบทวน", "เอาคำเก่ากลับมาก่อนที่จะลืม", false);
+  if(!R){
+    const due = dueCards();
+    if(!due.length){
+      const all = [];
+      COURSE.forEach(u=>u.words.forEach((w,i)=>{ if(S.srs[cardKey(u,i)]) all.push({u,i,w}); }));
+      scr().innerHTML = `
+        <div class="card center">
+          <div class="confetti">✅</div>
+          <b style="font-size:17px">ตอนนี้ยังไม่มีคำที่ต้องทบทวน</b>
+          <div class="small muted" style="margin-top:6px">
+            ${all.length ? "เยี่ยมมาก! กลับมาพรุ่งนี้ แอปจะเอาคำที่คุณกำลังจะลืมมาให้ฝึกพอดี" : "เรียนบทที่ 1 ก่อน แล้วคำศัพท์จะเข้ามาอยู่ในคลังทบทวนอัตโนมัติ"}
+          </div>
+          <div class="row" style="margin-top:14px">
+            ${all.length ? `<button class="btn" id="freeplay">ฝึกพูดคำเก่าแบบสุ่ม 10 ข้อ</button>` : `<button class="btn primary" id="go1">ไปเรียนบทที่ 1</button>`}
+          </div>
+        </div>`;
+      if($("#go1")) $("#go1").onclick = ()=>startLesson(COURSE[0]);
+      if($("#freeplay")) $("#freeplay").onclick = ()=>{ R = {items:shuffle(all).slice(0,10), pos:0, right:0}; render(); };
+      return;
+    }
+    R = {items: due.slice(0,15), pos:0, right:0};
+  }
+  const it = R.items[R.pos];
+  if(!it){
+    const n = R.items.length, r = R.right;
+    R = null;
+    scr().innerHTML = `<div class="card center">
+        <div class="confetti">🎉</div>
+        <b style="font-size:17px">ทบทวนครบแล้ว!</b>
+        <div class="small muted">ตอบถูก ${r} จาก ${n} ข้อ</div>
+        <div class="row" style="margin-top:14px"><button class="btn primary wide" id="home">กลับหน้าแรก</button></div>
+      </div>`;
+    $("#home").onclick = ()=>nav("home");
+    return;
+  }
+  const pct = Math.round(R.pos/R.items.length*100);
+  const top = `<div class="lesson-top"><div class="bar"><i style="width:${pct}%"></i></div><span class="tiny muted">${R.pos+1}/${R.items.length}</span></div>`;
+  const mode = (R.pos % 3 === 0) ? "choose" : (R.pos % 3 === 1 ? "produce" : "shadow");
+  const {u,i,w} = it;
+  const done = (ok)=>{ grade(u,i,ok); if(ok) R.right++; R.pos++; render(); };
+
+  if(mode === "choose"){
+    const pool = [];
+    COURSE.forEach(x=>x.words.forEach(y=>{ if(y.th!==w.th) pool.push(y); }));
+    const opts = shuffle([w, ...shuffle(pool).slice(0,3)]);
+    scr().innerHTML = top + `<div class="card">
+        <span class="steplabel">ฟังแล้วเลือก</span>
+        <div class="row"><button class="btn" id="pl">🔊 ฟัง</button><button class="btn" id="sl">🐢 ช้าๆ</button></div>
+        <div style="margin-top:14px" id="opts"></div><div id="fb"></div></div>`;
+    $("#pl").onclick = ()=>speak(w.en); $("#sl").onclick = ()=>speak(w.en,true);
+    const box = $("#opts");
+    opts.forEach(o=>{
+      const b = el(`<button class="choice">${esc(o.th)}</button>`);
+      b.onclick = ()=>{
+        if(box.dataset.done) return; box.dataset.done="1";
+        const ok = o.th===w.th; b.classList.add(ok?"right":"wrong");
+        if(ok) addXP(1);
+        $("#fb").innerHTML = `<div class="feedback ${ok?"good":"bad"}">${ok?"ถูกต้อง 🎉":"ยังไม่ใช่"} — <b>${esc(w.en)}</b> = ${esc(w.th)}</div>`;
+        const n = el(`<div class="row"><button class="btn primary">ต่อไป →</button></div>`);
+        n.firstElementChild.onclick = ()=>done(ok);
+        $("#fb").appendChild(n);
+      };
+      box.appendChild(b);
+    });
+    setTimeout(()=>speak(w.en),250);
+    return;
+  }
+  if(mode === "produce"){
+    speakCard({ label:"แปลไทย → พูดอังกฤษ", target:w.en, autoPlay:false, top,
+      promptHtml:`<div class="small muted">พูดเป็นภาษาอังกฤษ</div>
+        <div class="word-en" style="font-size:26px">${esc(w.th)}</div>
+        <div class="small muted" style="margin-top:8px">ใบ้: ${esc(w.ph)}</div>`,
+      onDone:done });
+    return;
+  }
+  speakCard({ label:"พูดตามให้ชัด", target:w.en, autoPlay:true, top,
+    promptHtml:`<div class="word-en">${esc(w.en)}</div><div class="word-ph">${esc(w.ph)}</div>
+      <div class="small muted" style="margin-top:6px">${esc(w.th)}</div>`,
+    onDone:done });
+}
+
+/* ================== หน้าคุยกับติวเตอร์ ================== */
+let T = null;
+function viewTalk(){
+  setTitle("คุยกับติวเตอร์", "ฝึกตอบเป็นประโยคจริง ผิดได้ ไม่มีใครว่า", false);
+  if(!T){
+    T = {msgs:[{who:"sys", en:"เริ่มบทสนทนา — ติวเตอร์จะถามทีละคำถาม ตอบสั้นๆ ก็พอครับ"}], qi:(S.talkIdx||0)%TALK_BANK.length, waiting:true};
+  }
+  const q = TALK_BANK[T.qi];
+  scr().innerHTML = `
+    <div class="card">
+      <div class="chat" id="chat"></div>
+    </div>
+    <div class="card" id="panel"></div>`;
+  const chat = $("#chat");
+  T.msgs.forEach(m=>{
+    if(m.who==="sys"){ chat.appendChild(el(`<div class="msg sys">${esc(m.en)}</div>`)); return; }
+    const b = el(`<div class="msg ${m.who}">${esc(m.en)}${m.th?`<span class="th">${esc(m.th)}</span>`:""}</div>`);
+    if(m.who==="bot") b.onclick = ()=>speak(m.en);
+    chat.appendChild(b);
+  });
+  if(T.waiting){
+    const b = el(`<div class="msg bot">${esc(q.q)}<span class="th">${esc(q.qth)}</span></div>`);
+    b.onclick = ()=>speak(q.q);
+    chat.appendChild(b);
+    setTimeout(()=>speak(q.q), 300);
+  }
+  const panel = $("#panel");
+  panel.innerHTML = `
+    <div class="row">
+      <button class="btn sm" id="rep">🔊 ฟังคำถามอีกครั้ง</button>
+      <button class="btn sm" id="hint">💡 ใบ้คำตอบ</button>
+      <button class="btn sm" id="skip">⏭ ข้ามคำถาม</button>
+    </div>
+    <div id="hintBox"></div>
+    <div id="mic"></div>
+    <div id="fb"></div>`;
+  $("#rep").onclick = ()=>speak(q.q);
+  $("#skip").onclick = ()=>{ nextQ(); };
+  $("#hint").onclick = ()=>{
+    $("#hintBox").innerHTML = `<div class="hintbox">ลองพูดว่า: “${esc(q.hint)}”<br><span class="small">${esc(q.hintth)}</span></div>`;
+    speak(q.hint, true);
+  };
+  drawMic();
+
+  function drawMic(){
+    $("#mic").innerHTML = SR_OK
+      ? `<button class="mic" id="micBtn">🎤</button><div class="center small muted" id="mh">กดไมค์ แล้วตอบเป็นภาษาอังกฤษ</div>`
+      : `<input type="text" id="tin" placeholder="พิมพ์คำตอบภาษาอังกฤษ"><div class="row"><button class="btn primary" id="tgo">ส่งคำตอบ</button></div>`;
+    if(SR_OK){
+      $("#micBtn").onclick = ()=>{
+        const btn = $("#micBtn"); btn.classList.add("listening"); btn.textContent="⏹"; $("#mh").textContent="กำลังฟัง...";
+        listen(alts=>{ btn.classList.remove("listening"); btn.textContent="🎤"; handle(alts[0]||"", alts); },
+               err=>{ btn.classList.remove("listening"); btn.textContent="🎤";
+                      $("#fb").innerHTML = `<div class="feedback mid">${esc(micErrText(err))}</div>`; },
+               ()=>{ btn.classList.remove("listening"); btn.textContent="🎤"; $("#mh").textContent="กดไมค์ แล้วตอบเป็นภาษาอังกฤษ"; });
+      };
+    }else{
+      $("#tgo").onclick = ()=>handle($("#tin").value, [$("#tin").value]);
+      $("#tin").onkeydown = (e)=>{ if(e.key==="Enter") handle($("#tin").value, [$("#tin").value]); };
+    }
+  }
+  function handle(text, alts){
+    if(!String(text).trim()) return;
+    const n = norm(text);
+    const words = n.split(" ").filter(Boolean);
+    const hitKey = q.keys.some(k=>n.includes(norm(k)));
+    const sim = bestScore(q.hint, alts).score;
+    const good = hitKey || sim >= 55 || words.length >= 4;
+    T.msgs.push({who:"me", en:text});
+    T.waiting = false;
+    const reply = good
+      ? `${rnd(PRAISE)} ${q.followUp || ""}`.trim()
+      : `${rnd(SOFT)} You can say: "${q.hint}"`;
+    T.msgs.push({who:"bot", en:reply, th: good ? "" : q.hintth});
+    if(good) addXP(1);
+    S.totalSpoken = (S.totalSpoken||0)+1;
+    S.talkIdx = (T.qi+1) % TALK_BANK.length; save();
+    render();
+    setTimeout(()=>{ speak(reply); }, 200);
+    setTimeout(()=>{ T.qi = S.talkIdx; T.waiting = true; render();
+      const c = $("#chat"); if(c) c.scrollIntoView({block:"end"});
+    }, Math.max(1800, reply.length*80));
+  }
+  function nextQ(){ S.talkIdx = (T.qi+1)%TALK_BANK.length; save(); T.qi = S.talkIdx; T.waiting = true; render(); }
+}
+
+/* ================== หน้าตั้งค่า / วิธีใช้ ================== */
+function viewMe(){
+  setTitle("ตั้งค่า & วิธีเรียน", "ปรับให้เหมาะกับตัวเอง", false);
+  scr().innerHTML = `
+    <div class="card">
+      <b>ความคืบหน้าของคุณ</b>
+      <div class="statrow">
+        <div class="stat"><b>${S.streak||0}</b><span>🔥 วันติดกัน</span></div>
+        <div class="stat"><b>${learnedCount()}</b><span>คำที่เรียน</span></div>
+        <div class="stat"><b>${S.totalSpoken||0}</b><span>ครั้งที่พูด</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="kv"><div><b>ความเร็วเสียงอ่าน</b><div class="tiny muted">ช้าลงถ้าฟังไม่ทัน</div></div>
+        <div style="width:150px"><input type="range" id="rate" min="0.5" max="1.1" step="0.05" value="${S.rate}"></div></div>
+      <div class="kv"><div><b>เป้าหมายต่อวัน</b><div class="tiny muted">จำนวนข้อที่อยากฝึกในหนึ่งวัน</div></div>
+        <div><select id="goal" style="padding:10px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:inherit">
+          ${[10,20,30,50].map(g=>`<option value="${g}" ${S.goal==g?"selected":""}>${g} ข้อ</option>`).join("")}
+        </select></div></div>
+      <div class="kv"><div><b>ทดสอบเสียง</b><div class="tiny muted">กดฟังว่าลำโพงทำงานไหม</div></div>
+        <button class="btn sm" id="test">🔊 ทดสอบ</button></div>
+      <div class="kv"><div><b>ไมโครโฟน</b><div class="tiny muted">${SR_OK?"เบราว์เซอร์นี้ฟังเสียงได้ ✅":"เบราว์เซอร์นี้ยังฟังเสียงไม่ได้ — แนะนำ Chrome"}</div></div>
+        <span class="pill ${SR_OK?"ok":""}">${SR_OK?"พร้อม":"ไม่รองรับ"}</span></div>
+    </div>
+
+    <div class="card">
+      <b>วิธีเรียนให้พูดได้จริง (อ่านสัก 1 นาที)</b>
+      <div class="small muted" style="margin-top:8px; line-height:1.95">
+        <b>1. วันละ 15 นาที ดีกว่าอาทิตย์ละ 3 ชั่วโมง</b> — สมองจำภาษาได้ดีที่สุดตอนเจอซ้ำๆ ถี่ๆ<br>
+        <b>2. พูดออกเสียงดังๆ เสมอ</b> — ห้ามอ่านในใจ ปากต้องขยับ กล้ามเนื้อปากต้องจำ<br>
+        <b>3. จำเป็น “ประโยค” ไม่ใช่คำเดี่ยว</b> — แอปนี้ให้คุณจำทั้งก้อน จะได้พูดออกมาได้ทันทีโดยไม่ต้องแต่งประโยคเอง<br>
+        <b>4. ผิดได้ ไม่ต้องอาย</b> — คนที่พูดผิดบ่อยคือคนที่เก่งเร็วที่สุด<br>
+        <b>5. อย่าเพิ่งเรียนไวยากรณ์</b> — เอาให้พูดได้ก่อน แล้วค่อยเข้าใจกฎทีหลัง<br>
+        <b>6. ทบทวนทุกวัน</b> — แอปจะเลือกคำที่คุณ “กำลังจะลืม” มาให้พอดี กดแท็บ 🔁 ทบทวน
+      </div>
+    </div>
+
+    <div class="card">
+      <b>ใช้ยังไงให้ไม่หลง</b>
+      <div class="small muted" style="margin-top:8px; line-height:1.9">
+        🏠 <b>บทเรียน</b> — เรียนเรียงจากบทที่ 1 ไปเรื่อยๆ<br>
+        🔁 <b>ทบทวน</b> — เข้ามาทุกวันตอนเช้า ใช้เวลา 3–5 นาที<br>
+        💬 <b>คุยกับติวเตอร์</b> — ตอบคำถามด้วยเสียงจริง เหมือนคุยกับคน<br>
+        ⌨️ ถ้าอยู่ที่เงียบไม่ได้ กดปุ่ม “พิมพ์แทน” ในหน้าฝึกพูดได้
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="kv"><div><b>ล้างข้อมูลทั้งหมด</b><div class="tiny muted">เริ่มต้นใหม่หมด (กู้คืนไม่ได้)</div></div>
+        <button class="btn sm" id="reset">ล้าง</button></div>
+      <div class="tiny muted" style="margin-top:10px">ข้อมูลทั้งหมดเก็บอยู่ในเครื่องของคุณเท่านั้น ไม่ถูกส่งไปที่ไหน</div>
+    </div>`;
+  $("#rate").oninput = (e)=>{ S.rate = parseFloat(e.target.value); save(); };
+  $("#rate").onchange = ()=>speak("This is my speaking speed.");
+  $("#goal").onchange = (e)=>{ S.goal = parseInt(e.target.value,10); save(); };
+  $("#test").onclick = ()=>speak("Hello! Can you hear me?");
+  $("#reset").onclick = ()=>{ if(confirm("ล้างความคืบหน้าทั้งหมดจริงๆ นะ?")){ S = structuredClone(DEFAULT_STATE); save(); nav("home"); } };
+}
+
+/* ================== เริ่มทำงาน ================== */
+render();
+</script>
