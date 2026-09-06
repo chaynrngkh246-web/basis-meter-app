@@ -518,20 +518,26 @@ const SHEETS = [
   { id: "coffee", name: "Coffee", en: "Record Electrical Meter", sub: "Coffee Store at BASIS International School" },
   { id: "water", name: "น้ำ (MW meter)", en: "Record Water Meter", sub: "มิเตอร์น้ำหลักและมิเตอร์น้ำย่อย" },
 ];
+/** Some registers are read at a ratio: the TOU sheet's header says
+ *  "RATIO x 1,000", so a dial moving 2 means 2,000 kWh. Applied to what a
+ *  counter consumed; a snapshot register is reported exactly as it reads,
+ *  which is how the workbook prints it. */
+const meterFactor = (m) => (Number(m.factor) > 0 ? Number(m.factor) : 1);
+
 /** a meter written before sheets existed still has to print somewhere */
 const sheetOf = (m) => (SHEETS.some((x) => x.id === m.sheet) ? m.sheet : m.type === "water" ? "water" : "kwh");
 const sheetMeta = (id) => SHEETS.find((x) => x.id === id) || SHEETS[1];
 
 /* Every meter column of the workbook, sheet by sheet: [sheet, label, unit,
-   type, round it is walked on, snapshot?]. A "snapshot" register (max demand,
+   type, round it is walked on, snapshot?, ratio?]. A "snapshot" register (max demand,
    K-Var) is read, not consumed — nothing is subtracted from the day before.
    The round is a guess wherever the sheet does not say; "" parks the meter in
    a holding round for someone to place in ตั้งค่า. */
 const KWH_UNKNOWN = 7;   // the Kwh sheet's own column headers are not legible yet
 const EXCEL = [
-  ["tou", "Total Con Sump.", "kWh", "electric", "MEA มิเตอร์การไฟฟ้า"],
-  ["tou", "Con Sump. On Peak", "kWh", "electric", "MEA มิเตอร์การไฟฟ้า"],
-  ["tou", "Con Sump. Off Peak", "kWh", "electric", "MEA มิเตอร์การไฟฟ้า"],
+  ["tou", "Total Con Sump.", "kWh", "electric", "MEA มิเตอร์การไฟฟ้า", false, 1000],
+  ["tou", "Con Sump. On Peak", "kWh", "electric", "MEA มิเตอร์การไฟฟ้า", false, 1000],
+  ["tou", "Con Sump. Off Peak", "kWh", "electric", "MEA มิเตอร์การไฟฟ้า", false, 1000],
   ["tou", "Max Demand On Peak", "KW-H", "electric", "MEA มิเตอร์การไฟฟ้า", true],
   ["tou", "Max Demand", "KW-H", "electric", "MEA มิเตอร์การไฟฟ้า", true],
   ["tou", "Max K-Var On Peak", "K-Var", "electric", "MEA มิเตอร์การไฟฟ้า", true],
@@ -560,10 +566,11 @@ function excelMeters(points) {
   };
   const rows = EXCEL.concat(
     Array.from({ length: KWH_UNKNOWN }, (_, i) => ["kwh", "Kwh " + (i + 1), "kWh", "electric", ""]));
-  rows.forEach(([sheet, label, unit, type, at, snap]) => {
+  rows.forEach(([sheet, label, unit, type, at, snap, factor]) => {
     const p = (at && out.find((x) => x.name === at)) || park();
     const m = { id: rid("m"), type: type, label: label, unit: unit, sheet: sheet };
     if (snap) m.snap = true;
+    if (factor && factor !== 1) m.factor = factor;
     p.meters.push(m);
   });
   return out;
@@ -689,14 +696,15 @@ async function shrink(file) {
 /* ================= usage maths ================= */
 /** `snap` marks a register that is read rather than consumed — a max-demand
     figure has no "used since yesterday", so nothing is subtracted */
-function meterRows(pid, mid, days, prior, snap) {
+function meterRows(pid, mid, days, prior, snap, factor) {
+  const f = factor || 1;
   let prev = prior;
   const out = [];
   Object.keys(days).sort().forEach((k) => {
     const v = (days[k].vals || {})[mid];
     if (v == null) return;
     out.push({ day: k, v: v, by: days[k].by, note: days[k].note, photos: days[k].photos || [],
-      use: snap || prev == null ? null : r2(Math.max(v - prev, 0)) });
+      use: snap || prev == null ? null : r2(Math.max(v - prev, 0) * f) });
     prev = v;
   });
   return out;
@@ -711,13 +719,14 @@ function monthSeries(month) {
     if (!days) return;
     activeMeters(p).forEach((m) => {
       const prior = (priors[p.id] || {})[m.id];
-      const rows = meterRows(p.id, m.id, days, prior == null ? null : prior, m.snap);
+      const rows = meterRows(p.id, m.id, days, prior == null ? null : prior, m.snap, meterFactor(m));
       if (!rows.length) return;
       const open = prior == null ? rows[0].v : prior;
       const close = rows[rows.length - 1].v;
       out.push({ p: p, m: m, rows: rows, open: open, close: close, snap: !!m.snap,
         // a snapshot register's month is its highest reading, not a difference
-        use: m.snap ? Math.max(...rows.map((r) => r.v)) : r2(Math.max(close - open, 0)),
+        use: m.snap ? Math.max(...rows.map((r) => r.v))
+          : r2(Math.max(close - open, 0) * meterFactor(m)),
         n: rows.length });
     });
   });
@@ -912,7 +921,8 @@ function meterCard(m) {
   const cur = raw === "" ? null : Number(raw);
   const ok = cur != null && !Number.isNaN(cur);
   const pv = R.prevs[m.id] ? R.prevs[m.id].v : null;
-  const use = ok && pv != null ? r2(cur - pv) : null;
+  const f = meterFactor(m);
+  const use = ok && pv != null ? r2((cur - pv) * f) : null;
   const back = ok && pv != null && cur < pv;
   return '<div class="mcard"><header>' +
       '<span class="dot ' + (m.type === "electric" ? "e" : "w") + '">' + mIcon(m.type) + "</span>" +
@@ -924,7 +934,8 @@ function meterCard(m) {
       (R.prevs[m.id] ? " <span style=\"opacity:.75\">(" + thDate(R.prevs[m.id].date) + ")</span>" : "") + "</span>" +
       // a max-demand register is read, not consumed: there is nothing to subtract
       (m.snap ? '<span class="u">ค่าที่อ่านได้</span>'
-        : '<span class="u">ใช้ไป <b id="u_' + esc(m.id) + '">' + (use == null || use < 0 ? "—" : fmt(use)) + "</b> " + esc(m.unit) + "</span>") +
+        : '<span class="u">ใช้ไป <b id="u_' + esc(m.id) + '">' + (use == null || use < 0 ? "—" : fmt(use)) + "</b> " + esc(m.unit) +
+          (f !== 1 ? ' <span style="opacity:.7">(×' + fmt(f) + ")</span>" : "") + "</span>") +
     "</div>" +
     (m.snap ? "" : '<div class="mwarn" id="w_' + esc(m.id) + '"' + (back ? "" : " hidden") +
       ">เลขน้อยกว่าครั้งก่อน — ตรวจสอบอีกครั้ง หรือใส่หมายเหตุถ้าเปลี่ยนมิเตอร์ใหม่</div>") +
@@ -1499,11 +1510,19 @@ function setPoints() {
                 ' aria-label="จุดที่เดินเก็บ ' + esc(m.label) + '" style="flex:1;padding:6px 8px;font-size:12px">' +
                 list.map((o) => '<option value="' + esc(o.id) + '"' +
                   (o.id === p.id ? " selected" : "") + ">" + esc(o.name) + "</option>").join("") +
-              "</select></div></div>").join("") +
+              "</select>" +
+              (m.snap ? "" : "<span>คูณ</span>" +
+                '<input class="inp" data-act="mfac" data-p="' + esc(p.id) + '" data-m="' + esc(m.id) + '"' +
+                  ' inputmode="decimal" aria-label="ตัวคูณ ' + esc(m.label) + '"' +
+                  ' value="' + esc(String(meterFactor(m))) + '"' +
+                  ' style="width:62px;padding:6px 8px;font-size:12px">') +
+              "</div></div>").join("") +
           '<div class="rowline" style="padding-left:20px;gap:7px">' +
             '<input class="inp" id="ml_' + esc(p.id) + '" placeholder="ชื่อมิเตอร์" style="flex:1;padding:8px 10px;font-size:13px">' +
             '<select class="inp" id="mt_' + esc(p.id) + '" style="width:78px;padding:8px 6px;font-size:13px"><option value="electric">ไฟฟ้า</option><option value="water">น้ำ</option></select>' +
             '<input class="inp" id="mu_' + esc(p.id) + '" placeholder="หน่วย" value="kWh" style="width:72px;padding:8px 8px;font-size:13px">' +
+            '<input class="inp" id="mf_' + esc(p.id) + '" placeholder="คูณ" value="1" inputmode="decimal"' +
+              ' aria-label="ตัวคูณ" style="width:56px;padding:8px 8px;font-size:13px">' +
             '<button class="btn sm" data-act="addm" data-id="' + esc(p.id) + '" style="flex:none">เพิ่ม</button></div>' : "") +
         "</div>";
     }).join("") + "</div>"
@@ -1673,10 +1692,12 @@ function render() {
       if (clean !== t.value) t.value = clean;
       const mid = t.dataset.m;
       R.vals[mid] = clean;
+      const pt = S.points.find((x) => x.id === R.pid) || {};
+      const mt = (pt.meters || []).find((x) => x.id === mid) || {};
       const cur = clean === "" ? null : Number(clean);
       const ok = cur != null && !Number.isNaN(cur);
       const pv = R.prevs[mid] ? R.prevs[mid].v : null;
-      const use = ok && pv != null ? r2(cur - pv) : null;
+      const use = ok && pv != null ? r2((cur - pv) * meterFactor(mt)) : null;
       const ub = document.getElementById("u_" + mid);
       if (ub) ub.textContent = use == null || use < 0 ? "—" : fmt(use);
       const wb = document.getElementById("w_" + mid);
@@ -1693,10 +1714,11 @@ function render() {
 }
 
 /* ================= actions ================= */
-/** what a meter is — its number, the sheet it prints on, the round it is
-    walked on — is edited in place in the settings list and kept on change */
+/** what a meter is — its number, the sheet it prints on, the ratio it reads
+    at, the round it is walked on — is edited in place in the settings list
+    and kept on change */
 document.addEventListener("change", async (ev) => {
-  const el = ev.target.closest('[data-act="mno"],[data-act="msheet"],[data-act="mmove"]');
+  const el = ev.target.closest('[data-act="mno"],[data-act="msheet"],[data-act="mmove"],[data-act="mfac"]');
   if (!el) return;
   const a = el.dataset.act, pid = el.dataset.p, mid = el.dataset.m, v = el.value.trim();
   let items, msg;
@@ -1711,6 +1733,13 @@ document.addEventListener("change", async (ev) => {
     items = S.points.map((p) => p.id === pid ? { ...p, meters: p.meters.filter((m) => m.id !== mid) }
       : p.id === v ? { ...p, meters: (p.meters || []).concat([meter]) } : p);
     msg = "ย้ายมิเตอร์แล้ว";
+  } else if (a === "mfac") {
+    const f = Number(v) > 0 ? Number(v) : 1;
+    el.value = String(f);
+    items = S.points.map((p) => p.id === pid
+      ? { ...p, meters: (p.meters || []).map((m) => m.id === mid
+          ? Object.assign({ ...m }, f === 1 ? { factor: 1 } : { factor: f }) : m) } : p);
+    msg = f === 1 ? "อ่านตรงตามหน้าปัด (ไม่คูณ)" : "ตั้งตัวคูณ ×" + fmt(f) + " แล้ว";
   } else {
     const patch = a === "mno" ? { no: v } : { sheet: v };
     items = S.points.map((p) => p.id === pid
@@ -1864,9 +1893,12 @@ document.addEventListener("click", async (ev) => {
     const label = ($("#ml_" + pid).value || "").trim();
     const type = $("#mt_" + pid).value;
     const unit = ($("#mu_" + pid).value || "").trim() || (type === "electric" ? "kWh" : M3);
+    const fac = Number(($("#mf_" + pid).value || "1").trim()) || 1;
     if (!label) return toast("กรุณาใส่ชื่อมิเตอร์", true);
+    const meter = { id: rid("m"), type: type, label: label, unit: unit };
+    if (fac !== 1) meter.factor = fac;
     const items = S.points.map((p) => p.id === pid
-      ? { ...p, meters: (p.meters || []).concat([{ id: rid("m"), type: type, label: label, unit: unit }]) } : p);
+      ? { ...p, meters: (p.meters || []).concat([meter]) } : p);
     try { await S.db.doc(P_POINTS).set({ items: items }); toast("เพิ่มมิเตอร์แล้ว"); }
     catch (e) { toast(dbErr(e), true); }
     return;
