@@ -1467,8 +1467,12 @@ function setPoints() {
           '<span class="note" style="font-size:11px">' +
             (activeMeters(p).length ? activeMeters(p).length + " มิเตอร์" : "ยังไม่มีมิเตอร์ในจุดนี้") +
           "</span></span>" +
-        '<button class="btn ghost sm" data-act="popen" data-id="' + esc(p.id) + '">' + (open ? "ปิด" : "มิเตอร์") + "</button>" +
-        '<button class="btn ghost sm" data-act="togp" data-id="' + esc(p.id) + '">' + (p.active === false ? "เปิดใช้" : "ปิด") + "</button>" +
+        // two buttons that both said "ปิด" — one closes the list, one retires the
+        // round — read as the same button twice on a phone
+        '<button class="btn ghost sm" data-act="popen" data-id="' + esc(p.id) + '">' +
+          (open ? "ซ่อน" : "มิเตอร์") + "</button>" +
+        '<button class="btn ghost sm" data-act="togp" data-id="' + esc(p.id) + '">' +
+          (p.active === false ? "เปิดใช้" : "ปิดใช้") + "</button>" +
         "</div>" +
         (open ? (p.meters || []).map((m) => '<div class="mrow">' +
             '<div class="rowline" style="padding-left:20px">' +
