@@ -741,6 +741,15 @@ const micErrText = (e)=>({
 
 <script>
 /* ================== การติดตั้งลงมือถือ (PWA) ================== */
+/* ลิงก์จริงของแอป (GitHub Pages) — ใช้ตอนที่ผู้ใช้เปิดจากในหน้าต่างแชทซึ่งติดตั้งไม่ได้ */
+const APP_URL = "https://chaynrngkh246-web.github.io/basis-meter-app/";
+const inFrame = (()=>{ try{ return window.top !== window.self; }catch(e){ return true; } })();
+
+/* Service worker: จำเป็นเพื่อให้ Chrome ยอมให้ "ติดตั้งแอป" และให้ใช้ได้ตอนไม่มีเน็ต */
+if("serviceWorker" in navigator && window.isSecureContext && !inFrame){
+  addEventListener("load", ()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); });
+}
+
 let installPrompt = null;
 addEventListener("beforeinstallprompt", (e)=>{ e.preventDefault(); installPrompt = e; render(); });
 const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
@@ -750,6 +759,11 @@ const inApp = /FBAN|FBAV|Line|Instagram|Messenger|Twitter|TikTok/i.test(navigato
 
 function installHtml(){
   if(isInstalled()) return `<div class="small muted">✅ ตอนนี้คุณเปิดจากไอคอนบนหน้าจอโฮมอยู่แล้ว เรียบร้อย!</div>`;
+  if(inFrame) return `<div class="small">ตอนนี้คุณเปิดแอปอยู่ <b>ในหน้าต่างแชท</b> ซึ่งติดตั้งลงหน้าจอไม่ได้ (และเสียงมักไม่ออก)<br>
+     ให้เปิด <b>ลิงก์จริง</b> ของแอปในเบราว์เซอร์ก่อนครับ</div>
+     <div class="row"><a class="btn primary wide" href="${APP_URL}" target="_blank" rel="noopener">🌐 เปิดลิงก์จริงของแอป</a></div>
+     <div class="row"><button class="btn sm wide" id="copyUrl">📋 คัดลอกลิงก์</button></div>
+     <div class="tiny muted" style="margin-top:6px; word-break:break-all">${APP_URL}</div>`;
   if(inApp) return `<div class="small">ตอนนี้คุณเปิดหน้านี้อยู่ <b>ในแอปแชท</b> ซึ่งติดตั้งไม่ได้และเสียงมักไม่ออก<br>
      ให้กดเมนู <b>⋯ (จุดสามจุด)</b> มุมขวาบน แล้วเลือก <b>“เปิดในเบราว์เซอร์”</b> ก่อน แล้วค่อยกลับมาที่หน้านี้ครับ</div>`;
   if(installPrompt) return `<div class="small">กดปุ่มนี้ปุ่มเดียวจบเลยครับ</div>
@@ -768,6 +782,11 @@ function installHtml(){
      </ol>`;
 }
 function wireInstall(){
+  const c = document.getElementById("copyUrl");
+  if(c) c.onclick = async ()=>{
+    try{ await navigator.clipboard.writeText(APP_URL); c.textContent = "✅ คัดลอกแล้ว"; }
+    catch(e){ c.textContent = "คัดลอกไม่ได้ — กดค้างที่ลิงก์ด้านล่างเพื่อคัดลอก"; }
+  };
   const b = document.getElementById("doInstall");
   if(b) b.onclick = async ()=>{
     if(!installPrompt) return;

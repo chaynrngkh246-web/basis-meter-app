@@ -2,7 +2,7 @@
    - index.html            : เปิดจากเครื่องได้เลย (ดับเบิลคลิก)
    - docs/index.html       : สำหรับเปิดใช้งานผ่าน GitHub Pages
 */
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -19,6 +19,7 @@ const page = `<!doctype html>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="พูดอังกฤษได้">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%97%A3%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,17 +39,56 @@ const manifest = JSON.stringify({
   background_color: "#f6f7f9",
   theme_color: "#2f6df6",
   lang: "th",
-  icons: [{
-    src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232f6df6'/%3E%3Ctext x='50' y='72' font-size='58' text-anchor='middle'%3E%F0%9F%97%A3%EF%B8%8F%3C/text%3E%3C/svg%3E",
-    sizes: "any", type: "image/svg+xml", purpose: "any"
-  }]
+  description: "เรียนภาษาอังกฤษจากศูนย์ ฝึกพูดกับไมโครโฟนจริง",
+  orientation: "portrait",
+  icons: [
+    { src: "icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+    { src: "icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" }
+  ]
 }, null, 2);
+
+const sw = `/* Service worker — ทำให้ติดตั้งเป็นแอปได้จริง และเปิดใช้ได้แม้ไม่มีเน็ต
+   กลยุทธ์: ลองโหลดจากเน็ตก่อน (ได้ของใหม่เสมอ) ถ้าไม่มีเน็ตค่อยใช้ของที่เก็บไว้ */
+const CACHE = "speak-english-v1";
+const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
+
+self.addEventListener("install", (e) => {
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener("activate", (e) => {
+  e.waitUntil(
+    caches.keys()
+      .then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener("fetch", (e) => {
+  const req = e.request;
+  if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
+  e.respondWith(
+    fetch(req)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        return res;
+      })
+      .catch(() => caches.match(req).then((r) => r || caches.match("./index.html")))
+  );
+});
+`;
 
 for (const dir of ["", "docs"]) {
   const out = dir ? resolve(root, dir) : root;
   mkdirSync(out, { recursive: true });
   writeFileSync(resolve(out, "index.html"), page);
   writeFileSync(resolve(out, "manifest.webmanifest"), manifest);
+  writeFileSync(resolve(out, "sw.js"), sw);
+}
+// ไอคอนอยู่ใน docs/ อยู่แล้ว สำเนามาที่รากด้วยเพื่อให้เปิดจากไฟล์ได้เหมือนกัน
+for (const f of ["icon-192.png", "icon-512.png"]) {
+  try { copyFileSync(resolve(root, "docs", f), resolve(root, f)); } catch {}
 }
 writeFileSync(resolve(root, "docs/.nojekyll"), "");
 

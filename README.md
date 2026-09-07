@@ -29,6 +29,9 @@ https://chaynrngkh246-web.github.io/basis-meter-app/
 | **iPhone / iPad** | เปิดลิงก์ด้วย **Safari** → กดปุ่ม **แชร์** ⬆️ ที่แถบล่าง → เลื่อนหา **"เพิ่มไปยังหน้าจอโฮม"** → กด **เพิ่ม** |
 | **Android** | เปิดลิงก์ด้วย **Chrome** → กดเมนู **⋮** มุมขวาบน → **"ติดตั้งแอป"** หรือ **"เพิ่มลงในหน้าจอหลัก"** |
 
+ติดตั้งแล้วแอปจะ **ใช้ได้แม้ไม่มีอินเทอร์เน็ต** (บทเรียน คำอ่าน และเสียงอ่านทำงานออฟไลน์
+ส่วนการตรวจการออกเสียงด้วยไมค์ยังต้องต่อเน็ต เพราะ Chrome ส่งเสียงไปแปลงบนเซิร์ฟเวอร์)
+
 ในแอปมีการ์ด **📲 ติดตั้งลงมือถือ** อยู่บนหน้าแรกและในแท็บตั้งค่า
 ซึ่งจะตรวจเครื่องให้เองแล้วบอกขั้นตอนที่ตรงกับเครื่องคุณ (บน Android จะมีปุ่มติดตั้งให้กดปุ่มเดียว)
 
@@ -117,7 +120,8 @@ https://chaynrngkh246-web.github.io/basis-meter-app/
 ## สำหรับนักพัฒนา
 
 ```bash
-npm run build     # สร้าง index.html, docs/index.html, artifact/app.html จากไฟล์ต้นฉบับ
+npm run build     # สร้าง index.html, docs/index.html, artifact/app.html, sw.js, manifest
+npm run icons     # สร้างไอคอนแอปใหม่จาก scripts/icon-source.html (ทำเมื่อจะเปลี่ยนไอคอน)
 npm test          # ทดสอบแอปจริงในเบราว์เซอร์ (ต้องมี playwright)
 npm run serve     # เปิดเซิร์ฟเวอร์ที่ http://localhost:8080
 ```
@@ -131,6 +135,8 @@ tests/e2e.mjs           ← ทดสอบการใช้งานจริ�
 index.html              ← ผลลัพธ์ (สร้างอัตโนมัติ อย่าแก้ตรงนี้)
 docs/                   ← ผลลัพธ์สำหรับ GitHub Pages
 artifact/app.html       ← ผลลัพธ์สำหรับเผยแพร่เป็น Artifact
+docs/sw.js              ← service worker (ทำให้ติดตั้งเป็นแอปได้ และใช้ออฟไลน์ได้)
+docs/icon-*.png         ← ไอคอนแอป สร้างจาก scripts/make-icons.mjs
 ```
 
 **เพิ่มบทเรียนใหม่** — เปิด `src/app.fragment.html` หา `const COURSE = [` แล้วเพิ่มบทตามรูปแบบเดิม
