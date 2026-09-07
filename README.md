@@ -8,14 +8,19 @@
 
 ## 📲 ติดตั้งลงมือถือ (ทำครั้งเดียว)
 
-**ขั้นที่ 1 — เอาลิงก์ของแอปมาก่อน**
+**ขั้นที่ 1 — เปิดลิงก์ถาวรของแอป (ทำครั้งเดียว ประมาณ 1 นาที)**
 
-repo นี้มี GitHub Actions ที่เผยแพร่แอปให้อัตโนมัติทุกครั้งที่ push
-ลิงก์ของคุณคือ `https://chaynrngkh246-web.github.io/basis-meter-app/`
+1. เข้าไปที่หน้า repo บน GitHub กด **Settings** (ฟันเฟืองด้านบน)
+2. เมนูซ้ายมือ เลือก **Pages**
+3. ตรงหัวข้อ **Build and deployment → Source** เลือก **Deploy from a branch**
+4. ช่อง **Branch** เลือก `claude/english-learning-app-beginners-ftmofn`
+   และช่องโฟลเดอร์ข้างๆ เลือก **`/docs`** แล้วกด **Save**
 
-ถ้าเปิดแล้วขึ้น 404 แปลว่ายังไม่ได้เปิด GitHub Pages — เปิดครั้งเดียวจบ:
-ไปที่ **Settings → Pages → Build and deployment → Source** เลือก **GitHub Actions**
-แล้วไปที่แท็บ **Actions** กด run workflow ชื่อ *Deploy to GitHub Pages* อีกครั้ง
+รอประมาณ 1–2 นาที แล้วเปิดลิงก์นี้ได้เลย (บุ๊กมาร์กไว้ได้):
+
+```
+https://chaynrngkh246-web.github.io/basis-meter-app/
+```
 
 **ขั้นที่ 2 — ติดตั้งลงหน้าจอโฮม**
 
