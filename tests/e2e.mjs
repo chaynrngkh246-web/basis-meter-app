@@ -24,9 +24,12 @@ page.on('console', m => {
 // stub speech APIs before page scripts run
 await page.addInitScript(() => {
   window.__spoken = [];
+  // จำลองเบราว์เซอร์ที่ "ไม่มี" resume() เพื่อกันบั๊กเดิมกลับมา (เคยทำให้เสียงไม่ออกเลย)
   Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: {
-    speak: u => window.__spoken.push(u.text),
-    cancel: () => {}, getVoices: () => [{name:'Google US English', lang:'en-US'}],
+    speaking: false, pending: false, paused: false,
+    speak(u) { window.__spoken.push(u.text); if (u.onstart) u.onstart(); setTimeout(() => u.onend && u.onend(), 5); },
+    cancel: () => {},
+    getVoices: () => [{ name: 'Google US English', lang: 'en-US' }],
     onvoiceschanged: null
   }});
   window.SpeechSynthesisUtterance = function(t){ this.text = t; };
@@ -59,7 +62,7 @@ await t('กด "เริ่มบทที่ 1" เข้าสู่บท�
   if (!w.includes('Hello')) throw new Error('คำแรกไม่ใช่ Hello: ' + w);
 });
 
-await t('เสียงอ่านถูกเรียก', async () => {
+await t('เสียงอ่านถูกเรียกได้ แม้เบราว์เซอร์ไม่มี speechSynthesis.resume()', async () => {
   await page.waitForTimeout(500);
   const sp = await page.evaluate(() => window.__spoken);
   if (!sp) throw new Error('stub ไม่ถูกติดตั้ง');
@@ -126,6 +129,17 @@ await t('เดินจนจบบทที่ 1 ได้โดยไม่�
   if (!(await page.locator('.confetti').count())) throw new Error('ไปไม่ถึงหน้าจบบท');
 });
 
+await t('หน้าแรกมีการ์ด "ติดตั้งลงมือถือ" และปุ่มทดสอบเสียง', async () => {
+  await page.click('[data-tab="home"]');
+  await page.waitForSelector('#soundTest', { timeout: 3000 });
+  const txt = await page.innerText('#installBox');
+  if (!txt.trim()) throw new Error('การ์ดติดตั้งว่างเปล่า');
+});
+
+await t('ไม่มีแถบเตือนเรื่องเสียงขึ้นมาบัง เมื่อเสียงทำงานปกติ', async () => {
+  if (await page.locator('#soundHelp').count()) throw new Error('แถบเตือนขึ้นทั้งที่เสียงออกปกติ');
+});
+
 await t('แท็บทบทวนเปิดได้', async () => {
   await page.click('[data-tab="review"]');
   await page.waitForTimeout(300);
@@ -177,6 +191,33 @@ await t('กลับหน้าแรกแล้วเห็นความ�
   await page.waitForSelector('.unit', { timeout: 3000 });
   const txt = await page.innerText('#units');
   if (/^0%/.test(txt)) throw new Error('ความคืบหน้าไม่ขึ้น');
+});
+
+await t('ถ้าเล่นเสียงไม่ได้จริง ต้องขึ้นวิธีแก้เป็นภาษาไทยให้ผู้ใช้', async () => {
+  const p2 = await browser.newPage();
+  await p2.addInitScript(() => {
+    Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: {
+      speaking: false, pending: false,
+      speak() {},                       // เงียบสนิท ไม่มี onstart — เหมือนเครื่องที่ไม่มีเสียงอ่าน
+      cancel: () => {}, getVoices: () => [], onvoiceschanged: null
+    }});
+    window.SpeechSynthesisUtterance = function (t) { this.text = t; };
+  });
+  await p2.goto(APP);
+  await p2.click('#goNext');
+  await p2.waitForSelector('#soundHelp', { timeout: 5000 });
+  // ตอนย่ออยู่ ต้องไม่บังปุ่ม "ต่อไป" ของบทเรียน
+  const nx = await p2.locator('#nx').boundingBox();
+  const hit = await p2.evaluate(([x, y]) => (document.elementFromPoint(x, y) || {}).id,
+    [nx.x + nx.width / 2, nx.y + nx.height / 2]);
+  if (hit !== 'nx') throw new Error('แถบเตือนบังปุ่มต่อไป (เจอ: "' + hit + '")');
+  await p2.click('#nx');   // ยังกดเรียนต่อได้ตามปกติ
+  await p2.click('#shOpen');
+  const txt = await p2.innerText('#soundHelp');
+  if (!/เพิ่มเสียง/.test(txt)) throw new Error('ไม่มีคำแนะนำวิธีแก้');
+  await p2.click('#shClose');
+  if (await p2.locator('#soundHelp').count()) throw new Error('ปิดแถบเตือนไม่ได้');
+  await p2.close();
 });
 
 await browser.close();

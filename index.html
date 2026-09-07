@@ -188,6 +188,21 @@
   .kv{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line)}
   .kv:last-child{border-bottom:none}
   .confetti{font-size:52px; text-align:center; line-height:1}
+
+  .soundhelp{
+    position:fixed; left:10px; right:10px; bottom:calc(74px + env(safe-area-inset-bottom)); z-index:50;
+    max-width:540px; margin:0 auto; background:var(--card); border:2px solid var(--warn);
+    border-radius:14px; padding:8px 10px; box-shadow:var(--shadow); font-size:13.5px;
+    max-height:60vh; overflow:auto;
+  }
+  .sh-bar{display:flex; align-items:center; gap:6px}
+  .sh-bar b{flex:1; font-size:13.5px}
+  .sh-bar .btn{min-height:36px; padding:6px 10px; font-size:13px}
+  .soundhelp ol{margin:10px 0 8px; padding-inline-start:22px; line-height:1.8}
+  .soundhelp li{margin-bottom:2px}
+  .install{border:2px dashed var(--brand); background:var(--brand-soft)}
+  .install b{color:var(--brand)}
+  .steps{margin:8px 0 0; padding-inline-start:22px; line-height:1.85; font-size:14px}
 </style>
 
 <div class="wrap">
@@ -567,18 +582,83 @@ function pickVoice(){
 if("speechSynthesis" in window){
   VOICE = pickVoice();
   speechSynthesis.onvoiceschanged = ()=>{ VOICE = pickVoice(); };
+  /* Android/iOS บางรุ่นโหลดรายการเสียงช้า ลองซ้ำอีก 3 ครั้ง */
+  [400, 1200, 2500].forEach(ms=>setTimeout(()=>{ if(!VOICE) VOICE = pickVoice(); }, ms));
 }
-function speak(text, slow){
-  if(!("speechSynthesis" in window)) return;
+
+/* มือถือจะไม่ยอมเล่นเสียงจนกว่าผู้ใช้จะแตะหน้าจอครั้งแรก
+   จึงต้อง "ปลดล็อกเสียง" ด้วยเสียงเงียบๆ ตอนแตะครั้งแรก */
+let audioReady = false, ttsProven = false, warnedNoSound = false;
+function unlockAudio(){
+  if(audioReady || !("speechSynthesis" in window)) return;
   try{
-    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(" ");
+    u.volume = 0.01; u.lang = "en-US";
+    speechSynthesis.speak(u);
+    audioReady = true;
+  }catch(e){}
+}
+["pointerdown","touchstart","click","keydown"].forEach(ev=>
+  addEventListener(ev, unlockAudio, {capture:true, passive:true}));
+
+function speak(text, slow){
+  if(!("speechSynthesis" in window)){ showSoundHelp("เบราว์เซอร์นี้ไม่มีเสียงอ่านในตัว"); return; }
+  try{
+    if(speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+    /* Chrome บางรุ่นค้างอยู่สถานะ paused — แต่บางเบราว์เซอร์ไม่มี resume() จึงต้องเช็กก่อน */
+    if(typeof speechSynthesis.resume === "function") speechSynthesis.resume();
+    if(!VOICE) VOICE = pickVoice();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = "en-US";
     if(VOICE) u.voice = VOICE;
     u.rate = slow ? 0.55 : (S.rate || 0.85);
-    u.pitch = 1;
+    u.pitch = 1; u.volume = 1;
+    let started = false;
+    u.onstart = ()=>{ started = true; ttsProven = true; audioReady = true; hideSoundHelp(); };
+    u.onerror = ()=>{ if(!started) showSoundHelp("เบราว์เซอร์เล่นเสียงไม่สำเร็จ"); };
     speechSynthesis.speak(u);
-  }catch(e){}
+    audioReady = true;
+    setTimeout(()=>{ if(!started && !ttsProven) showSoundHelp("เสียงไม่ออกภายใน 1.5 วินาที"); }, 1500);
+  }catch(e){ showSoundHelp("เกิดข้อผิดพลาดตอนสั่งให้อ่านออกเสียง"); }
+}
+
+/* แถบช่วยเหลือเรื่องเสียง — โผล่ครั้งเดียวเมื่อตรวจพบว่าไม่มีเสียงออก */
+function hideSoundHelp(){ const b = document.getElementById("soundHelp"); if(b) b.remove(); }
+function showSoundHelp(reason){
+  if(warnedNoSound || ttsProven || document.getElementById("soundHelp")) return;
+  warnedNoSound = true;
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const box = el(`<div id="soundHelp" class="soundhelp">
+    <div class="sh-bar">
+      <b>🔇 ไม่ได้ยินเสียง?</b>
+      <button class="btn sm" id="shOpen">วิธีแก้</button>
+      <button class="btn sm" id="shTest">🔊 ลองใหม่</button>
+      <button class="btn sm ghost" id="shClose">✕</button>
+    </div>
+    <div class="sh-body" hidden>
+      <ol>
+        <li><b>กดปุ่มเพิ่มเสียงข้างเครื่อง</b> ขณะที่อยู่ในแอปนี้ (ต้องเป็นเสียง “สื่อ/มีเดีย” ไม่ใช่เสียงกริ่ง)</li>
+        ${isIOS ? "<li><b>ปิดโหมดปิดเสียง</b> — สวิตช์เล็กๆ ข้างซ้ายบนของ iPhone ต้อง<b>ไม่</b>เห็นแถบสีส้ม</li>" : ""}
+        <li><b>ถอดหูฟัง / ตัดการเชื่อมต่อลำโพงบลูทูธ</b> แล้วลองใหม่</li>
+        <li>ถ้าเปิดจากในแอปอื่น (Facebook, LINE) ให้กด <b>“เปิดในเบราว์เซอร์”</b> แล้วใช้ <b>Chrome</b> หรือ <b>Safari</b></li>
+        ${isIOS ? "" : "<li>Android: ต้องมีแอป <b>Google Text-to-speech</b> ในเครื่อง (โหลดฟรีใน Play Store)</li>"}
+      </ol>
+      <div class="tiny" style="opacity:.85">${esc(reason||"")} — ถ้ายังไม่มีเสียง ยังเรียนต่อได้นะครับ ใช้คำอ่านภาษาไทยที่อยู่ใต้ทุกประโยคแทนได้เลย</div>
+    </div>
+  </div>`);
+  document.body.appendChild(box);
+  box.querySelector("#shOpen").onclick = ()=>{
+    const b = box.querySelector(".sh-body");
+    b.hidden = !b.hidden;
+    box.querySelector("#shOpen").textContent = b.hidden ? "วิธีแก้" : "ซ่อน";
+  };
+  box.querySelector("#shClose").onclick = ()=>box.remove();
+  box.querySelector("#shTest").onclick = ()=>{
+    warnedNoSound = false;
+    box.remove();
+    speak("Hello, can you hear me?");
+  };
 }
 
 /* ================== ฟังเสียงผู้ใช้ (Speech Recognition) ================== */
@@ -675,6 +755,43 @@ const micErrText = (e)=>({
 </script>
 
 <script>
+/* ================== การติดตั้งลงมือถือ (PWA) ================== */
+let installPrompt = null;
+addEventListener("beforeinstallprompt", (e)=>{ e.preventDefault(); installPrompt = e; render(); });
+const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const isInstalled = ()=> matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const inApp = /FBAN|FBAV|Line|Instagram|Messenger|Twitter|TikTok/i.test(navigator.userAgent);
+
+function installHtml(){
+  if(isInstalled()) return `<div class="small muted">✅ ตอนนี้คุณเปิดจากไอคอนบนหน้าจอโฮมอยู่แล้ว เรียบร้อย!</div>`;
+  if(inApp) return `<div class="small">ตอนนี้คุณเปิดหน้านี้อยู่ <b>ในแอปแชท</b> ซึ่งติดตั้งไม่ได้และเสียงมักไม่ออก<br>
+     ให้กดเมนู <b>⋯ (จุดสามจุด)</b> มุมขวาบน แล้วเลือก <b>“เปิดในเบราว์เซอร์”</b> ก่อน แล้วค่อยกลับมาที่หน้านี้ครับ</div>`;
+  if(installPrompt) return `<div class="small">กดปุ่มนี้ปุ่มเดียวจบเลยครับ</div>
+     <div class="row"><button class="btn primary wide" id="doInstall">📲 ติดตั้งลงหน้าจอโฮม</button></div>`;
+  if(isIOSDevice) return `<div class="small">บน iPhone / iPad ทำตามนี้ครับ (ต้องใช้ <b>Safari</b>)</div>
+     <ol class="steps">
+       <li>กดปุ่ม <b>แชร์</b> ⬆️ (สี่เหลี่ยมมีลูกศรขึ้น) ที่แถบล่างของ Safari</li>
+       <li>เลื่อนลงหา <b>“เพิ่มไปยังหน้าจอโฮม”</b> (Add to Home Screen)</li>
+       <li>กด <b>เพิ่ม</b> — จะได้ไอคอนแอปบนหน้าจอ เปิดใช้ได้เหมือนแอปจริง</li>
+     </ol>`;
+  return `<div class="small">บน Android ทำตามนี้ครับ (ต้องใช้ <b>Chrome</b>)</div>
+     <ol class="steps">
+       <li>กดเมนู <b>⋮ (จุดสามจุด)</b> มุมขวาบนของ Chrome</li>
+       <li>เลือก <b>“ติดตั้งแอป”</b> หรือ <b>“เพิ่มลงในหน้าจอหลัก”</b></li>
+       <li>กด <b>ติดตั้ง</b> — จะได้ไอคอนแอปบนหน้าจอ</li>
+     </ol>`;
+}
+function wireInstall(){
+  const b = document.getElementById("doInstall");
+  if(b) b.onclick = async ()=>{
+    if(!installPrompt) return;
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+    installPrompt = null; render();
+  };
+}
+
 /* ================== สถานะหน้าจอ ================== */
 let VIEW = {name:"home"};
 const scr = ()=> $("#screen");
@@ -751,7 +868,13 @@ function viewHome(){
         <button class="btn primary" id="goNext">${started ? "เรียนต่อ" : "เริ่มบทที่ 1"} →</button>
       </div>
       ${due ? `<div class="row"><button class="btn" id="goReview">🔁 ทบทวน ${due} คำที่ถึงกำหนด</button></div>` : ""}
+      <div class="row"><button class="btn sm ghost wide" id="soundTest">🔊 ทดสอบเสียง — ถ้าไม่ได้ยินอะไรเลย กดตรงนี้</button></div>
     </div>
+
+    ${isInstalled() ? "" : `<div class="card install">
+      <b>📲 ติดตั้งลงมือถือ</b>
+      <div id="installBox" style="margin-top:6px"></div>
+    </div>`}
 
     ${started ? "" : `
     <div class="card">
@@ -785,6 +908,11 @@ function viewHome(){
   });
   $("#goNext").addEventListener("click", ()=>startLesson(nu));
   if($("#goReview")) $("#goReview").addEventListener("click", ()=>nav("review"));
+  $("#soundTest").addEventListener("click", ()=>{
+    warnedNoSound = false; ttsProven = false; hideSoundHelp();
+    speak("Hello! Can you hear me?");
+  });
+  if($("#installBox")){ $("#installBox").innerHTML = installHtml(); wireInstall(); }
 }
 
 /* ================== ตัวช่วยแสดง "การ์ดพูด" ================== */
@@ -1295,6 +1423,23 @@ function viewMe(){
         <span class="pill ${SR_OK?"ok":""}">${SR_OK?"พร้อม":"ไม่รองรับ"}</span></div>
     </div>
 
+    <div class="card install">
+      <b>📲 ติดตั้งลงมือถือ</b>
+      <div id="installBox2" style="margin-top:6px"></div>
+    </div>
+
+    <div class="card">
+      <b>🔇 ไม่มีเสียง ทำยังไง</b>
+      <ol class="steps">
+        <li><b>กดปุ่มเพิ่มเสียงข้างเครื่อง</b> ตอนที่อยู่ในแอปนี้ (ต้องเป็นเสียง “สื่อ/มีเดีย”)</li>
+        <li><b>iPhone:</b> สวิตช์ปิดเสียงข้างซ้ายบน ต้อง<b>ไม่</b>เห็นแถบสีส้ม</li>
+        <li><b>ถอดหูฟัง / ตัดลำโพงบลูทูธ</b> แล้วลองใหม่</li>
+        <li>ถ้าเปิดจาก LINE หรือ Facebook ให้กด <b>“เปิดในเบราว์เซอร์”</b> ก่อน</li>
+        <li><b>Android:</b> ต้องมีแอป <b>Google Text-to-speech</b> ในเครื่อง (ดาวน์โหลดฟรีใน Play Store)</li>
+      </ol>
+      <div class="row"><button class="btn wide" id="test2">🔊 ทดสอบเสียงเดี๋ยวนี้</button></div>
+    </div>
+
     <div class="card">
       <b>วิธีเรียนให้พูดได้จริง (อ่านสัก 1 นาที)</b>
       <div class="small muted" style="margin-top:8px; line-height:1.95">
@@ -1325,7 +1470,9 @@ function viewMe(){
   $("#rate").oninput = (e)=>{ S.rate = parseFloat(e.target.value); save(); };
   $("#rate").onchange = ()=>speak("This is my speaking speed.");
   $("#goal").onchange = (e)=>{ S.goal = parseInt(e.target.value,10); save(); };
-  $("#test").onclick = ()=>speak("Hello! Can you hear me?");
+  $("#test").onclick = ()=>{ warnedNoSound=false; ttsProven=false; hideSoundHelp(); speak("Hello! Can you hear me?"); };
+  $("#test2").onclick = ()=>{ warnedNoSound=false; ttsProven=false; hideSoundHelp(); speak("Hello! Can you hear me?"); };
+  $("#installBox2").innerHTML = installHtml(); wireInstall();
   $("#reset").onclick = ()=>{ if(confirm("ล้างความคืบหน้าทั้งหมดจริงๆ นะ?")){ S = structuredClone(DEFAULT_STATE); save(); nav("home"); } };
 }
 
