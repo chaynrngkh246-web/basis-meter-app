@@ -77,25 +77,49 @@ await t('ทุกคำศัพท์มีคำแปล คำอ่าน�
   if (bad.length) throw new Error('ข้อมูลไม่ครบ ' + bad.length + ' คำ: ' + bad.slice(0, 3));
 });
 
-await t('หน้าแรกแสดงแถบเลือกระดับ 4 ระดับ และบทของระดับที่เลือก', async () => {
-  const lv = await page.locator('.lvbtn').count();
-  if (lv !== 4) throw new Error('ปุ่มระดับ ' + lv);
-  const n = await page.locator('.unit').count();
-  if (n !== 10) throw new Error('บทในระดับ 1 ควรมี 10 บท แต่เจอ ' + n);
+await t('หน้าแรก: ครูทักทายและเสนอแผนวันนี้ให้เลย', async () => {
+  const txt = await page.innerText('.teach');
+  if (!/สวัสดี|อรุณสวัสดิ์/.test(txt)) throw new Error('ไม่มีคำทักทาย');
+  if (!/แผนวันนี้/.test(txt)) throw new Error('ไม่มีแผนวันนี้');
+  const rows = await page.locator('.planrow').count();
+  if (rows < 2 || rows > 3) throw new Error('ขั้นตอนในแผนผิด: ' + rows);
+  if (!await page.locator('.planrow.next').count()) throw new Error('ไม่ได้ชี้ว่าขั้นไหนต่อไป');
+  const btn = await page.textContent('#planGo');
+  if (!/เริ่มเลย|ทำต่อ/.test(btn)) throw new Error('ปุ่มเริ่มผิด: ' + btn);
+});
+
+await t('หน้าแรก: บทเรียนทั้งหมดถูกซ่อนไว้ ไม่รกสายตา', async () => {
+  const open = await page.evaluate(() => document.getElementById('allUnits').open);
+  if (open) throw new Error('รายการบทเรียนควรถูกพับไว้');
+  await page.evaluate(() => document.getElementById('allUnits').open = true);
+  await page.waitForTimeout(150);
+  if (await page.locator('.lvbtn').count() !== 4) throw new Error('ปุ่มระดับไม่ครบ');
+  if (await page.locator('.unit').count() !== 10) throw new Error('บทในระดับ 1 ไม่ครบ');
 });
 
 await t('สลับไประดับมืออาชีพแล้วเห็นบทของระดับนั้น', async () => {
   await page.locator('.lvbtn').nth(3).click();
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(300);
+  await page.evaluate(() => document.getElementById('allUnits').open = true);
   const txt = await page.innerText('#units');
   if (!/สัมภาษณ์งาน/.test(txt)) throw new Error('ไม่เจอบทสัมภาษณ์งาน');
   if (!/มืออาชีพ/.test(await page.innerText('#levelInfo'))) throw new Error('หัวข้อระดับไม่ถูก');
   await page.locator('.lvbtn').nth(0).click();
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(300);
 });
 
-await t('กด "เริ่มบทที่ 1" เข้าสู่บทเรียน', async () => {
-  await page.click('#goNext');
+await t('ครูจำชื่อได้ และเรียกชื่อในคำทักทาย', async () => {
+  await page.click('#setName');
+  await page.waitForSelector('#nameIn', { timeout: 3000 });
+  await page.fill('#nameIn', 'สมชาย');
+  await page.click('#nameOk');
+  await page.waitForTimeout(300);
+  if (!/คุณสมชาย/.test(await page.innerText('.teach'))) throw new Error('ไม่เรียกชื่อในคำทักทาย');
+  if (await page.evaluate(() => S.name) !== 'สมชาย') throw new Error('ไม่ได้บันทึกชื่อ');
+});
+
+await t('กดเริ่มในแผนวันนี้ แล้วเข้าสู่บทเรียน', async () => {
+  await page.click('#planGo');
   await page.waitForSelector('.word-en', { timeout: 3000 });
   const w = await page.textContent('.word-en');
   if (!w.includes('Hello')) throw new Error('คำแรกไม่ใช่ Hello: ' + w);
@@ -154,8 +178,9 @@ await t('ความคืบหน้าถูกบันทึกลง loca
 
 await t('เดินจนจบบทที่ 1 ได้โดยไม่พัง', async () => {
   await page.evaluate(() => { window.__nextSaid = 'yes'; });
-  for (let i = 0; i < 120; i++) {
+  for (let i = 0; i < 200; i++) {
     if (await page.locator('.confetti').count()) break;
+    if (await page.locator('#keepGo').count()) { await page.click('#keepGo'); await page.waitForTimeout(60); continue; }
     const btns = ['#nx', '.btn.primary', '.choice'];
     let clicked = false;
     for (const sel of btns) {
@@ -290,8 +315,8 @@ await t('ตัวโค้ช: พูดถูกหมดต้องไม่
 
 await t('ตัวโค้ช: โผล่จริงในหน้าฝึกพูด พร้อมปุ่มฟังทีละคำ', async () => {
   await page.click('[data-tab="home"]');
-  await page.waitForSelector('#goNext', { timeout: 3000 });
-  await page.click('#goNext');
+  await page.waitForSelector('#planGo', { timeout: 3000 });
+  await page.evaluate(() => { S.unitPos = {}; save(); startLesson(COURSE[0], { restart: true }); });
   await page.waitForSelector('.word-en', { timeout: 3000 });
   for (let i = 0; i < 4; i++) { await page.click('#nx', { timeout: 5000 }); await page.waitForTimeout(60); }
   await page.waitForSelector('#micBtn', { timeout: 3000 });
@@ -545,6 +570,92 @@ await t('QR: ฝังมาในหน้าเว็บจริง ไม่
   if (r.modules < 50) throw new Error('เส้นใน QR น้อยผิดปกติ: ' + r.modules);
 });
 
+await t('บทเรียนพักทุก 12 ข้อ และจำที่ค้างไว้ให้', async () => {
+  await page.evaluate(() => { S.unitPos = {}; save(); });
+  await page.click('[data-tab="home"]');
+  await page.waitForSelector('#planGo', { timeout: 3000 });
+  await page.click('#planGo');
+  await page.waitForSelector('.word-en', { timeout: 3000 });
+  await page.evaluate(() => { window.__nextSaid = 'yes'; });
+  let sawBreak = false;
+  for (let i = 0; i < 40; i++) {
+    if (await page.locator('#keepGo').count()) { sawBreak = true; break; }
+    for (const sel of ['#nx', '#fb .btn.primary', '.choice', '.btn.primary']) {
+      const l = page.locator(sel).first();
+      if (await l.count() && await l.isVisible()) { await l.click(); break; }
+    }
+    if (await page.locator('#micBtn').count()) await page.locator('#micBtn').click();
+    await page.waitForTimeout(70);
+  }
+  if (!sawBreak) throw new Error('ไม่มีจุดพักหลังทำไป 12 ข้อ');
+  const txt = await page.innerText('#screen');
+  if (!/เหลืออีก/.test(txt)) throw new Error('ไม่บอกว่าเหลืออีกกี่ข้อ');
+
+  await page.click('#stopHere');
+  await page.waitForSelector('#planGo', { timeout: 3000 });
+  const saved = await page.evaluate(() => S.unitPos.u1 || 0);
+  if (saved < 12) throw new Error('ไม่ได้จำตำแหน่งที่ค้างไว้: ' + saved);
+
+  await page.click('#planGo');
+  await page.waitForTimeout(400);
+  const pct = await page.textContent('.lesson-top');
+  if (/^0%/.test(pct.trim())) throw new Error('ไม่ได้เรียนต่อจากที่ค้าง');
+});
+
+await t('ครูเก็บสถิติจุดอ่อน และเปิดคลินิกให้เมื่อพลาดซ้ำ', async () => {
+  await page.evaluate(() => {
+    S.weak = {}; save();
+    for (let i = 0; i < 4; i++) coachHtml('I am a teacher', 'I teacher');
+  });
+  const w = await page.evaluate(() => ({ weak: S.weak, top: topWeak() }));
+  if (!w.weak.be || w.weak.be < 3) throw new Error('ไม่ได้นับจุดอ่อน verb to be: ' + JSON.stringify(w.weak));
+  if (!w.top || w.top.code !== 'be') throw new Error('เลือกจุดอ่อนอันดับหนึ่งผิด');
+
+  await page.click('[data-tab="home"]');
+  await page.waitForSelector('#goClinic', { timeout: 3000 });
+  if (!/พลาดเรื่อง/.test(await page.innerText('.weak'))) throw new Error('ไม่ได้บอกว่าพลาดเรื่องอะไร');
+});
+
+await t('คลินิก: สอนกฎเป็นภาษาไทยก่อน แล้วค่อยให้ฝึกพูด', async () => {
+  await page.click('#goClinic');
+  await page.waitForSelector('.teachbox', { timeout: 3000 });
+  const txt = await page.innerText('#screen');
+  if (!/ทำไมถึงผิด/.test(txt)) throw new Error('ไม่มีคำอธิบายว่าทำไมผิด');
+  if (!/จำแค่นี้พอ/.test(txt)) throw new Error('ไม่มีกฎให้จำ');
+  if (!/แบบที่คนไทยมักพูดผิด/.test(txt)) throw new Error('ไม่มีตัวอย่างที่ผิด');
+  if (!/am \/ is \/ are|is \/ am \/ are/.test(txt)) throw new Error('เนื้อหาไม่ตรงกับจุดอ่อน');
+
+  await page.click('#clGo');
+  await page.waitForSelector('#micBtn', { timeout: 3000 });
+  const label = await page.textContent('.steplabel');
+  if (!/ฝึกแก้/.test(label)) throw new Error('ป้ายกำกับผิด: ' + label);
+});
+
+await t('คลินิกครบทุกจุดอ่อน มีเนื้อหาสอนและตัวอย่างครบ', async () => {
+  const bad = await page.evaluate(() =>
+    Object.entries(WEAK_INFO)
+      .filter(([k, v]) => !v.name || !v.why || !v.rule || !v.bad || !(v.good || []).length ||
+                          clinicSentences(k).length < 5)
+      .map(([k]) => k));
+  if (bad.length) throw new Error('จุดอ่อนที่ข้อมูลไม่ครบ: ' + bad.join(', '));
+});
+
+await t('แผนวันนี้ติ๊กถูกเมื่อทำเสร็จ และเก็บไว้ต่อวันต่อวัน', async () => {
+  await page.evaluate(() => {
+    S.plan = null; save();
+    const p = getPlan();
+    markPlan(p.steps[0].t);
+  });
+  await page.click('[data-tab="home"]');
+  await page.waitForSelector('.planrow', { timeout: 3000 });
+  if (!await page.locator('.planrow.done').count()) throw new Error('ไม่ติ๊กถูกให้ขั้นที่ทำแล้ว');
+  const fresh = await page.evaluate(() => {
+    S.plan.day = '2000-01-01'; save();
+    return getPlan().done.some(Boolean);
+  });
+  if (fresh) throw new Error('ขึ้นวันใหม่แล้วแผนไม่รีเซ็ต');
+});
+
 await t('แท็บตั้งค่าเปิดได้', async () => {
   await page.click('[data-tab="me"]');
   await page.waitForSelector('#rate', { timeout: 3000 });
@@ -552,7 +663,11 @@ await t('แท็บตั้งค่าเปิดได้', async () => {
 
 await t('กลับหน้าแรกแล้วเห็นความคืบหน้า', async () => {
   await page.click('[data-tab="home"]');
+  await page.waitForSelector('#planGo', { timeout: 3000 });
+  await page.evaluate(() => document.getElementById('allUnits').open = true);
   await page.waitForSelector('.unit', { timeout: 3000 });
+  await page.evaluate(() => document.getElementById('allUnits').open = true);
+  await page.waitForTimeout(150);
   const txt = await page.innerText('#units');
   if (/^0%/.test(txt)) throw new Error('ความคืบหน้าไม่ขึ้น');
   if (!await page.locator('.lvbtn.on').count()) throw new Error('ไม่มีระดับที่เลือกอยู่');
@@ -569,7 +684,7 @@ await t('ถ้าเล่นเสียงไม่ได้จริง ต�
     window.SpeechSynthesisUtterance = function (t) { this.text = t; };
   });
   await p2.goto(APP);
-  await p2.click('#goNext');
+  await p2.click('#planGo');
   await p2.waitForSelector('#soundHelp', { timeout: 5000 });
   // ตอนย่ออยู่ ต้องไม่บังปุ่ม "ต่อไป" ของบทเรียน
   const nx = await p2.locator('#nx').boundingBox();

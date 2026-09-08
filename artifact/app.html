@@ -189,6 +189,44 @@
   .soundhelp li{margin-bottom:2px}
   .install{border:2px dashed var(--brand); background:var(--brand-soft)}
 
+  .teach{border:1px solid var(--line)}
+  .teach-top{display:flex; gap:12px; align-items:flex-start; margin-bottom:14px}
+  .teach-face{width:44px; height:44px; flex:0 0 auto; border-radius:50%; background:var(--brand-soft);
+    display:grid; place-items:center; font-size:24px}
+  .plan-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px}
+  .plan-head b{font-size:14px}
+  .planrow{display:flex; align-items:center; gap:11px; width:100%; text-align:left; cursor:pointer;
+    background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:11px 12px;
+    margin-bottom:7px; font-family:inherit; color:var(--ink)}
+  .planrow .pmark{width:30px; height:30px; flex:0 0 auto; border-radius:9px; display:grid; place-items:center;
+    background:var(--card); border:1px solid var(--line); font-size:15px}
+  .planrow .pmeta{flex:1; min-width:0}
+  .planrow .pmeta b{display:block; font-size:14.5px; font-weight:700}
+  .planrow .pmeta span{font-size:12px; color:var(--muted)}
+  .planrow.next{border-color:var(--brand); background:var(--brand-soft)}
+  .planrow.next .pmark{border-color:var(--brand); color:var(--brand)}
+  .planrow.done{opacity:.55}
+  .planrow.done .pmark{background:var(--ok-soft); color:var(--ok); border-color:transparent}
+  .planrow.done .pmeta b{text-decoration:line-through}
+
+  .weak{border:1px solid var(--warn)}
+  .weak-head{display:flex; gap:11px; align-items:center; margin-bottom:10px}
+  .weak-icon{width:38px; height:38px; flex:0 0 auto; border-radius:11px; background:var(--warn-soft);
+    display:grid; place-items:center; font-size:20px}
+  .teachbox{background:var(--bg); border:1px solid var(--line); border-left:4px solid var(--brand);
+    border-radius:10px; padding:11px 13px; margin-top:10px; font-size:14.5px; line-height:1.75}
+  .teachbox.ok{border-left-color:var(--ok)}
+  .teachbox.bad{border-left-color:var(--bad); color:var(--muted)}
+  .tb-label{font-size:11px; font-weight:800; color:var(--muted); margin-bottom:3px; letter-spacing:.3px}
+  .teachbox b{color:var(--brand)}
+
+  .allunits{margin-top:18px; border:1px solid var(--line); border-radius:14px; background:var(--card);
+    padding:12px 14px}
+  .allunits > summary{cursor:pointer; font-weight:800; font-size:14px; list-style:none}
+  .allunits > summary::-webkit-details-marker{display:none}
+  .allunits > summary::after{content:" ▾"; color:var(--muted)}
+  .allunits[open] > summary::after{content:" ▴"}
+
   .qrwrap{margin-top:12px; display:flex; flex-direction:column; align-items:center; gap:8px}
   .qrbox{border:1px solid var(--line); background:#fff; border-radius:12px; padding:8px;
     width:156px; height:156px; cursor:pointer; display:block}
@@ -1557,6 +1595,7 @@ const KEY = "speakenglish.v1";
 const DEFAULT_STATE = {
   srs:{}, units:{}, xpByDay:{}, streak:0, lastDay:null, goal:20,
   level:"L1", placed:false, scenes:{}, upSeen:{},
+  name:"", weak:{}, plan:null, unitPos:{},
   rate:0.85, theme:null, talkIdx:0, totalSpoken:0
 };
 let S = load();
@@ -1769,6 +1808,75 @@ function scoreSpeech(target, said){
   const d = prev[n];
   return Math.max(0, Math.round(100 * (1 - d/Math.max(m,n||1))));
 }
+/* ================== จุดอ่อนที่ครูคอยจับตา ==================
+   ทุกครั้งที่ผู้เรียนพูดผิด เราเก็บ "ประเภท" ของความผิดไว้
+   พอสะสมมากพอ ครูจะหยิบมาบอกและเปิดคลินิกฝึกแก้เฉพาะจุดนั้น          */
+
+const WEAK_INFO = {
+  be: { name:"ลืม is / am / are", icon:"🔗",
+    why:"ภาษาไทยพูดว่า “ผมครู” ได้เลย แต่ภาษาอังกฤษต้องมีคำเชื่อมเสมอ คือ <b>am / is / are</b>",
+    rule:"I → am · He / She / It → is · You / We / They → are",
+    good:["I am a teacher.","She is my sister.","They are busy today.","It is very hot."],
+    bad:"I teacher. / She my sister." },
+  article: { name:"ลืม a / an / the", icon:"🅰️",
+    why:"ภาษาไทยไม่มีคำนำหน้านาม แต่ภาษาอังกฤษ<b>คำนามเอกพจน์ต้องมี</b> a / an / the นำหน้าเกือบเสมอ",
+    rule:"a = ทั่วไป · an = หน้าเสียงสระ a e i o u · the = สิ่งที่รู้กันอยู่แล้ว",
+    good:["I am a teacher.","Can I have the menu?","She is an English teacher.","I want a coffee."],
+    bad:"I am teacher. / Can I have menu?" },
+  s: { name:"ลืมเสียง s ท้ายคำ", icon:"🐍",
+    why:"คนไทยไม่ออกเสียงตัวสะกดท้ายคำ แต่ภาษาอังกฤษเสียง <b>s</b> เปลี่ยนความหมาย (หนึ่ง/หลาย และประธานเอกพจน์)",
+    rule:"He / She / It + กริยาเติม s · ของหลายชิ้นเติม s",
+    good:["He works at a factory.","She likes coffee.","I have two children.","It costs five baht."],
+    bad:"He work here. / I have two child." },
+  ed: { name:"ลืม -ed ของอดีต", icon:"⏮️",
+    why:"ภาษาไทยใช้คำว่า “แล้ว/เมื่อวาน” บอกอดีต แต่ภาษาอังกฤษต้อง<b>เปลี่ยนรูปกริยา</b>ด้วย",
+    rule:"กริยาทั่วไปเติม -ed · แต่คำที่ใช้บ่อยเปลี่ยนรูป: go→went, eat→ate, see→saw, have→had",
+    good:["I worked yesterday.","I went to the market.","I ate rice.","It happened last year."],
+    bad:"I work yesterday. / I go to market yesterday." },
+  aux: { name:"ลืมกริยาช่วย do / did / will", icon:"🛠️",
+    why:"ภาษาอังกฤษใช้กริยาช่วยเพื่อ<b>ตั้งคำถามและปฏิเสธ</b> ตัดทิ้งไม่ได้",
+    rule:"คำถาม: Do you…? Did you…? · ปฏิเสธ: I do not… I did not…",
+    good:["Do you have time?","Did you go there?","I do not understand.","I will call you."],
+    bad:"You have time? / I no understand." },
+  th: { name:"เสียง th ยังไม่ชัด", icon:"👅",
+    why:"เสียง <b>th</b> ไม่มีในภาษาไทย คนไทยมักออกเป็น ด / ท / ส ทำให้ฟังเป็นคนละคำ",
+    rule:"แลบปลายลิ้นแตะฟันบนเบาๆ แล้วเป่าลมออก — think ไม่ใช่ “ซิ้งค์”, this ไม่ใช่ “ดิส”",
+    good:["Thank you very much.","I think so.","This is my wife.","That is a good point."],
+    bad:"ออกเป็น “แต๊งกิ้ว” หรือ “ดิส”" },
+  v: { name:"เสียง v ยังไม่ชัด", icon:"🦷",
+    why:"คนไทยมักออก <b>v</b> เป็น ว ทำให้ very กลายเป็น “เวรี่” ซึ่งฝรั่งฟังไม่ค่อยออก",
+    rule:"เอาฟันบนแตะริมฝีปากล่างเบาๆ แล้วออกเสียงให้สั่น",
+    good:["Very good, thank you.","I have five children.","Have a nice day.","I love Thai food."],
+    bad:"ออก v เป็น ว เหมือนคำไทย" },
+  r: { name:"เสียง r ยังไม่ชัด", icon:"🌀",
+    why:"เสียง <b>r</b> ของอังกฤษ<b>ลิ้นไม่แตะอะไรเลย</b> ต่างจาก ร เรือของไทยที่ลิ้นรัว",
+    rule:"ม้วนลิ้นขึ้นค้างกลางปาก ห้ามให้แตะเพดาน — right, rice, restaurant",
+    good:["Turn right at the bank.","I want rice.","Really? That is great.","Can you repeat?"],
+    bad:"ออกเป็น ร รัว หรือกลายเป็นเสียง L" },
+  l: { name:"เสียง l ท้ายคำหาย", icon:"🔚",
+    why:"ภาษาไทยไม่มีเสียง <b>l</b> ท้ายคำ คนไทยจึงมักตัดทิ้ง เช่น bill กลายเป็น “บิ”",
+    rule:"เอาลิ้นแตะเพดานปากค้างไว้ตอนจบคำ อย่าเพิ่งปล่อย",
+    good:["The bill, please.","Call me tomorrow.","It is beautiful.","I will help you."],
+    bad:"bill → “บิ” · call → “คอ”" }
+};
+
+function recordWeak(tips){
+  if(!Array.isArray(tips) || !tips.length) return;
+  S.weak = S.weak || {};
+  tips.forEach(t=>{
+    if(t && t.code && WEAK_INFO[t.code]) S.weak[t.code] = (S.weak[t.code] || 0) + 1;
+  });
+  save();
+}
+
+/* จุดอ่อนที่พลาดบ่อยที่สุด (ต้องพลาดอย่างน้อย 3 ครั้งถึงจะหยิบมาเตือน) */
+function topWeak(){
+  const list = Object.entries(S.weak || {})
+    .filter(([k, n]) => WEAK_INFO[k] && n >= 3)
+    .sort((a, b) => b[1] - a[1]);
+  return list.length ? { code:list[0][0], count:list[0][1], ...WEAK_INFO[list[0][0]] } : null;
+}
+
 /* ================== ตัวโค้ช: บอกว่าผิดตรงคำไหน และต้องแก้ยังไง ==================
    1) จับคู่คำในประโยคที่ถูก กับคำที่ผู้เรียนพูดจริง (word alignment)
    2) ชี้ว่าคำไหนถูก คำไหนขาด คำไหนพูดผิดเป็นคำอื่น
@@ -1819,38 +1927,38 @@ function coachTips(target, said, ops){
   const miss  = ops.filter(o => o.op === "miss").map(o => o.t);
   const wrong = ops.filter(o => o.op === "wrong");
 
-  if(!S.length) return ["ยังไม่ได้ยินเสียงเลย ลองพูดดังขึ้นแล้วกดไมค์ใหม่"];
+  if(!S.length) return [{code:"silent", html:"ยังไม่ได้ยินเสียงเลย ลองพูดดังขึ้นแล้วกดไมค์ใหม่"}];
 
   if(miss.some(w => BE_WORDS.includes(w)))
-    tips.push(`ขาด verb to be (<b>${miss.filter(w=>BE_WORDS.includes(w)).join(", ")}</b>) — ภาษาไทยไม่มีคำว่า “เป็น/อยู่/คือ” ในประโยคแบบนี้ แต่ภาษาอังกฤษ<b>ต้องมีเสมอ</b>`);
+    tips.push({code:"be", html:`ขาด verb to be (<b>${miss.filter(w=>BE_WORDS.includes(w)).join(", ")}</b>) — ภาษาไทยไม่มีคำว่า “เป็น/อยู่/คือ” ในประโยคแบบนี้ แต่ภาษาอังกฤษ<b>ต้องมีเสมอ</b>`});
 
   if(miss.some(w => ARTICLES.includes(w)))
-    tips.push(`ขาดคำนำหน้านาม (<b>${miss.filter(w=>ARTICLES.includes(w)).join(", ")}</b>) — ภาษาอังกฤษต้องมี a / an / the หน้าคำนาม เช่น “a teacher” ไม่ใช่ “teacher” เฉยๆ`);
+    tips.push({code:"article", html:`ขาดคำนำหน้านาม (<b>${miss.filter(w=>ARTICLES.includes(w)).join(", ")}</b>) — ภาษาอังกฤษต้องมี a / an / the หน้าคำนาม เช่น “a teacher” ไม่ใช่ “teacher” เฉยๆ`});
 
   if(miss.some(w => AUX_WORDS.includes(w)))
-    tips.push(`ขาดกริยาช่วย (<b>${miss.filter(w=>AUX_WORDS.includes(w)).join(", ")}</b>) — คำพวก do / did / will / can ห้ามตัดทิ้ง ไม่งั้นความหมายเพี้ยน`);
+    tips.push({code:"aux", html:`ขาดกริยาช่วย (<b>${miss.filter(w=>AUX_WORDS.includes(w)).join(", ")}</b>) — คำพวก do / did / will / can ห้ามตัดทิ้ง ไม่งั้นความหมายเพี้ยน`});
 
   wrong.forEach(o=>{
     if(o.t === o.s + "s")
-      tips.push(`ลืมเสียง <b>s</b> ท้ายคำ — พูดว่า “${o.s}” แต่ต้องเป็น “<b>${o.t}</b>” ฝรั่งฟังออกนะครับ`);
+      tips.push({code:"s", html:`ลืมเสียง <b>s</b> ท้ายคำ — พูดว่า “${o.s}” แต่ต้องเป็น “<b>${o.t}</b>” ฝรั่งฟังออกนะครับ`});
     else if(o.t === o.s + "ed" || o.t === o.s + "d")
-      tips.push(`ประโยคนี้เป็น<b>อดีต</b> ต้องเติม -ed — “${o.s}” ต้องเป็น “<b>${o.t}</b>”`);
+      tips.push({code:"ed", html:`ประโยคนี้เป็น<b>อดีต</b> ต้องเติม -ed — “${o.s}” ต้องเป็น “<b>${o.t}</b>”`});
     else if(o.t.replace(/l/g,"r") === o.s.replace(/l/g,"r") && o.t !== o.s)
-      tips.push(TH_HARD.r + ` — คุณพูด “${o.s}” แต่คำที่ถูกคือ “<b>${o.t}</b>”`);
+      tips.push({code:"r", html: TH_HARD.r + ` — คุณพูด “${o.s}” แต่คำที่ถูกคือ “<b>${o.t}</b>”`});
   });
 
   /* เสียงที่คนไทยออกยาก — เตือนเฉพาะคำที่พูดผิดจริง */
   const badWords = wrong.map(o => o.t).concat(miss);
-  if(badWords.some(w => w.startsWith("th"))) tips.push(TH_HARD.th);
-  if(badWords.some(w => w.includes("v")))    tips.push(TH_HARD.v);
-  if(badWords.some(w => /l$/.test(w)))       tips.push(TH_HARD.l);
+  if(badWords.some(w => w.startsWith("th"))) tips.push({code:"th", html:TH_HARD.th});
+  if(badWords.some(w => w.includes("v")))    tips.push({code:"v",  html:TH_HARD.v});
+  if(badWords.some(w => /l$/.test(w)))       tips.push({code:"l",  html:TH_HARD.l});
 
   if(!tips.length && miss.length)
-    tips.push(`ขาดคำว่า <b>${miss.join(", ")}</b> — ลองพูดช้าๆ ให้ครบทุกคำ`);
+    tips.push({code:"missing", html:`ขาดคำว่า <b>${miss.join(", ")}</b> — ลองพูดช้าๆ ให้ครบทุกคำ`});
   if(!tips.length && wrong.length)
-    tips.push(`คำที่ยังไม่ตรงคือ <b>${wrong.map(o=>o.t).join(", ")}</b> — กดปุ่มฝึกทีละคำด้านล่างได้ครับ`);
+    tips.push({code:"wrongword", html:`คำที่ยังไม่ตรงคือ <b>${wrong.map(o=>o.t).join(", ")}</b> — กดปุ่มฝึกทีละคำด้านล่างได้ครับ`});
   if(S.length > T.length + 2)
-    tips.push("พูดเกินมาหลายคำ ลองพูดเฉพาะประโยคที่ให้ไว้ สั้นๆ ชัดๆ ก็พอ");
+    tips.push({code:"extra", html:"พูดเกินมาหลายคำ ลองพูดเฉพาะประโยคที่ให้ไว้ สั้นๆ ชัดๆ ก็พอ"});
 
   return tips.slice(0, 3);
 }
@@ -1870,6 +1978,7 @@ function coachHtml(target, said){
   }).join(" ");
   const extra = ops.filter(o => o.op === "extra").map(o => o.s);
   const tips = coachTips(target, said, ops);
+  recordWeak(tips);
   const okCount = ops.filter(o => o.op === "ok").length;
 
   return `
@@ -1882,7 +1991,7 @@ function coachHtml(target, said){
         <span><i class="k-miss"></i>ไม่ได้พูด</span>
       </div>
       ${extra.length ? `<div class="coach-extra">คำที่พูดเกินมา: ${esc(extra.join(", "))}</div>` : ""}
-      ${tips.length ? `<ul class="coach-tips">${tips.map(t=>`<li>${t}</li>`).join("")}</ul>` : ""}
+      ${tips.length ? `<ul class="coach-tips">${tips.map(t=>`<li>${t.html}</li>`).join("")}</ul>` : ""}
     </div>`;
 }
 
@@ -2076,13 +2185,15 @@ function nav(name, data){
 }
 function render(){
   const f = ({home:viewHome, review:viewReview, talk:viewTalk, me:viewMe,
-              lesson:viewLesson, up:viewUpgrade, place:viewPlacement})[VIEW.name] || viewHome;
+              lesson:viewLesson, up:viewUpgrade, place:viewPlacement,
+              clinic:viewClinic})[VIEW.name] || viewHome;
   f();
 }
 $("#backBtn").addEventListener("click", ()=>{
   if(VIEW.name === "talk" && T){ T = null; render(); return; }
   if(VIEW.name === "up" && U && U.drill){ U = null; render(); return; }
   if(VIEW.name === "place"){ P = null; nav("home"); return; }
+  if(VIEW.name === "clinic"){ CL = null; nav("home"); return; }
   nav("home");
 });
 document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
@@ -2119,42 +2230,146 @@ function nextUnit(){
   return inLevel[0] || COURSE[0];
 }
 
+/* ================== แผนวันนี้ — ครูเป็นคนจัดให้ ==================
+   คนเริ่มต้นไม่รู้ว่าควรทำอะไรก่อน ถ้าให้เลือกเองจะไม่ได้เริ่มสักที
+   แผนนี้จึงเลือกให้เสร็จ 3 อย่าง ประมาณ 10 นาที กดปุ่มเดียวไล่ไปทีละอย่าง   */
+
+function buildPlan(){
+  const steps = [];
+  const due = dueCards().length;
+
+  if(due) steps.push({ t:"review", icon:"🔁", title:`ทบทวนคำเก่า ${Math.min(due,10)} คำ`,
+                       sub:"คำที่คุณกำลังจะลืมพอดี", mins:3 });
+
+  const u = nextUnit();
+  steps.push({ t:"lesson", unit:u.id, icon:u.emoji, title:`เรียน ${u.title}`,
+               sub: unitPct(u) ? `เรียนต่อจากที่ค้างไว้ (${unitPct(u)}%)` : "บทใหม่", mins:6 });
+
+  const w = topWeak();
+  if(w) steps.push({ t:"clinic", code:w.code, icon:w.icon, title:`แก้จุดอ่อน: ${w.name}`,
+                     sub:`ครูเห็นว่าคุณพลาดเรื่องนี้ ${w.count} ครั้ง`, mins:3 });
+  else {
+    const pool = scenesOf(S.level).length ? scenesOf(S.level) : SCENES;
+    const sc = pool.find(x => !(S.scenes || {})[x.id]) || pool[0];
+    steps.push({ t:"talk", scene:sc.id, icon:sc.emoji, title:`คุยจริง: ${sc.title}`,
+                 sub:"ฝึกโต้ตอบด้วยเสียง", mins:4 });
+  }
+  return { day: todayKey(), steps, done: steps.map(()=>false) };
+}
+
+function getPlan(){
+  if(!S.plan || S.plan.day !== todayKey()){ S.plan = buildPlan(); save(); }
+  return S.plan;
+}
+function planDone(i){
+  const p = getPlan();
+  if(p.done[i]) return;
+  p.done[i] = true; save();
+}
+function nextPlanStep(){
+  const p = getPlan();
+  return p.done.findIndex(d => !d);
+}
+function runPlanStep(i){
+  const p = getPlan(), st = p.steps[i];
+  if(!st) return;
+  S.plan.running = i; save();
+  if(st.t === "review"){ R = null; nav("review"); return; }
+  if(st.t === "lesson"){ const u = COURSE.find(x => x.id === st.unit) || nextUnit(); startLesson(u); return; }
+  if(st.t === "clinic"){ startClinic(st.code); return; }
+  if(st.t === "talk"){
+    const sc = SCENES.find(x => x.id === st.scene) || SCENES[0];
+    T = { scene:sc, pos:0, tries:0, msgs:[], right:0, total:0 };
+    nav("talk"); return;
+  }
+}
+/* เรียกเมื่อทำกิจกรรมชนิดหนึ่งจบ เพื่อติ๊กถูกในแผน */
+function markPlan(kind){
+  const p = getPlan();
+  const i = p.steps.findIndex((st, idx) => st.t === kind && !p.done[idx]);
+  if(i >= 0){ planDone(i); }
+  S.plan.running = null; save();
+}
+
+const greet = ()=>{
+  const h = new Date().getHours();
+  return h < 12 ? "อรุณสวัสดิ์" : h < 18 ? "สวัสดีตอนบ่าย" : "สวัสดีตอนเย็น";
+};
+
 /* ================== หน้าแรก ================== */
 function viewHome(){
-  setTitle("พูดอังกฤษได้", "คอร์สภาษาอังกฤษ สำหรับคนเริ่มจากศูนย์", false);
-  const goal = S.goal||20, xp = xpToday();
-  const pct = Math.min(100, Math.round(xp/goal*100));
-  const C = 2*Math.PI*32;
-  const nu = nextUnit();
+  setTitle("พูดอังกฤษได้", S.name ? `สวัสดีครับคุณ${S.name}` : "คอร์สภาษาอังกฤษ สำหรับคนเริ่มจากศูนย์", false);
+  const goal = S.goal || 20, xp = xpToday();
+  const pct = Math.min(100, Math.round(xp / goal * 100));
+  const C = 2 * Math.PI * 32;
   const started = learnedCount() > 0;
-  const due = dueCards().length;
+  const plan = getPlan();
+  const nextI = nextPlanStep();
+  const allDone = nextI < 0;
+  const w = topWeak();
+  const yesterday = S.xpByDay[new Date(Date.now() - 864e5).toISOString().slice(0,10)] || 0;
 
   scr().innerHTML = `
     ${SR_OK ? "" : `<div class="banner">⚠️ เบราว์เซอร์นี้ยังฟังเสียงพูดไม่ได้ ถ้าอยากให้แอปตรวจการออกเสียง ให้เปิดด้วย <b>Chrome</b> (Android/คอม) หรือ <b>Safari รุ่นใหม่</b> บน iPhone — ระหว่างนี้ยังเรียนและพิมพ์ตอบได้ปกติ</div>`}
-    <div class="card">
-      <div class="hero">
-        <div class="ring">
-          <svg width="74" height="74"><circle cx="37" cy="37" r="32" stroke="var(--line)" stroke-width="7" fill="none"/>
-          <circle cx="37" cy="37" r="32" stroke="var(--brand)" stroke-width="7" fill="none" stroke-linecap="round"
-            stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct/100)}"/></svg>
-          <div class="val">${pct}%</div>
-        </div>
+
+    <div class="card teach">
+      <div class="teach-top">
+        <div class="teach-face">👩‍🏫</div>
         <div style="flex:1">
-          <b style="font-size:16px">${started ? "เป้าหมายวันนี้" : "ยินดีต้อนรับ 👋"}</b>
-          <div class="small muted">${started ? `ฝึกไปแล้ว ${xp} / ${goal} ข้อ • วันละ 10–15 นาทีพอ` : "เริ่มจากศูนย์ได้เลย ไม่ต้องรู้อะไรมาก่อน"}</div>
+          <b style="font-size:16px">${greet()}${S.name ? ` คุณ${esc(S.name)}` : ""} 👋</b>
+          <div class="small muted">${
+            allDone ? "วันนี้ทำครบแล้ว เก่งมากครับ 🎉"
+            : !started ? "ผมเป็นครูของคุณเอง วันนี้เรามาเริ่มกันเลยนะครับ"
+            : yesterday ? `เมื่อวานคุณฝึกไป ${yesterday} ข้อ วันนี้มาต่อกันนะครับ`
+            : S.streak ? `ต่อเนื่องมา ${S.streak} วันแล้ว อย่าให้ขาดนะครับ`
+            : "กลับมาอีกครั้ง ดีใจด้วยครับ วันนี้เริ่มเบาๆ ก่อนก็ได้" }</div>
         </div>
       </div>
-      <div class="statrow">
-        <div class="stat"><b>${S.streak||0}</b><span>🔥 วันติดกัน</span></div>
-        <div class="stat"><b>${learnedCount()}</b><span>คำที่เรียนแล้ว</span></div>
-        <div class="stat"><b>${strongCount()}</b><span>คำที่จำแม่น</span></div>
+
+      <div class="plan-head">
+        <b>แผนวันนี้</b>
+        <span class="pill ${allDone ? "ok" : ""}">${plan.done.filter(Boolean).length}/${plan.steps.length} · ~${plan.steps.reduce((a,st)=>a+st.mins,0)} นาที</span>
       </div>
+      <div id="planList"></div>
+
       <div class="row">
-        <button class="btn primary" id="goNext">${started ? "เรียนต่อ" : "เริ่มบทที่ 1"} →</button>
+        <button class="btn primary wide" id="planGo">
+          ${allDone ? "🔁 ฝึกเพิ่มอีกหน่อย" : nextI === 0 ? "▶ เริ่มเลย" : "▶ ทำต่อ"}
+        </button>
       </div>
-      ${due ? `<div class="row"><button class="btn" id="goReview">🔁 ทบทวน ${due} คำที่ถึงกำหนด</button></div>` : ""}
-      <div class="row"><button class="btn sm ghost wide" id="soundTest">🔊 ทดสอบเสียง — ถ้าไม่ได้ยินอะไรเลย กดตรงนี้</button></div>
+      ${S.name ? "" : `<div class="row"><button class="btn sm ghost wide" id="setName">ครูควรเรียกคุณว่าอะไรดี?</button></div>`}
     </div>
+
+    ${w ? `<div class="card weak">
+      <div class="weak-head"><span class="weak-icon">${w.icon}</span>
+        <div><b>ครูสังเกตเห็นว่า…</b><div class="small">คุณพลาดเรื่อง <b>${esc(w.name)}</b> ไปแล้ว ${w.count} ครั้ง</div></div></div>
+      <div class="row"><button class="btn wide" id="goClinic">เปิดคลินิกแก้จุดนี้ (3 นาที)</button></div>
+    </div>` : ""}
+
+    <div class="statrow">
+      <div class="stat"><b>${S.streak || 0}</b><span>🔥 วันติดกัน</span></div>
+      <div class="stat"><b>${learnedCount()}</b><span>คำที่เรียนแล้ว</span></div>
+      <div class="stat"><b>${strongCount()}</b><span>คำที่จำแม่น</span></div>
+    </div>
+    <div class="card" style="padding:12px">
+      <div class="kv" style="border:none; padding:0">
+        <div class="ring" style="width:48px;height:48px">
+          <svg width="48" height="48"><circle cx="24" cy="24" r="20" stroke="var(--line)" stroke-width="5" fill="none"/>
+          <circle cx="24" cy="24" r="20" stroke="var(--brand)" stroke-width="5" fill="none" stroke-linecap="round"
+            stroke-dasharray="${2*Math.PI*20}" stroke-dashoffset="${2*Math.PI*20*(1-pct/100)}"/></svg>
+          <div class="val" style="font-size:11px">${pct}%</div>
+        </div>
+        <div style="flex:1"><b style="font-size:14px">เป้าหมายวันนี้</b>
+          <div class="tiny muted">ฝึกไปแล้ว ${xp} / ${goal} ข้อ</div></div>
+        <button class="btn sm ghost" id="soundTest">🔊 ทดสอบเสียง</button>
+      </div>
+    </div>
+
+    ${S.placed ? "" : `<div class="card" style="border:2px dashed var(--brand)">
+      <b>🎯 อยากรู้ว่าตัวเองอยู่ระดับไหน?</b>
+      <div class="small muted" style="margin-top:4px">ทำแบบวัดระดับ 12 ข้อ ไม่ถึง 2 นาที</div>
+      <div class="row"><button class="btn wide" id="goPlace">เริ่มวัดระดับ</button></div>
+    </div>`}
 
     ${isInstalled() ? "" : `<div class="card install">
       <b>📲 ติดตั้งลงมือถือ</b>
@@ -2166,48 +2381,55 @@ function viewHome(){
       <div id="shareBox" style="margin-top:6px"></div>
     </div>` : ""}
 
-    ${started ? "" : `
-    <div class="card">
-      <b>แอปนี้สอนยังไง (4 ขั้น ทำซ้ำทุกบท)</b>
-      <div class="small muted" style="margin-top:8px; line-height:1.9">
-        <b>1. รู้จักคำ</b> — เห็นคำ + คำอ่านไทย + ฟังเสียงเจ้าของภาษา<br>
-        <b>2. พูดตาม</b> — พูดตามทันที แอปฟังแล้วบอกว่าชัดกี่ %<br>
-        <b>3. แปลจากไทย</b> — เห็นภาษาไทย แล้วพูดเป็นอังกฤษเอง<br>
-        <b>4. บทสนทนา</b> — สวมบทบาทคุยกับคู่สนทนาจริงๆ<br>
-        แล้วแอปจะเอาคำเก่ากลับมาให้ทบทวนตามเวลาที่กำลังจะลืมพอดี
-      </div>
-    </div>`}
+    <details class="allunits" id="allUnits">
+      <summary>📚 ดูบทเรียนทั้งหมด (${COURSE.length} บท · ${COURSE.length*12} ประโยค)</summary>
+      <div id="levelBar" class="levelbar" style="margin-top:12px"></div>
+      <div id="levelInfo"></div>
+      <div id="units"></div>
+    </details>`;
 
-    ${S.placed ? "" : `<div class="card" style="border:2px dashed var(--brand)">
-      <b>🎯 ยังไม่รู้ว่าตัวเองอยู่ระดับไหน?</b>
-      <div class="small muted" style="margin-top:4px">ทำแบบวัดระดับ 12 ข้อ ใช้เวลาไม่ถึง 2 นาที แล้วแอปจะบอกว่าควรเริ่มตรงไหน</div>
-      <div class="row"><button class="btn primary wide" id="goPlace">เริ่มวัดระดับ</button></div>
-    </div>`}
+  /* --- รายการในแผนวันนี้ --- */
+  const pl = $("#planList");
+  plan.steps.forEach((st, i)=>{
+    const done = plan.done[i];
+    const isNext = i === nextI;
+    const row = el(`<button class="planrow ${done ? "done" : ""} ${isNext ? "next" : ""}">
+        <span class="pmark">${done ? "✓" : st.icon}</span>
+        <span class="pmeta"><b>${esc(st.title)}</b><span>${esc(st.sub)} · ${st.mins} นาที</span></span>
+        ${isNext ? `<span class="tiny" style="color:var(--brand); font-weight:800">ต่อไป</span>` : ""}
+      </button>`);
+    row.onclick = ()=>runPlanStep(i);
+    pl.appendChild(row);
+  });
 
-    <div class="sect-title">เลือกระดับ (${COURSE.length} บท • ${COURSE.length*12} ประโยค)</div>
-    <div id="levelBar"></div>
-    <div id="levelInfo"></div>
-    <div id="units"></div>`;
+  $("#planGo").onclick = ()=>runPlanStep(allDone ? 0 : nextI);
+  if($("#setName")) $("#setName").onclick = askName;
+  if($("#goClinic")) $("#goClinic").onclick = ()=>startClinic(w.code);
+  if($("#goPlace")) $("#goPlace").onclick = ()=>nav("place");
+  $("#soundTest").onclick = ()=>{
+    warnedNoSound = false; ttsProven = false; hideSoundHelp();
+    speak("Hello! Can you hear me?");
+  };
+  if($("#installBox")){ $("#installBox").innerHTML = installHtml(); wireInstall(); }
+  if($("#shareBox")){ $("#shareBox").innerHTML = shareHtml(); wireShare(); }
 
-  /* แถบเลือกระดับ */
+  /* --- บทเรียนทั้งหมด (ซ่อนไว้ ให้คนที่อยากเลือกเองเปิดดู) --- */
   const lb = $("#levelBar");
-  lb.className = "levelbar";
   LEVELS.forEach(L=>{
     const p = levelPct(L.id);
     const b = el(`<button class="lvbtn ${S.level===L.id?"on":""}">
-        <span class="lvn">${L.emoji} ${L.n}</span>
-        <span class="lvp">${p}%</span></button>`);
-    b.onclick = ()=>{ S.level = L.id; save(); render(); };
+        <span class="lvn">${L.emoji} ${L.n}</span><span class="lvp">${p}%</span></button>`);
+    b.onclick = ()=>{ S.level = L.id; save(); render();
+      setTimeout(()=>{ const d = document.getElementById("allUnits"); if(d){ d.open = true; d.scrollIntoView({block:"start"}); } }, 30); };
     lb.appendChild(b);
   });
   const L = LEVELS.find(x=>x.id===S.level) || LEVELS[0];
   $("#levelInfo").innerHTML = `<div class="card" style="padding:12px">
       <b>${L.emoji} ระดับ ${L.n} · ${esc(L.name)} <span class="pill">${esc(L.cefr)}</span></b>
-      <div class="small muted" style="margin-top:3px">${esc(L.sub)}</div>
-    </div>`;
+      <div class="small muted" style="margin-top:3px">${esc(L.sub)}</div></div>`;
 
   const ul = $("#units");
-  unitsOf(S.level).forEach((u,idx)=>{
+  unitsOf(S.level).forEach((u, idx)=>{
     const p = unitPct(u);
     const b = el(`<button class="unit ${p>=80?"done":""}">
       <div class="num">${p>=80 ? "✓" : idx+1}</div>
@@ -2221,18 +2443,32 @@ function viewHome(){
     b.addEventListener("click", ()=>startLesson(u));
     ul.appendChild(b);
   });
-  $("#goNext").addEventListener("click", ()=>startLesson(nu));
-  if($("#goReview")) $("#goReview").addEventListener("click", ()=>nav("review"));
-  if($("#goPlace")) $("#goPlace").addEventListener("click", ()=>nav("place"));
-  $("#soundTest").addEventListener("click", ()=>{
-    warnedNoSound = false; ttsProven = false; hideSoundHelp();
-    speak("Hello! Can you hear me?");
-  });
-  if($("#installBox")){ $("#installBox").innerHTML = installHtml(); wireInstall(); }
-  if($("#shareBox")){ $("#shareBox").innerHTML = shareHtml(); wireShare(); }
 }
 
-/* ================== ตัวช่วยแสดง "การ์ดพูด" ================== */
+/* ครูถามชื่อ เพื่อเรียกให้ถูก */
+function askName(){
+  const ov = el(`<div class="qrfull" id="nameOv">
+      <div class="qrfull-card" style="text-align:left">
+        <b>ครูควรเรียกคุณว่าอะไรดีครับ?</b>
+        <div class="small" style="color:#61708a; margin:6px 0 10px">ใส่ชื่อเล่นสั้นๆ ก็พอ เก็บไว้ในเครื่องคุณเท่านั้น</div>
+        <input type="text" id="nameIn" placeholder="เช่น สมชาย" maxlength="20"
+          style="background:#fff; color:#14181f; border:1px solid #dfe5ee">
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="nameSkip">ไม่บอกก็ได้</button>
+          <button class="btn primary" id="nameOk">บันทึก</button>
+        </div>
+      </div>
+    </div>`);
+  document.body.appendChild(ov);
+  const inp = ov.querySelector("#nameIn");
+  inp.focus();
+  const done = (v)=>{ S.name = (v || "").trim().slice(0,20); save(); ov.remove(); render(); };
+  ov.querySelector("#nameOk").onclick = ()=>done(inp.value);
+  ov.querySelector("#nameSkip").onclick = ()=>{ ov.remove(); };
+  inp.onkeydown = (e)=>{ if(e.key === "Enter") done(inp.value); };
+}
+
+/* ================== ตัวช่วยแสดง "การ์ดพูด" ================== *//* ================== ตัวช่วยแสดง "การ์ดพูด" ================== */
 function speakCard(cfg){
   /* cfg: {label, promptHtml, target, autoPlay, top, onDone(ok,score)} */
   const typing = !SR_OK;
@@ -2352,15 +2588,31 @@ function buildTasks(u){
   tasks.push({t:"finish"});
   return tasks;
 }
-function startLesson(u){
-  L = {u, tasks:buildTasks(u), pos:0, right:0, total:0};
+const ROUND = 12;   /* ทำครบ 12 ข้อแล้วให้พักหนึ่งที ไม่ต้องฝืนรวดเดียว 46 ข้อ */
+
+function startLesson(u, opts){
+  const tasks = buildTasks(u);
+  let pos = 0;
+  if(!(opts && opts.restart)){
+    const saved = (S.unitPos || {})[u.id] || 0;
+    if(saved > 0 && saved < tasks.length) pos = saved;
+  }
+  L = {u, tasks, pos, right:0, total:0, roundStart:pos};
   nav("lesson");
 }
+/* บันทึกว่าเรียนถึงข้อไหนแล้ว — ต้องเรียกทุกครั้งที่เดินหน้า ไม่ใช่เฉพาะข้อที่ให้คะแนน */
+function savePos(){
+  if(!L) return;
+  S.unitPos = S.unitPos || {};
+  S.unitPos[L.u.id] = L.pos;
+  save();
+}
+function advance(){ L.pos++; savePos(); render(); }
+
 function stepOn(ok){
   if(ok) L.right++;
   L.total++;
-  L.pos++;
-  render();
+  advance();
 }
 function viewLesson(){
   if(!L){ nav("home"); return; }
@@ -2370,6 +2622,28 @@ function viewLesson(){
 
   const pct = Math.round(L.pos/L.tasks.length*100);
   const top = `<div class="lesson-top"><div class="bar"><i style="width:${pct}%"></i></div><span class="tiny muted">${pct}%</span></div>`;
+
+  /* พักทุกๆ 12 ข้อ — ให้มีจุดจบที่มองเห็น จะได้ไม่เลิกกลางคัน */
+  if(task.t !== "finish" && L.pos > L.roundStart && (L.pos - L.roundStart) >= ROUND){
+    const doneN = L.pos, leftN = L.tasks.length - L.pos;
+    scr().innerHTML = top + `
+      <div class="card center">
+        <div class="confetti">👏</div>
+        <h2 style="margin:8px 0 2px">ทำไปแล้ว ${doneN} ข้อ</h2>
+        <div class="small muted">เหลืออีก ${leftN} ข้อในบทนี้ · ตอบถูก ${L.right} จาก ${L.total}</div>
+        <div class="small muted" style="margin-top:10px">
+          หยุดตรงนี้ก็ได้นะครับ ครูจำไว้ให้แล้ว พรุ่งนี้มาต่อจากตรงนี้ได้เลย<br>
+          <b>เรียนสั้นๆ ทุกวัน ดีกว่าเรียนยาวๆ ครั้งเดียว</b>
+        </div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn" id="stopHere">พอแค่นี้ก่อน</button>
+          <button class="btn primary" id="keepGo">ไปต่ออีกนิด</button>
+        </div>
+      </div>`;
+    $("#keepGo").onclick = ()=>{ L.roundStart = L.pos; render(); };
+    $("#stopHere").onclick = ()=>{ markPlan("lesson"); nav("home"); };
+    return;
+  }
 
   if(task.t === "learn"){
     const w = task.w;
@@ -2393,7 +2667,7 @@ function viewLesson(){
     $("#pl").onclick = ()=>speak(w.en);
     $("#sl").onclick = ()=>speak(w.en, true);
     $("#ple").onclick = ()=>speak(w.ex);
-    $("#nx").onclick = ()=>{ L.pos++; render(); };
+    $("#nx").onclick = advance;
     setTimeout(()=>speak(w.en), 250);
     return;
   }
@@ -2487,7 +2761,7 @@ function viewLesson(){
       };
       go();
     };
-    $("#nx").onclick = ()=>{ L.pos++; render(); };
+    $("#nx").onclick = advance;
     return;
   }
 
@@ -2505,7 +2779,7 @@ function viewLesson(){
         </div>`;
       $("#pl").onclick = ()=>speak(task.line.en);
       $("#sl").onclick = ()=>speak(task.line.en, true);
-      $("#nx").onclick = ()=>{ L.pos++; render(); };
+      $("#nx").onclick = advance;
       setTimeout(()=>speak(task.line.en), 250);
       return;
     }
@@ -2526,7 +2800,8 @@ function viewLesson(){
     const pctScore = L.total ? Math.round(L.right/L.total*100) : 0;
     const un = S.units[u.id] || {};
     un.done = true; un.times = (un.times||0)+1; un.best = Math.max(un.best||0, pctScore);
-    S.units[u.id] = un; save();
+    S.units[u.id] = un; S.unitPos[u.id] = 0; save();
+    markPlan("lesson");
     scr().innerHTML = `
       <div class="card center">
         <div class="confetti">${pctScore>=80?"🎉":"💪"}</div>
@@ -2544,7 +2819,7 @@ function viewLesson(){
         </div>
         <div class="row"><button class="btn ghost wide" id="home">กลับหน้าแรก</button></div>
       </div>`;
-    $("#again").onclick = ()=>startLesson(u);
+    $("#again").onclick = ()=>startLesson(u, {restart:true});
     $("#talk").onclick = ()=>nav("talk");
     $("#home").onclick = ()=>nav("home");
     return;
@@ -2583,6 +2858,7 @@ function viewReview(){
   if(!it){
     const n = R.items.length, r = R.right;
     R = null;
+    markPlan("review");
     scr().innerHTML = `<div class="card center">
         <div class="confetti">🎉</div>
         <b style="font-size:17px">ทบทวนครบแล้ว!</b>
@@ -3120,6 +3396,7 @@ function talkSummary(){
   S.scenes = S.scenes || {};
   S.scenes[sc.id] = Math.max(S.scenes[sc.id] || 0, pct);
   save();
+  markPlan("talk");
   scr().innerHTML = `
     <div class="card center">
       <div class="confetti">${pct >= 80 ? "🎉" : "💪"}</div>
@@ -3137,6 +3414,117 @@ function talkSummary(){
   const scene = T.scene;
   $("#again").onclick = ()=>{ T = {scene, pos:0, tries:0, msgs:[], right:0, total:0}; render(); };
   $("#other").onclick = ()=>{ T = null; render(); };
+}
+
+/* ================== คลินิกแก้จุดอ่อน ==================
+   อธิบายกฎเป็นภาษาไทยก่อน แล้วให้ฝึกพูดประโยคที่มีจุดนั้นโดยเฉพาะ    */
+let CL = null;   /* {code, info, items, pos, right, stage} */
+
+function clinicSentences(code){
+  const info = WEAK_INFO[code];
+  const test = {
+    be:      (en)=>/\b(am|is|are|was|were)\b/i.test(en),
+    article: (en)=>/\b(a|an|the)\b/i.test(en),
+    s:       (en)=>/\b\w+s\b/.test(en),
+    ed:      (en)=>/\b\w+ed\b/i.test(en) || /\b(went|ate|saw|had|bought|lost|forgot|took)\b/i.test(en),
+    aux:     (en)=>/\b(do|does|did|will|can|could|would)\b/i.test(en),
+    th:      (en)=>/\bth/i.test(en),
+    v:       (en)=>/v/i.test(en),
+    r:       (en)=>/\br/i.test(en),
+    l:       (en)=>/l\b/i.test(en)
+  }[code] || (()=>false);
+
+  const pool = [];
+  COURSE.forEach(u => u.words.forEach(w=>{ if(test(w.en)) pool.push(w); }));
+  const picked = shuffle(pool).slice(0, 5);
+  /* ถ้าหาในหลักสูตรไม่พอ ใช้ประโยคตัวอย่างของบทเรียนย่อยเติมให้ครบ */
+  (info.good || []).forEach(en=>{ if(picked.length < 5) picked.push({ en, th:"", ph:"" }); });
+  return picked.slice(0, 5);
+}
+
+function startClinic(code){
+  const info = WEAK_INFO[code];
+  if(!info){ nav("home"); return; }
+  CL = { code, info, items: clinicSentences(code), pos:0, right:0, stage:"teach" };
+  nav("clinic");
+}
+
+function viewClinic(){
+  if(!CL){ nav("home"); return; }
+  const { info } = CL;
+  setTitle("คลินิกแก้จุดอ่อน", info.name, true);
+
+  if(CL.stage === "teach"){
+    scr().innerHTML = `
+      <div class="card">
+        <div class="weak-head"><span class="weak-icon">${info.icon}</span>
+          <div><b style="font-size:16px">${esc(info.name)}</b>
+          <div class="tiny muted">ครูเห็นว่าคุณพลาดเรื่องนี้บ่อย มาแก้ให้จบไปเลยครับ</div></div></div>
+
+        <div class="teachbox">
+          <div class="tb-label">ทำไมถึงผิด</div>
+          <div>${info.why}</div>
+        </div>
+        <div class="teachbox ok">
+          <div class="tb-label">จำแค่นี้พอ</div>
+          <div>${esc(info.rule)}</div>
+        </div>
+        <div class="teachbox bad">
+          <div class="tb-label">แบบที่คนไทยมักพูดผิด</div>
+          <div>${esc(info.bad)}</div>
+        </div>
+
+        <div class="sect-title" style="margin:16px 4px 6px">ตัวอย่างที่ถูก — แตะเพื่อฟัง</div>
+        <div id="egs"></div>
+
+        <div class="row"><button class="btn primary wide" id="clGo">เข้าใจแล้ว ไปฝึกพูด 5 ประโยค →</button></div>
+      </div>`;
+    const box = $("#egs");
+    (info.good || []).forEach(en=>{
+      const b = el(`<button class="unit" style="padding:10px 12px">
+          <div class="meta"><b style="font-size:15px">${esc(en)}</b></div>
+          <div class="tiny muted">🔊</div></button>`);
+      b.onclick = ()=>speak(en);
+      box.appendChild(b);
+    });
+    $("#clGo").onclick = ()=>{ CL.stage = "drill"; render(); };
+    return;
+  }
+
+  const it = CL.items[CL.pos];
+  if(!it){
+    const r = CL.right, n = CL.items.length, code = CL.code;
+    /* ฝึกแล้วให้ถือว่าแก้ไปได้ส่วนหนึ่ง ลดตัวนับจุดอ่อนลง */
+    if(S.weak && S.weak[code]) S.weak[code] = Math.max(0, S.weak[code] - r);
+    save();
+    markPlan("clinic");
+    CL = null;
+    scr().innerHTML = `<div class="card center">
+        <div class="confetti">${r >= n - 1 ? "🎉" : "💪"}</div>
+        <h2 style="margin:8px 0 2px">จบคลินิกแล้ว!</h2>
+        <div class="small muted">พูดถูก ${r} จาก ${n} ประโยค</div>
+        <div class="small muted" style="margin-top:10px">
+          ครูจะคอยดูให้ต่อนะครับ ถ้ายังพลาดเรื่องเดิมอีก จะชวนมาซ้อมใหม่
+        </div>
+        <div class="row" style="margin-top:14px"><button class="btn primary wide" id="clHome">กลับหน้าแรก</button></div>
+      </div>`;
+    $("#clHome").onclick = ()=>nav("home");
+    return;
+  }
+
+  const pct = Math.round(CL.pos / CL.items.length * 100);
+  speakCard({
+    label:`ฝึกแก้: ${info.name}`,
+    target: it.en,
+    autoPlay: true,
+    top:`<div class="lesson-top"><div class="bar"><i style="width:${pct}%"></i></div>
+         <span class="tiny muted">${CL.pos+1}/${CL.items.length}</span></div>`,
+    promptHtml:`<div class="word-en">${esc(it.en)}</div>
+      ${it.ph ? `<div class="word-ph">อ่านว่า: ${esc(it.ph)}</div>` : ""}
+      ${it.th ? `<div class="small muted" style="margin-top:6px">${esc(it.th)}</div>` : ""}
+      <div class="tiny" style="margin-top:8px; color:var(--brand)">💡 ${esc(info.rule)}</div>`,
+    onDone:(ok)=>{ if(ok) CL.right++; CL.pos++; render(); }
+  });
 }
 
 /* ================== แบบวัดระดับ ================== */
