@@ -50,9 +50,48 @@ await page.waitForTimeout(300);
 
 const t = async (label, fn) => { try { await fn(); console.log('✓', label); } catch(e){ console.log('✗', label, '\n   ', e.message.split('\n')[0]); errors.push(label + ': ' + e.message.split('\n')[0]); } };
 
-await t('หน้าแรกแสดงบทเรียนครบ 10 บท', async () => {
+await t('หลักสูตรครบ 4 ระดับ 25 บท 300 ประโยค', async () => {
+  const info = await page.evaluate(() => ({
+    levels: LEVELS.length,
+    units: COURSE.length,
+    words: COURSE.reduce((a, u) => a + u.words.length, 0),
+    perLevel: LEVELS.map(l => COURSE.filter(u => u.level === l.id).length),
+    dialogs: COURSE.filter(u => u.dialog && u.dialog.lines.length >= 6).length,
+    upgrades: UPGRADES.length,
+    scenes: SCENES.length
+  }));
+  if (info.levels !== 4) throw new Error('ระดับ ' + info.levels);
+  if (info.units !== 25) throw new Error('บท ' + info.units);
+  if (info.words !== 300) throw new Error('ประโยค ' + info.words);
+  if (String(info.perLevel) !== '10,5,5,5') throw new Error('จำนวนบทต่อระดับผิด: ' + info.perLevel);
+  if (info.dialogs !== 25) throw new Error('บทสนทนาไม่ครบ: ' + info.dialogs);
+  if (info.upgrades < 30) throw new Error('ประโยคยกระดับ ' + info.upgrades);
+  if (info.scenes !== 10) throw new Error('สถานการณ์คุย ' + info.scenes);
+});
+
+await t('ทุกคำศัพท์มีคำแปล คำอ่านไทย และประโยคตัวอย่างครบ', async () => {
+  const bad = await page.evaluate(() =>
+    COURSE.flatMap(u => u.words
+      .filter(w => !w.en || !w.th || !w.ph || !w.ex || !w.exth)
+      .map(w => u.id + ':' + (w.en || '?'))));
+  if (bad.length) throw new Error('ข้อมูลไม่ครบ ' + bad.length + ' คำ: ' + bad.slice(0, 3));
+});
+
+await t('หน้าแรกแสดงแถบเลือกระดับ 4 ระดับ และบทของระดับที่เลือก', async () => {
+  const lv = await page.locator('.lvbtn').count();
+  if (lv !== 4) throw new Error('ปุ่มระดับ ' + lv);
   const n = await page.locator('.unit').count();
-  if (n !== 10) throw new Error('เจอ ' + n + ' บท');
+  if (n !== 10) throw new Error('บทในระดับ 1 ควรมี 10 บท แต่เจอ ' + n);
+});
+
+await t('สลับไประดับมืออาชีพแล้วเห็นบทของระดับนั้น', async () => {
+  await page.locator('.lvbtn').nth(3).click();
+  await page.waitForTimeout(250);
+  const txt = await page.innerText('#units');
+  if (!/สัมภาษณ์งาน/.test(txt)) throw new Error('ไม่เจอบทสัมภาษณ์งาน');
+  if (!/มืออาชีพ/.test(await page.innerText('#levelInfo'))) throw new Error('หัวข้อระดับไม่ถูก');
+  await page.locator('.lvbtn').nth(0).click();
+  await page.waitForTimeout(250);
 });
 
 await t('กด "เริ่มบทที่ 1" เข้าสู่บทเรียน', async () => {
@@ -175,7 +214,7 @@ await t('แท็บคุยกับติวเตอร์: มีสถา
   await page.click('[data-tab="talk"]');
   await page.waitForSelector('.unit', { timeout: 3000 });
   const n = await page.locator('.unit').count();
-  if (n !== 6) throw new Error('เจอ ' + n + ' สถานการณ์');
+  if (n !== 10) throw new Error('เจอ ' + n + ' สถานการณ์');
 });
 
 await t('คุย: ติวเตอร์ทักทายก่อน แล้วบอกว่าตาคุณตอบอะไร', async () => {
@@ -229,6 +268,93 @@ await t('คุย: มีตาที่ผู้เรียนต้องเ
   if (!hasAsk) throw new Error('บางสถานการณ์ไม่มีตาให้ผู้เรียนถามกลับ');
 });
 
+await t('ตัวโค้ช: พูดผิดต้องระบายสีทีละคำและบอกวิธีแก้เป็นภาษาไทย', async () => {
+  const r = await page.evaluate(() => {
+    const html = coachHtml('I am a teacher', 'I teacher');
+    return { html, miss: (html.match(/w-miss/g) || []).length };
+  });
+  if (r.miss < 2) throw new Error('ไม่ได้ทำเครื่องหมายคำที่ขาด');
+  if (!/verb to be/.test(r.html)) throw new Error('ไม่ได้เตือนเรื่อง verb to be');
+  if (!/a \/ an \/ the/.test(r.html)) throw new Error('ไม่ได้เตือนเรื่อง a/an/the');
+});
+
+await t('ตัวโค้ช: ลืม s ท้ายคำ ต้องเตือนเฉพาะเรื่องนั้น', async () => {
+  const html = await page.evaluate(() => coachHtml('He works here', 'He work here'));
+  if (!/ท้ายคำ/.test(html)) throw new Error('ไม่เตือนเรื่อง s ท้ายคำ: ' + html.replace(/\s+/g, ' ').slice(0, 220));
+});
+
+await t('ตัวโค้ช: พูดถูกหมดต้องไม่มีคำที่ผิดหรือขาด', async () => {
+  const html = await page.evaluate(() => coachHtml('I am fine, thank you', 'I am fine thank you'));
+  if (/w-miss|w-bad/.test(html)) throw new Error('พูดถูกแล้วยังขึ้นว่าผิด');
+});
+
+await t('ตัวโค้ช: โผล่จริงในหน้าฝึกพูด พร้อมปุ่มฟังทีละคำ', async () => {
+  await page.click('[data-tab="home"]');
+  await page.waitForSelector('#goNext', { timeout: 3000 });
+  await page.click('#goNext');
+  await page.waitForSelector('.word-en', { timeout: 3000 });
+  for (let i = 0; i < 4; i++) { await page.click('#nx', { timeout: 5000 }); await page.waitForTimeout(60); }
+  await page.waitForSelector('#micBtn', { timeout: 3000 });
+  await page.evaluate(() => { window.__nextSaid = 'hello banana'; });
+  await page.click('#micBtn');
+  await page.waitForSelector('.coach', { timeout: 3000 });
+  if (!await page.locator('#cWord').count()) throw new Error('ไม่มีปุ่มฟังทีละคำ');
+  await page.click('#cWord');
+  await page.waitForTimeout(200);
+  if (!await page.locator('.w-now').count()) throw new Error('ไม่ไฮไลต์คำที่กำลังอ่าน');
+});
+
+await t('แบบวัดระดับ: ทำครบ 12 ข้อแล้วแนะนำระดับให้', async () => {
+  await page.evaluate(() => { S.placed = false; save(); });
+  await page.click('[data-tab="home"]');
+  await page.waitForSelector('#goPlace', { timeout: 3000 });
+  await page.click('#goPlace');
+  await page.waitForSelector('.choice', { timeout: 3000 });
+  for (let i = 0; i < 12; i++) {
+    await page.locator('.choice').first().click();
+    await page.waitForTimeout(80);
+    await page.click('#fb .btn.primary');
+    await page.waitForTimeout(120);
+  }
+  const txt = await page.innerText('#screen');
+  if (!/คุณควรเริ่มที่ ระดับ/.test(txt)) throw new Error('ไม่สรุปผลระดับ: ' + txt.slice(0, 80));
+  if (!await page.evaluate(() => S.placed)) throw new Error('ไม่ได้บันทึกว่าวัดระดับแล้ว');
+  await page.click('[data-tab="home"]');
+});
+
+await t('ยกระดับ: เทียบ 3 ระดับของประโยคเดียวกันได้', async () => {
+  await page.click('[data-tab="up"]');
+  await page.waitForSelector('.tier', { timeout: 3000 });
+  const txt = await page.innerText('#list');
+  if (!/พื้นฐาน/.test(txt) || !/เจ้าของภาษา/.test(txt)) throw new Error('ไม่ครบ 3 ระดับ');
+  if (!/ทำให้|ใช้|ห้าม|ควร/.test(txt)) throw new Error('ไม่มีคำอธิบายว่าต่างกันตรงไหน');
+  const cats = await page.locator('#catbar .lvbtn').count();
+  if (cats < 4) throw new Error('หมวดหมู่ ' + cats);
+});
+
+await t('ยกระดับ: กดฝึกพูดแล้วเข้าโหมดฝึกได้', async () => {
+  await page.click('#drill');
+  await page.waitForSelector('#micBtn', { timeout: 3000 });
+  const label = await page.textContent('.steplabel');
+  if (!/เจ้าของภาษา/.test(label)) throw new Error('ป้ายกำกับผิด: ' + label);
+});
+
+await t('คุยโต้ตอบ: มีฉากระดับมืออาชีพแยกตามระดับ', async () => {
+  await page.click('[data-tab="talk"]');
+  await page.waitForSelector('.unit', { timeout: 3000 });
+  const txt = await page.innerText('#scenes');
+  if (!/ระดับ 4/.test(txt)) throw new Error('ไม่แยกระดับ');
+  if (!/สัมภาษณ์งาน/.test(txt) || !/เจรจา/.test(txt)) throw new Error('ไม่มีฉากมืออาชีพ');
+});
+
+await t('ทุกฉากสนทนามีเฉลยและวิธีตรวจคำตอบครบทุกตา', async () => {
+  const bad = await page.evaluate(() =>
+    SCENES.flatMap(sc => sc.turns
+      .filter(t => !t.model || !t.modelTh || !t.say || !(t.need || t.oneOf))
+      .map(t => sc.id + ':' + (t.model || '?'))));
+  if (bad.length) throw new Error('ตาที่ข้อมูลไม่ครบ: ' + bad.slice(0, 3));
+});
+
 await t('แท็บตั้งค่าเปิดได้', async () => {
   await page.click('[data-tab="me"]');
   await page.waitForSelector('#rate', { timeout: 3000 });
@@ -239,6 +365,7 @@ await t('กลับหน้าแรกแล้วเห็นความ�
   await page.waitForSelector('.unit', { timeout: 3000 });
   const txt = await page.innerText('#units');
   if (/^0%/.test(txt)) throw new Error('ความคืบหน้าไม่ขึ้น');
+  if (!await page.locator('.lvbtn.on').count()) throw new Error('ไม่มีระดับที่เลือกอยู่');
 });
 
 await t('ถ้าเล่นเสียงไม่ได้จริง ต้องขึ้นวิธีแก้เป็นภาษาไทยให้ผู้ใช้', async () => {

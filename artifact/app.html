@@ -158,7 +158,8 @@
     flex:1; border:none; background:transparent; color:var(--muted); font-size:11px; font-weight:700;
     display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 4px; cursor:pointer; border-radius:10px;
   }
-  .tab .ic{font-size:20px; line-height:1}
+  .tab .ic{font-size:19px; line-height:1}
+  .tab{font-size:10.5px; padding:8px 2px}
   .tab.active{color:var(--brand); background:var(--brand-soft)}
 
   .banner{background:var(--warn-soft); color:var(--warn); border-radius:12px; padding:12px 14px; font-size:13.5px; font-weight:600; margin-bottom:12px}
@@ -187,6 +188,40 @@
   .soundhelp ol{margin:10px 0 8px; padding-inline-start:22px; line-height:1.8}
   .soundhelp li{margin-bottom:2px}
   .install{border:2px dashed var(--brand); background:var(--brand-soft)}
+  .tier{display:flex; align-items:flex-start; gap:8px; padding:9px 0; border-bottom:1px dashed var(--line); font-size:16px}
+  .tier:last-of-type{border-bottom:none}
+  .tier .tag{flex:0 0 auto; font-size:10px; font-weight:800; padding:3px 7px; border-radius:99px; margin-top:3px}
+  .t-basic .tag{background:var(--bad-soft); color:var(--bad)}
+  .t-better .tag{background:var(--warn-soft); color:var(--warn)}
+  .t-native .tag{background:var(--ok-soft); color:var(--ok)}
+  .t-basic b{color:var(--muted); text-decoration:line-through}
+  .t-native b{color:var(--ok)}
+  .upnote{margin-top:10px; font-size:13px; line-height:1.7; background:var(--brand-soft); color:var(--brand);
+    padding:9px 11px; border-radius:10px}
+  .upnote b{font-weight:800}
+  .levelbar{display:flex; gap:6px; margin-bottom:10px}
+  .lvbtn{flex:1; border:1px solid var(--line); background:var(--card); color:var(--muted);
+    border-radius:12px; padding:9px 4px; cursor:pointer; display:flex; flex-direction:column; gap:2px;
+    align-items:center; font-family:inherit}
+  .lvbtn .lvn{font-size:13px; font-weight:800}
+  .lvbtn .lvp{font-size:10px}
+  .lvbtn.on{background:var(--brand); color:var(--brand-ink); border-color:transparent}
+
+  .coach{margin-top:12px; border:1px solid var(--line); border-radius:12px; padding:12px; background:var(--card)}
+  .coach-head{font-size:12px; font-weight:800; color:var(--muted); margin-bottom:8px}
+  .coach-sent{font-size:21px; font-weight:700; line-height:1.75; word-spacing:2px}
+  .coach-sent span{padding:1px 3px; border-radius:5px; transition:background .15s}
+  .w-ok{color:var(--ok)}
+  .w-bad{color:var(--bad); background:var(--bad-soft); text-decoration:underline wavy var(--bad) 1.5px}
+  .w-miss{color:var(--muted); background:var(--line); text-decoration:line-through}
+  .w-now{outline:2px solid var(--brand); background:var(--brand-soft) !important; color:var(--brand) !important}
+  .coach-key{display:flex; gap:12px; margin-top:10px; font-size:11px; color:var(--muted)}
+  .coach-key i{display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:4px; vertical-align:middle}
+  .k-ok{background:var(--ok)} .k-bad{background:var(--bad)} .k-miss{background:var(--muted)}
+  .coach-extra{margin-top:8px; font-size:12.5px; color:var(--warn)}
+  .coach-tips{margin:10px 0 0; padding-inline-start:20px; font-size:13.5px; line-height:1.75}
+  .coach-tips li{margin-bottom:5px}
+  .coach-tips b{color:var(--brand)}
   .install b{color:var(--brand)}
   .steps{margin:8px 0 0; padding-inline-start:22px; line-height:1.85; font-size:14px}
 </style>
@@ -209,7 +244,8 @@
   <div class="in">
     <button class="tab active" data-tab="home"><span class="ic">🏠</span>บทเรียน</button>
     <button class="tab" data-tab="review"><span class="ic">🔁</span>ทบทวน</button>
-    <button class="tab" data-tab="talk"><span class="ic">💬</span>คุยกับติวเตอร์</button>
+    <button class="tab" data-tab="talk"><span class="ic">💬</span>คุยโต้ตอบ</button>
+    <button class="tab" data-tab="up"><span class="ic">🎓</span>ยกระดับ</button>
     <button class="tab" data-tab="me"><span class="ic">⚙️</span>ตั้งค่า</button>
   </div>
 </nav>
@@ -220,8 +256,15 @@
    ซื้อของ -> เดินทาง -> งาน -> สุขภาพ -> คุยเล่น -> โทรศัพท์/ที่ทำงาน
    ทุกคำมี: en (อังกฤษ), th (ไทย), ph (คำอ่านไทย), ex/exth (ประโยคตัวอย่าง)
 ========================================================== */
+const LEVELS = [
+ { id:"L1", n:1, name:"เริ่มจากศูนย์",   cefr:"A0",     sub:"พูดประโยคพื้นฐานในชีวิตประจำวันได้",   emoji:"🌱" },
+ { id:"L2", n:2, name:"พื้นฐานแน่น",     cefr:"A1–A2",  sub:"เล่าอดีต–อนาคต ตั้งคำถาม เปรียบเทียบได้", emoji:"🌿" },
+ { id:"L3", n:3, name:"ใช้งานได้จริง",   cefr:"B1",     sub:"แสดงความเห็น อธิบาย นัดหมาย เล่าเรื่องได้", emoji:"🌳" },
+ { id:"L4", n:4, name:"ระดับมืออาชีพ",   cefr:"B2–C1",  sub:"ประชุม นำเสนอ เจรจา สัมภาษณ์งานได้",   emoji:"🏆" }
+];
+
 const COURSE = [
-{ id:"u1", emoji:"👋", title:"ทักทาย & แนะนำตัว", goal:"ทักทาย บอกชื่อ และถามสารทุกข์สุกดิบได้",
+{ id:"u1", level:"L1", emoji:"👋", title:"ทักทาย & แนะนำตัว", goal:"ทักทาย บอกชื่อ และถามสารทุกข์สุกดิบได้",
   words:[
    {en:"Hello", th:"สวัสดี", ph:"เฮล-โล", ex:"Hello! Nice to meet you.", exth:"สวัสดี! ยินดีที่ได้รู้จัก"},
    {en:"Hi", th:"หวัดดี (เป็นกันเอง)", ph:"ฮาย", ex:"Hi! How are you?", exth:"หวัดดี สบายดีไหม"},
@@ -247,7 +290,7 @@ const COURSE = [
    {who:"You", en:"Goodbye!", th:"ลาก่อน"}
   ]}},
 
-{ id:"u2", emoji:"🔢", title:"ตัวเลข & เวลา", goal:"บอกเวลา นับเลข และพูดถึงวันนี้/พรุ่งนี้ได้",
+{ id:"u2", level:"L1", emoji:"🔢", title:"ตัวเลข & เวลา", goal:"บอกเวลา นับเลข และพูดถึงวันนี้/พรุ่งนี้ได้",
   words:[
    {en:"One", th:"หนึ่ง", ph:"วัน", ex:"I have one brother.", exth:"ผมมีพี่ชายหนึ่งคน"},
    {en:"Two", th:"สอง", ph:"ทู", ex:"Two coffees, please.", exth:"ขอกาแฟสองแก้วครับ"},
@@ -271,7 +314,7 @@ const COURSE = [
    {who:"You", en:"OK, see you tomorrow.", th:"โอเค พรุ่งนี้เจอกัน"}
   ]}},
 
-{ id:"u3", emoji:"👨‍👩‍👧", title:"ครอบครัว & ผู้คน", goal:"แนะนำครอบครัว บอกอายุ และพูดถึงคนอื่นได้",
+{ id:"u3", level:"L1", emoji:"👨‍👩‍👧", title:"ครอบครัว & ผู้คน", goal:"แนะนำครอบครัว บอกอายุ และพูดถึงคนอื่นได้",
   words:[
    {en:"Family", th:"ครอบครัว", ph:"แฟ-มิ-ลี่", ex:"I love my family.", exth:"ผมรักครอบครัวของผม"},
    {en:"Father", th:"พ่อ", ph:"ฟา-เท่อร์", ex:"My father is a driver.", exth:"พ่อผมเป็นคนขับรถ"},
@@ -295,7 +338,7 @@ const COURSE = [
    {who:"You", en:"I am thirty years old.", th:"ผมอายุสามสิบปี"}
   ]}},
 
-{ id:"u4", emoji:"🍜", title:"อาหาร & สั่งอาหาร", goal:"สั่งอาหาร บอกความชอบ และเรียกเก็บเงินได้",
+{ id:"u4", level:"L1", emoji:"🍜", title:"อาหาร & สั่งอาหาร", goal:"สั่งอาหาร บอกความชอบ และเรียกเก็บเงินได้",
   words:[
    {en:"Water", th:"น้ำ", ph:"วอ-เท่อร์", ex:"Can I have water, please?", exth:"ขอน้ำหน่อยครับ"},
    {en:"Rice", th:"ข้าว", ph:"ไรซ์", ex:"I eat rice every day.", exth:"ผมกินข้าวทุกวัน"},
@@ -321,7 +364,7 @@ const COURSE = [
    {who:"You", en:"The bill, please.", th:"เก็บเงินด้วยครับ"}
   ]}},
 
-{ id:"u5", emoji:"🛍️", title:"ซื้อของ & ราคา", goal:"ถามราคา ต่อรอง และจ่ายเงินได้",
+{ id:"u5", level:"L1", emoji:"🛍️", title:"ซื้อของ & ราคา", goal:"ถามราคา ต่อรอง และจ่ายเงินได้",
   words:[
    {en:"How much is this?", th:"อันนี้ราคาเท่าไหร่", ph:"ฮาว มัช อิส ดิส", ex:"Excuse me, how much is this?", exth:"ขอโทษครับ อันนี้เท่าไหร่"},
    {en:"It is expensive", th:"มันแพง", ph:"อิท อิส เอ็กซ์-เพ็น-ซีฟ", ex:"Sorry, it is expensive.", exth:"ขอโทษครับ มันแพงไป"},
@@ -347,7 +390,7 @@ const COURSE = [
    {who:"You", en:"I will take it. Can I pay by card?", th:"ผมเอาอันนี้ จ่ายด้วยบัตรได้ไหมครับ"}
   ]}},
 
-{ id:"u6", emoji:"🚕", title:"เดินทาง & ถามทาง", goal:"ถามทาง เรียกแท็กซี่ และบอกจุดหมายได้",
+{ id:"u6", level:"L1", emoji:"🚕", title:"เดินทาง & ถามทาง", goal:"ถามทาง เรียกแท็กซี่ และบอกจุดหมายได้",
   words:[
    {en:"Where is the toilet?", th:"ห้องน้ำอยู่ไหน", ph:"แวร์ อิส เดอะ ทอย-เล็ท", ex:"Excuse me, where is the toilet?", exth:"ขอโทษครับ ห้องน้ำอยู่ไหน"},
    {en:"Hotel", th:"โรงแรม", ph:"โฮ-เทล", ex:"My hotel is near here.", exth:"โรงแรมผมอยู่ใกล้ๆ นี่"},
@@ -371,7 +414,7 @@ const COURSE = [
    {who:"You", en:"Thank you very much!", th:"ขอบคุณมากครับ"}
   ]}},
 
-{ id:"u7", emoji:"💼", title:"งาน & กิจวัตรประจำวัน", goal:"เล่าว่าทำงานอะไร และเล่ากิจวัตรของตัวเองได้",
+{ id:"u7", level:"L1", emoji:"💼", title:"งาน & กิจวัตรประจำวัน", goal:"เล่าว่าทำงานอะไร และเล่ากิจวัตรของตัวเองได้",
   words:[
    {en:"What do you do?", th:"คุณทำงานอะไร", ph:"วอท ดู ยู ดู", ex:"Hi Ben. What do you do?", exth:"สวัสดีเบน คุณทำงานอะไร"},
    {en:"I am a teacher", th:"ผมเป็นครู", ph:"ไอ แอม อะ ที-เช่อร์", ex:"I am a teacher.", exth:"ผมเป็นครู"},
@@ -395,7 +438,7 @@ const COURSE = [
    {who:"You", en:"I wake up at six and I go to work at seven.", th:"ผมตื่นหกโมง แล้วไปทำงานเจ็ดโมง"}
   ]}},
 
-{ id:"u8", emoji:"🩺", title:"ความรู้สึก & สุขภาพ", goal:"บอกอาการ ขอความช่วยเหลือ และไปหาหมอได้",
+{ id:"u8", level:"L1", emoji:"🩺", title:"ความรู้สึก & สุขภาพ", goal:"บอกอาการ ขอความช่วยเหลือ และไปหาหมอได้",
   words:[
    {en:"I am happy", th:"ผมมีความสุข", ph:"ไอ แอม แฮ้ป-ปี้", ex:"I am happy today.", exth:"วันนี้ผมมีความสุข"},
    {en:"I am tired", th:"ผมเหนื่อย", ph:"ไอ แอม ไท-เอิร์ด", ex:"I am very tired today.", exth:"วันนี้ผมเหนื่อยมาก"},
@@ -419,7 +462,7 @@ const COURSE = [
    {who:"You", en:"Thank you, doctor.", th:"ขอบคุณครับคุณหมอ"}
   ]}},
 
-{ id:"u9", emoji:"🗣️", title:"คุยเล่นกับฝรั่ง (Small talk)", goal:"เอาตัวรอดในบทสนทนา แม้ฟังไม่ทัน",
+{ id:"u9", level:"L1", emoji:"🗣️", title:"คุยเล่นกับฝรั่ง (Small talk)", goal:"เอาตัวรอดในบทสนทนา แม้ฟังไม่ทัน",
   words:[
    {en:"Where are you from?", th:"คุณมาจากไหน", ph:"แวร์ อาร์ ยู ฟรอม", ex:"Hi! Where are you from?", exth:"สวัสดี คุณมาจากไหน"},
    {en:"I am from Thailand", th:"ผมมาจากประเทศไทย", ph:"ไอ แอม ฟรอม ไท-แลนด์", ex:"I am from Thailand.", exth:"ผมมาจากประเทศไทย"},
@@ -443,7 +486,7 @@ const COURSE = [
    {who:"You", en:"Sorry, I do not understand. Can you repeat, please?", th:"ขอโทษครับ ผมไม่เข้าใจ พูดอีกครั้งได้ไหม"}
   ]}},
 
-{ id:"u10", emoji:"📞", title:"ที่ทำงาน & โทรศัพท์", goal:"รับสาย นัดหมาย และคุยงานง่ายๆ ได้",
+{ id:"u10", level:"L1", emoji:"📞", title:"ที่ทำงาน & โทรศัพท์", goal:"รับสาย นัดหมาย และคุยงานง่ายๆ ได้",
   words:[
    {en:"Hello, this is Ben", th:"สวัสดีครับ ผมเบนนะครับ", ph:"เฮล-โล ดิส อิส เบ็น", ex:"Hello, this is Ben from ABC.", exth:"สวัสดีครับ ผมเบนจาก ABC"},
    {en:"Can I speak to Anna?", th:"ขอสายแอนนาได้ไหม", ph:"แคน ไอ สปีค ทู แอน-น่า", ex:"Can I speak to Anna, please?", exth:"ขอสายคุณแอนนาหน่อยครับ"},
@@ -465,7 +508,481 @@ const COURSE = [
    {who:"You", en:"Thank you.", th:"ขอบคุณครับ"},
    {who:"A", en:"Sorry, she is busy now.", th:"ขอโทษค่ะ ตอนนี้เธอไม่ว่าง"},
    {who:"You", en:"No problem. I will call you back. Thank you for your help.", th:"ไม่มีปัญหาครับ เดี๋ยวผมโทรกลับ ขอบคุณสำหรับความช่วยเหลือ"}
+  ]}},
+
+/* ===================== ระดับ 2 · พื้นฐานแน่น (A1–A2) ===================== */
+
+{ id:"u11", level:"L2", emoji:"⏮️", title:"เล่าเรื่องที่ผ่านมา (อดีต)", goal:"เล่าสิ่งที่ทำไปแล้วเมื่อวาน สัปดาห์ก่อนได้",
+  words:[
+   {en:"I went to the market", th:"ผมไปตลาดมา", ph:"ไอ เวนท์ ทู เดอะ มาร์-เก็ต", ex:"I went to the market this morning.", exth:"เมื่อเช้าผมไปตลาดมา"},
+   {en:"I ate rice", th:"ผมกินข้าวแล้ว", ph:"ไอ เอท ไรซ์", ex:"I ate rice with my family.", exth:"ผมกินข้าวกับครอบครัว"},
+   {en:"I saw him yesterday", th:"ผมเห็นเขาเมื่อวาน", ph:"ไอ ซอว์ ฮิม เยส-เต่อร์-เดย์", ex:"I saw him yesterday at work.", exth:"เมื่อวานผมเห็นเขาที่ทำงาน"},
+   {en:"It was very good", th:"มันดีมากเลย", ph:"อิท วอส เว-รี่ กุด", ex:"The food was very good.", exth:"อาหารดีมากเลย"},
+   {en:"Did you go?", th:"คุณไปมาหรือเปล่า", ph:"ดิด ยู โก", ex:"Did you go to the party?", exth:"คุณไปงานเลี้ยงมาหรือเปล่า"},
+   {en:"I did not go", th:"ผมไม่ได้ไป", ph:"ไอ ดิด นอท โก", ex:"Sorry, I did not go.", exth:"ขอโทษ ผมไม่ได้ไป"},
+   {en:"Last week", th:"สัปดาห์ที่แล้ว", ph:"ลาสท์ วีค", ex:"I was sick last week.", exth:"สัปดาห์ที่แล้วผมป่วย"},
+   {en:"Two days ago", th:"สองวันก่อน", ph:"ทู เดย์ส อะ-โก", ex:"He called me two days ago.", exth:"เขาโทรหาผมสองวันก่อน"},
+   {en:"I forgot", th:"ผมลืม", ph:"ไอ ฟอร์-ก็อท", ex:"Sorry, I forgot your name.", exth:"ขอโทษ ผมลืมชื่อคุณ"},
+   {en:"I lost my phone", th:"ผมทำโทรศัพท์หาย", ph:"ไอ ลอสท์ มาย โฟน", ex:"I lost my phone on the bus.", exth:"ผมทำโทรศัพท์หายบนรถเมล์"},
+   {en:"What happened?", th:"เกิดอะไรขึ้น", ph:"วอท แฮพ-เพ่นด์", ex:"You look sad. What happened?", exth:"คุณดูเศร้า เกิดอะไรขึ้น"},
+   {en:"I have already eaten", th:"ผมกินมาแล้ว", ph:"ไอ แฮฟ ออล-เร-ดี้ อีท-เท่น", ex:"No thanks, I have already eaten.", exth:"ไม่เป็นไรครับ ผมกินมาแล้ว"}
+  ],
+  dialog:{ title:"เล่าเรื่องเมื่อวาน", lines:[
+   {who:"A", en:"Hi! What did you do yesterday?", th:"หวัดดี เมื่อวานทำอะไรมาบ้าง"},
+   {who:"You", en:"I went to the market with my wife.", th:"ผมไปตลาดกับภรรยา"},
+   {who:"A", en:"Nice! Did you buy anything?", th:"ดีจัง ซื้ออะไรมาไหม"},
+   {who:"You", en:"Yes, I bought some fruit. It was very cheap.", th:"ซื้อครับ ซื้อผลไม้มา ถูกมากเลย"},
+   {who:"A", en:"Great. How was your weekend?", th:"เยี่ยม แล้ววันหยุดเป็นยังไงบ้าง"},
+   {who:"You", en:"It was very good, thank you.", th:"ดีมากเลยครับ ขอบคุณ"}
+  ]}},
+
+{ id:"u12", level:"L2", emoji:"⏭️", title:"พูดถึงอนาคต & แผน", goal:"บอกแผนและสิ่งที่จะทำต่อไปได้",
+  words:[
+   {en:"I will call you", th:"ผมจะโทรหาคุณ", ph:"ไอ วิล คอล ยู", ex:"I will call you tonight.", exth:"คืนนี้ผมจะโทรหาคุณ"},
+   {en:"I am going to work", th:"ผมกำลังจะไปทำงาน", ph:"ไอ แอม โก-อิ้ง ทู เวิร์ค", ex:"I am going to work now.", exth:"ตอนนี้ผมกำลังจะไปทำงาน"},
+   {en:"Next week", th:"สัปดาห์หน้า", ph:"เน็กซท์ วีค", ex:"See you next week.", exth:"ไว้เจอกันสัปดาห์หน้า"},
+   {en:"Maybe", th:"อาจจะ", ph:"เมย์-บี", ex:"Maybe I will go tomorrow.", exth:"พรุ่งนี้ผมอาจจะไป"},
+   {en:"I hope so", th:"ผมก็หวังอย่างนั้น", ph:"ไอ โฮพ โซ", ex:"Will it rain? I hope so.", exth:"ฝนจะตกไหม ผมก็หวังอย่างนั้น"},
+   {en:"What are you doing tomorrow?", th:"พรุ่งนี้คุณจะทำอะไร", ph:"วอท อาร์ ยู ดู-อิ้ง ทู-มอ-โร่ว", ex:"What are you doing tomorrow night?", exth:"พรุ่งนี้ตอนกลางคืนคุณจะทำอะไร"},
+   {en:"I plan to travel", th:"ผมวางแผนจะไปเที่ยว", ph:"ไอ แพลน ทู แทรฟ-เวิล", ex:"I plan to travel next month.", exth:"เดือนหน้าผมวางแผนจะไปเที่ยว"},
+   {en:"I am not sure yet", th:"ผมยังไม่แน่ใจ", ph:"ไอ แอม นอท ชัวร์ เยท", ex:"I am not sure yet. Let me think.", exth:"ผมยังไม่แน่ใจ ขอคิดก่อน"},
+   {en:"Let me check", th:"ขอเช็กก่อนนะ", ph:"เล็ท มี เช็ค", ex:"Let me check my calendar.", exth:"ขอเช็กปฏิทินก่อนนะ"},
+   {en:"It depends", th:"แล้วแต่ / ขึ้นอยู่กับ", ph:"อิท ดิ-เพ็นดส์", ex:"It depends on the weather.", exth:"ขึ้นอยู่กับอากาศ"},
+   {en:"I will be back soon", th:"เดี๋ยวผมกลับมา", ph:"ไอ วิล บี แบค ซูน", ex:"Wait here. I will be back soon.", exth:"รอตรงนี้นะ เดี๋ยวผมกลับมา"},
+   {en:"See you next time", th:"ไว้เจอกันคราวหน้า", ph:"ซี ยู เน็กซท์ ไทม์", ex:"Thank you. See you next time!", exth:"ขอบคุณครับ ไว้เจอกันคราวหน้า"}
+  ],
+  dialog:{ title:"วางแผนวันหยุด", lines:[
+   {who:"A", en:"What are you doing next weekend?", th:"วันหยุดหน้าคุณจะทำอะไร"},
+   {who:"You", en:"I am not sure yet. Maybe I will visit my family.", th:"ยังไม่แน่ใจ ผมอาจจะไปหาครอบครัว"},
+   {who:"A", en:"That sounds nice. Where do they live?", th:"ฟังดูดีนะ เขาอยู่ที่ไหน"},
+   {who:"You", en:"They live in Chiang Mai. I plan to travel by bus.", th:"อยู่เชียงใหม่ครับ ผมวางแผนจะนั่งรถบัสไป"},
+   {who:"A", en:"How long will you stay?", th:"จะอยู่นานแค่ไหน"},
+   {who:"You", en:"Three days. I will be back on Monday.", th:"สามวันครับ วันจันทร์ผมจะกลับ"}
+  ]}},
+
+{ id:"u13", level:"L2", emoji:"❓", title:"ตั้งคำถามให้เป็น", goal:"ถามได้ทุกแบบ ใคร อะไร ที่ไหน เมื่อไหร่ ทำไม ยังไง",
+  words:[
+   {en:"Who is that?", th:"นั่นใคร", ph:"ฮู อิส แดท", ex:"Who is that man?", exth:"ผู้ชายคนนั้นใคร"},
+   {en:"What is this?", th:"นี่อะไร", ph:"วอท อิส ดิส", ex:"Excuse me, what is this?", exth:"ขอโทษครับ นี่อะไร"},
+   {en:"Where is it?", th:"มันอยู่ไหน", ph:"แวร์ อิส อิท", ex:"My bag — where is it?", exth:"กระเป๋าผม มันอยู่ไหน"},
+   {en:"When do we start?", th:"เราเริ่มเมื่อไหร่", ph:"เว็น ดู วี สตาร์ท", ex:"When do we start the meeting?", exth:"เราเริ่มประชุมเมื่อไหร่"},
+   {en:"Why not?", th:"ทำไมล่ะ", ph:"วาย นอท", ex:"You cannot go? Why not?", exth:"ไปไม่ได้เหรอ ทำไมล่ะ"},
+   {en:"How does it work?", th:"มันทำงานยังไง", ph:"ฮาว ดัส อิท เวิร์ค", ex:"This machine — how does it work?", exth:"เครื่องนี้ มันทำงานยังไง"},
+   {en:"Do you have time?", th:"คุณมีเวลาไหม", ph:"ดู ยู แฮฟ ไทม์", ex:"Do you have time now?", exth:"ตอนนี้คุณมีเวลาไหม"},
+   {en:"Can you help me?", th:"ช่วยผมหน่อยได้ไหม", ph:"แคน ยู เฮลพ์ มี", ex:"Excuse me, can you help me?", exth:"ขอโทษครับ ช่วยผมหน่อยได้ไหม"},
+   {en:"Is there a problem?", th:"มีปัญหาอะไรไหม", ph:"อิส แดร์ อะ พร็อบ-เล่ม", ex:"You look worried. Is there a problem?", exth:"คุณดูกังวล มีปัญหาอะไรไหม"},
+   {en:"How many do you need?", th:"คุณต้องการกี่อัน", ph:"ฮาว เม-นี่ ดู ยู นีด", ex:"How many do you need today?", exth:"วันนี้คุณต้องการกี่อัน"},
+   {en:"Which one is better?", th:"อันไหนดีกว่า", ph:"วิช วัน อิส เบ็ท-เท่อร์", ex:"Which one is better for me?", exth:"อันไหนดีกว่าสำหรับผม"},
+   {en:"Are you sure?", th:"แน่ใจนะ", ph:"อาร์ ยู ชัวร์", ex:"Are you sure about that?", exth:"แน่ใจเรื่องนั้นนะ"}
+  ],
+  dialog:{ title:"ถามให้ครบทุกอย่าง", lines:[
+   {who:"A", en:"We have a new project.", th:"เรามีโปรเจกต์ใหม่"},
+   {who:"You", en:"Really? What is this project about?", th:"จริงเหรอ โปรเจกต์นี้เกี่ยวกับอะไร"},
+   {who:"A", en:"It is a website for a hotel.", th:"เป็นเว็บไซต์ให้โรงแรม"},
+   {who:"You", en:"When do we start?", th:"เราเริ่มเมื่อไหร่"},
+   {who:"A", en:"Next Monday. Do you have time?", th:"วันจันทร์หน้า คุณมีเวลาไหม"},
+   {who:"You", en:"Yes. Can you send me the details?", th:"มีครับ ส่งรายละเอียดมาให้ผมได้ไหม"}
+  ]}},
+
+{ id:"u14", level:"L2", emoji:"🏠", title:"ของอยู่ตรงไหน & ในบ้าน", goal:"บอกตำแหน่งสิ่งของและขอให้ช่วยหยิบของได้",
+  words:[
+   {en:"There is a problem", th:"มีปัญหาอยู่", ph:"แดร์ อิส อะ พร็อบ-เล่ม", ex:"There is a problem with my order.", exth:"ออเดอร์ผมมีปัญหา"},
+   {en:"There are two rooms", th:"มีสองห้อง", ph:"แดร์ อาร์ ทู รูมส์", ex:"There are two rooms upstairs.", exth:"ชั้นบนมีสองห้อง"},
+   {en:"On the table", th:"บนโต๊ะ", ph:"ออน เดอะ เท-เบิ้ล", ex:"Your keys are on the table.", exth:"กุญแจคุณอยู่บนโต๊ะ"},
+   {en:"In the box", th:"ในกล่อง", ph:"อิน เดอะ บ็อกซ์", ex:"It is in the box.", exth:"มันอยู่ในกล่อง"},
+   {en:"Under the bed", th:"ใต้เตียง", ph:"อัน-เด่อร์ เดอะ เบด", ex:"Look under the bed.", exth:"ลองดูใต้เตียง"},
+   {en:"Next to the door", th:"ข้างประตู", ph:"เน็กซท์ ทู เดอะ ดอร์", ex:"It is next to the door.", exth:"มันอยู่ข้างประตู"},
+   {en:"Can you pass me the salt?", th:"ส่งเกลือให้หน่อยได้ไหม", ph:"แคน ยู พาส มี เดอะ ซอลท์", ex:"Can you pass me the salt, please?", exth:"ช่วยส่งเกลือให้หน่อยได้ไหม"},
+   {en:"Turn on the light", th:"เปิดไฟ", ph:"เทิร์น ออน เดอะ ไลท์", ex:"It is dark. Turn on the light.", exth:"มันมืด เปิดไฟหน่อย"},
+   {en:"Turn off the fan", th:"ปิดพัดลม", ph:"เทิร์น ออฟ เดอะ แฟน", ex:"I am cold. Turn off the fan.", exth:"ผมหนาว ปิดพัดลมหน่อย"},
+   {en:"It is broken", th:"มันเสีย / พัง", ph:"อิท อิส โบร-เค่น", ex:"Sorry, the air is broken.", exth:"ขอโทษครับ แอร์เสีย"},
+   {en:"Upstairs", th:"ชั้นบน", ph:"อัพ-สแตร์ส", ex:"The toilet is upstairs.", exth:"ห้องน้ำอยู่ชั้นบน"},
+   {en:"I am at home", th:"ผมอยู่บ้าน", ph:"ไอ แอม แอท โฮม", ex:"I am at home now.", exth:"ตอนนี้ผมอยู่บ้าน"}
+  ],
+  dialog:{ title:"หาของไม่เจอ", lines:[
+   {who:"A", en:"Where is my phone? I cannot find it.", th:"โทรศัพท์ฉันอยู่ไหน หาไม่เจอเลย"},
+   {who:"You", en:"Is it on the table?", th:"อยู่บนโต๊ะหรือเปล่า"},
+   {who:"A", en:"No, it is not there.", th:"ไม่ ไม่ได้อยู่ตรงนั้น"},
+   {who:"You", en:"Maybe it is under the bed. Let me look.", th:"อาจจะอยู่ใต้เตียง เดี๋ยวผมดูให้"},
+   {who:"A", en:"Thank you! Did you find it?", th:"ขอบคุณ เจอไหม"},
+   {who:"You", en:"Yes, it was next to the door.", th:"เจอแล้ว มันอยู่ข้างประตู"}
+  ]}},
+
+{ id:"u15", level:"L2", emoji:"⚖️", title:"เปรียบเทียบ & บอกความชอบ", goal:"เลือก เปรียบเทียบ และบอกว่าชอบอะไรมากกว่าได้",
+  words:[
+   {en:"This is better", th:"อันนี้ดีกว่า", ph:"ดิส อิส เบ็ท-เท่อร์", ex:"I think this is better.", exth:"ผมว่าอันนี้ดีกว่า"},
+   {en:"Bigger than that", th:"ใหญ่กว่าอันนั้น", ph:"บิก-เก่อร์ แดน แดท", ex:"This one is bigger than that one.", exth:"อันนี้ใหญ่กว่าอันนั้น"},
+   {en:"The best one", th:"อันที่ดีที่สุด", ph:"เดอะ เบสท์ วัน", ex:"This is the best one.", exth:"อันนี้ดีที่สุด"},
+   {en:"It is too expensive", th:"มันแพงเกินไป", ph:"อิท อิส ทู เอ็กซ์-เพ็น-ซีฟ", ex:"Sorry, it is too expensive for me.", exth:"ขอโทษครับ มันแพงเกินไปสำหรับผม"},
+   {en:"Not enough", th:"ไม่พอ", ph:"นอท อิ-นัฟ", ex:"One hour is not enough.", exth:"หนึ่งชั่วโมงไม่พอ"},
+   {en:"I prefer coffee", th:"ผมชอบกาแฟมากกว่า", ph:"ไอ พรี-เฟ่อร์ คอ-ฟี่", ex:"I prefer coffee to tea.", exth:"ผมชอบกาแฟมากกว่าชา"},
+   {en:"I would rather stay home", th:"ผมอยากอยู่บ้านมากกว่า", ph:"ไอ วุด รา-เท่อร์ สเตย์ โฮม", ex:"I would rather stay home tonight.", exth:"คืนนี้ผมอยากอยู่บ้านมากกว่า"},
+   {en:"The same", th:"เหมือนกัน", ph:"เดอะ เซม", ex:"They are the same price.", exth:"ราคาเท่ากัน"},
+   {en:"Different", th:"ต่างกัน", ph:"ดิฟ-เฟ่อ-เร่นท์", ex:"These two are different.", exth:"สองอันนี้ต่างกัน"},
+   {en:"Almost the same", th:"เกือบเหมือนกัน", ph:"ออล-โมสท์ เดอะ เซม", ex:"They are almost the same.", exth:"มันเกือบเหมือนกัน"},
+   {en:"Which do you like more?", th:"คุณชอบอันไหนมากกว่า", ph:"วิช ดู ยู ไลค์ มอร์", ex:"Which do you like more, red or blue?", exth:"คุณชอบอันไหนมากกว่า แดงหรือน้ำเงิน"},
+   {en:"It is up to you", th:"แล้วแต่คุณเลย", ph:"อิท อิส อัพ ทู ยู", ex:"Anywhere is fine. It is up to you.", exth:"ที่ไหนก็ได้ แล้วแต่คุณเลย"}
+  ],
+  dialog:{ title:"เลือกร้านอาหาร", lines:[
+   {who:"A", en:"Do you want Thai food or Japanese food?", th:"อยากกินอาหารไทยหรือญี่ปุ่น"},
+   {who:"You", en:"I prefer Thai food. It is cheaper.", th:"ผมชอบอาหารไทยมากกว่า มันถูกกว่า"},
+   {who:"A", en:"OK. This restaurant or that one?", th:"โอเค ร้านนี้หรือร้านนั้น"},
+   {who:"You", en:"This one is better. That one is too expensive.", th:"ร้านนี้ดีกว่า ร้านนั้นแพงเกินไป"},
+   {who:"A", en:"Good idea. What time?", th:"ความคิดดี กี่โมงดี"},
+   {who:"You", en:"Six o'clock. It is up to you.", th:"หกโมงเย็น แล้วแต่คุณเลย"}
+  ]}},
+
+/* ===================== ระดับ 3 · ใช้งานได้จริง (B1) ===================== */
+
+{ id:"u16", level:"L3", emoji:"💭", title:"แสดงความคิดเห็น", goal:"บอกความเห็น เห็นด้วย ไม่เห็นด้วย อย่างสุภาพได้",
+  words:[
+   {en:"I think so", th:"ผมคิดว่าอย่างนั้น", ph:"ไอ ธิงค์ โซ", ex:"Is it a good plan? I think so.", exth:"เป็นแผนที่ดีไหม ผมคิดว่าอย่างนั้น"},
+   {en:"In my opinion", th:"ในความเห็นของผม", ph:"อิน มาย โอ-พิ-เนี่ยน", ex:"In my opinion, it is too early.", exth:"ในความเห็นของผม มันเร็วเกินไป"},
+   {en:"I agree with you", th:"ผมเห็นด้วยกับคุณ", ph:"ไอ อะ-กรี วิธ ยู", ex:"Yes, I agree with you completely.", exth:"ใช่ ผมเห็นด้วยกับคุณเต็มที่"},
+   {en:"I do not agree", th:"ผมไม่เห็นด้วย", ph:"ไอ ดู นอท อะ-กรี", ex:"Sorry, I do not agree with that.", exth:"ขอโทษครับ ผมไม่เห็นด้วยเรื่องนั้น"},
+   {en:"That is a good point", th:"เป็นประเด็นที่ดี", ph:"แดทส์ อะ กุด พอยนท์", ex:"That is a good point. I did not think of it.", exth:"เป็นประเด็นที่ดี ผมไม่ได้คิดถึงเลย"},
+   {en:"It depends on the price", th:"ขึ้นอยู่กับราคา", ph:"อิท ดิ-เพ็นดส์ ออน เดอะ ไพรซ์", ex:"It depends on the price and the time.", exth:"ขึ้นอยู่กับราคาและเวลา"},
+   {en:"I am not sure about that", th:"ผมไม่ค่อยแน่ใจเรื่องนั้น", ph:"ไอ แอม นอท ชัวร์ อะ-เบาท์ แดท", ex:"I am not sure about that idea.", exth:"ผมไม่ค่อยแน่ใจกับไอเดียนั้น"},
+   {en:"What do you think?", th:"คุณคิดว่ายังไง", ph:"วอท ดู ยู ธิงค์", ex:"That is my idea. What do you think?", exth:"นั่นคือความคิดผม คุณคิดว่ายังไง"},
+   {en:"To be honest", th:"พูดตามตรงนะ", ph:"ทู บี ออน-เนสท์", ex:"To be honest, I do not like it.", exth:"พูดตามตรงนะ ผมไม่ชอบเลย"},
+   {en:"I see your point, but", th:"ผมเข้าใจที่คุณพูด แต่", ph:"ไอ ซี ยัวร์ พอยนท์ บัท", ex:"I see your point, but it costs too much.", exth:"ผมเข้าใจที่คุณพูด แต่มันแพงเกินไป"},
+   {en:"Maybe we should wait", th:"บางทีเราน่าจะรอ", ph:"เมย์-บี วี ชุด เวท", ex:"Maybe we should wait one more week.", exth:"บางทีเราน่าจะรออีกสักสัปดาห์"},
+   {en:"That makes sense", th:"ฟังแล้วสมเหตุสมผล", ph:"แดท เมคส์ เซนซ์", ex:"OK, that makes sense to me.", exth:"โอเค ผมว่าสมเหตุสมผลนะ"}
+  ],
+  dialog:{ title:"ถกกันเรื่องแผนงาน", lines:[
+   {who:"A", en:"I think we should start next week.", th:"ผมคิดว่าเราควรเริ่มสัปดาห์หน้า"},
+   {who:"You", en:"I see your point, but I am not sure about that.", th:"ผมเข้าใจที่คุณพูด แต่ผมไม่ค่อยแน่ใจ"},
+   {who:"A", en:"Why? What do you think?", th:"ทำไมล่ะ คุณคิดว่ายังไง"},
+   {who:"You", en:"To be honest, we need more time to prepare.", th:"พูดตามตรง เราต้องการเวลาเตรียมตัวมากกว่านี้"},
+   {who:"A", en:"That makes sense. Maybe we should wait.", th:"ฟังแล้วสมเหตุสมผล บางทีเราน่าจะรอ"},
+   {who:"You", en:"Yes, I agree with you.", th:"ครับ ผมเห็นด้วยกับคุณ"}
+  ]}},
+
+{ id:"u17", level:"L3", emoji:"🗓️", title:"นัดหมาย & จัดการเวลา", goal:"นัด เลื่อนนัด และแจ้งว่าจะสายได้อย่างมืออาชีพ",
+  words:[
+   {en:"Are you available on Monday?", th:"วันจันทร์คุณว่างไหม", ph:"อาร์ ยู อะ-เว-ล่ะ-เบิ้ล ออน มัน-เดย์", ex:"Are you available on Monday morning?", exth:"วันจันทร์เช้าคุณว่างไหม"},
+   {en:"Does Tuesday work for you?", th:"วันอังคารสะดวกไหม", ph:"ดัส ทิวส์-เดย์ เวิร์ค ฟอร์ ยู", ex:"Does Tuesday work for you?", exth:"วันอังคารสะดวกไหมครับ"},
+   {en:"I am running late", th:"ผมจะไปสาย", ph:"ไอ แอม รัน-นิ่ง เลท", ex:"Sorry, I am running late.", exth:"ขอโทษครับ ผมจะไปสาย"},
+   {en:"Can we reschedule?", th:"เลื่อนนัดได้ไหม", ph:"แคน วี รี-สเก-จูล", ex:"Something came up. Can we reschedule?", exth:"มีธุระด่วน เลื่อนนัดได้ไหมครับ"},
+   {en:"Let us push it to Friday", th:"เลื่อนไปวันศุกร์นะ", ph:"เล็ทส์ พุช อิท ทู ไฟร-เดย์", ex:"Let us push it to Friday afternoon.", exth:"เลื่อนไปบ่ายวันศุกร์นะครับ"},
+   {en:"I will be there in ten minutes", th:"อีกสิบนาทีผมถึง", ph:"ไอ วิล บี แดร์ อิน เท็น มิ-นิทส์", ex:"I will be there in ten minutes.", exth:"อีกสิบนาทีผมถึงครับ"},
+   {en:"Sorry to keep you waiting", th:"ขอโทษที่ให้รอ", ph:"ซอ-รี่ ทู คีพ ยู เว-ทิ่ง", ex:"Sorry to keep you waiting.", exth:"ขอโทษที่ให้รอนะครับ"},
+   {en:"Let us confirm tomorrow", th:"ไว้ยืนยันกันพรุ่งนี้", ph:"เล็ทส์ คอน-เฟิร์ม ทู-มอ-โร่ว", ex:"Let us confirm tomorrow morning.", exth:"ไว้ยืนยันกันพรุ่งนี้เช้า"},
+   {en:"It is on my calendar", th:"ผมลงปฏิทินไว้แล้ว", ph:"อิทส์ ออน มาย แค-เล่น-เด่อร์", ex:"Great, it is on my calendar.", exth:"เยี่ยม ผมลงปฏิทินไว้แล้ว"},
+   {en:"Something came up", th:"มีธุระด่วน", ph:"ซัม-ธิง เคม อัพ", ex:"Sorry, something came up at work.", exth:"ขอโทษครับ มีธุระด่วนที่ทำงาน"},
+   {en:"I am free after lunch", th:"หลังมื้อเที่ยงผมว่าง", ph:"ไอ แอม ฟรี อาฟ-เท่อร์ ลันช์", ex:"I am free after lunch today.", exth:"วันนี้หลังมื้อเที่ยงผมว่าง"},
+   {en:"Talk to you soon", th:"เดี๋ยวคุยกันใหม่", ph:"ทอล์ค ทู ยู ซูน", ex:"OK, talk to you soon.", exth:"โอเค เดี๋ยวคุยกันใหม่"}
+  ],
+  dialog:{ title:"ขอเลื่อนนัด", lines:[
+   {who:"A", en:"Hi, are we still meeting at two?", th:"สวัสดี เรายังนัดกันบ่ายสองอยู่ไหม"},
+   {who:"You", en:"Sorry, something came up. Can we reschedule?", th:"ขอโทษครับ มีธุระด่วน เลื่อนนัดได้ไหม"},
+   {who:"A", en:"No problem. Does Tuesday work for you?", th:"ไม่มีปัญหา วันอังคารสะดวกไหม"},
+   {who:"You", en:"Yes, I am free after lunch.", th:"สะดวกครับ หลังมื้อเที่ยงผมว่าง"},
+   {who:"A", en:"Great. Let us say two o'clock.", th:"เยี่ยม เอาบ่ายสองนะ"},
+   {who:"You", en:"Perfect. It is on my calendar. Talk to you soon.", th:"เยี่ยมครับ ผมลงปฏิทินไว้แล้ว เดี๋ยวคุยกันใหม่"}
+  ]}},
+
+{ id:"u18", level:"L3", emoji:"🧩", title:"อธิบาย & แก้ปัญหา", goal:"อธิบายสาเหตุและรับผิดชอบแก้ปัญหาได้",
+  words:[
+   {en:"The problem is the price", th:"ปัญหาคือราคา", ph:"เดอะ พร็อบ-เล่ม อิส เดอะ ไพรซ์", ex:"The problem is the price, not the quality.", exth:"ปัญหาคือราคา ไม่ใช่คุณภาพ"},
+   {en:"That is because we were late", th:"เพราะเรามาสาย", ph:"แดทส์ บี-คอส วี เวอร์ เลท", ex:"That is because we were late yesterday.", exth:"เพราะเมื่อวานเรามาสาย"},
+   {en:"Let me explain", th:"ขออธิบายหน่อย", ph:"เล็ท มี เอ็กซ์-เพลน", ex:"Please wait. Let me explain.", exth:"รอสักครู่ ขออธิบายหน่อย"},
+   {en:"In other words", th:"พูดอีกอย่างคือ", ph:"อิน อา-เท่อร์ เวิร์ดส์", ex:"In other words, we need more people.", exth:"พูดอีกอย่างคือ เราต้องการคนเพิ่ม"},
+   {en:"What if we try again?", th:"ถ้าเราลองใหม่ล่ะ", ph:"วอท อิฟ วี ทราย อะ-เกน", ex:"What if we try again tomorrow?", exth:"ถ้าพรุ่งนี้เราลองใหม่ล่ะ"},
+   {en:"I will handle it", th:"เดี๋ยวผมจัดการเอง", ph:"ไอ วิล แฮน-เดิ้ล อิท", ex:"Do not worry. I will handle it.", exth:"ไม่ต้องห่วง เดี๋ยวผมจัดการเอง"},
+   {en:"It is not working", th:"มันใช้ไม่ได้", ph:"อิทส์ นอท เวิร์ค-กิ้ง", ex:"The printer is not working.", exth:"เครื่องพิมพ์ใช้ไม่ได้"},
+   {en:"We need to fix this", th:"เราต้องแก้เรื่องนี้", ph:"วี นีด ทู ฟิกซ์ ดิส", ex:"We need to fix this today.", exth:"เราต้องแก้เรื่องนี้ให้ได้วันนี้"},
+   {en:"Let us find another way", th:"ลองหาทางอื่นกัน", ph:"เล็ทส์ ไฟนด์ อะ-นา-เท่อร์ เวย์", ex:"That is difficult. Let us find another way.", exth:"อันนั้นยาก ลองหาทางอื่นกัน"},
+   {en:"It should be ready by Friday", th:"น่าจะเสร็จภายในวันศุกร์", ph:"อิท ชุด บี เร-ดี้ บาย ไฟร-เดย์", ex:"It should be ready by Friday morning.", exth:"น่าจะเสร็จภายในเช้าวันศุกร์"},
+   {en:"I am on it", th:"ผมกำลังทำอยู่", ph:"ไอ แอม ออน อิท", ex:"Yes boss, I am on it.", exth:"ครับหัวหน้า ผมกำลังทำอยู่"},
+   {en:"Everything is under control", th:"ทุกอย่างเรียบร้อยดี", ph:"เอฟ-รี่-ธิง อิส อัน-เด่อร์ คอน-โทรล", ex:"Do not worry, everything is under control.", exth:"ไม่ต้องห่วง ทุกอย่างเรียบร้อยดี"}
+  ],
+  dialog:{ title:"แก้ปัญหาหน้างาน", lines:[
+   {who:"A", en:"The machine is not working again.", th:"เครื่องเสียอีกแล้ว"},
+   {who:"You", en:"Let me explain. The problem is the old parts.", th:"ขออธิบายหน่อย ปัญหาคืออะไหล่เก่า"},
+   {who:"A", en:"Can we fix it today?", th:"วันนี้ซ่อมได้ไหม"},
+   {who:"You", en:"I will handle it. It should be ready by Friday.", th:"เดี๋ยวผมจัดการเอง น่าจะเสร็จภายในวันศุกร์"},
+   {who:"A", en:"Are you sure?", th:"แน่ใจนะ"},
+   {who:"You", en:"Yes, I am on it. Everything is under control.", th:"ครับ ผมกำลังทำอยู่ ทุกอย่างเรียบร้อยดี"}
+  ]}},
+
+{ id:"u19", level:"L3", emoji:"📖", title:"เล่าเรื่อง & ประสบการณ์", goal:"เล่าประสบการณ์เป็นเรื่องเป็นราวได้",
+  words:[
+   {en:"I have been to Japan", th:"ผมเคยไปญี่ปุ่น", ph:"ไอ แฮฟ บีน ทู จะ-แพน", ex:"I have been to Japan two times.", exth:"ผมเคยไปญี่ปุ่นสองครั้ง"},
+   {en:"I have never tried it", th:"ผมไม่เคยลอง", ph:"ไอ แฮฟ เนฟ-เว่อร์ ทรายด์ อิท", ex:"Sushi? I have never tried it.", exth:"ซูชิเหรอ ผมไม่เคยลอง"},
+   {en:"I used to work there", th:"ผมเคยทำงานที่นั่น", ph:"ไอ ยูสด์ ทู เวิร์ค แดร์", ex:"I used to work there five years ago.", exth:"ผมเคยทำงานที่นั่นเมื่อห้าปีก่อน"},
+   {en:"It happened last year", th:"มันเกิดขึ้นเมื่อปีที่แล้ว", ph:"อิท แฮพ-เพ่นด์ ลาสท์ เยียร์", ex:"It happened last year in Bangkok.", exth:"มันเกิดขึ้นเมื่อปีที่แล้วที่กรุงเทพ"},
+   {en:"At first", th:"ตอนแรก", ph:"แอท เฟิร์สท์", ex:"At first I was scared.", exth:"ตอนแรกผมกลัว"},
+   {en:"Then", th:"จากนั้น", ph:"เดน", ex:"Then we went to the beach.", exth:"จากนั้นเราไปทะเล"},
+   {en:"Finally", th:"สุดท้าย", ph:"ไฟ-นั่ล-ลี่", ex:"Finally, we found the hotel.", exth:"สุดท้ายเราก็เจอโรงแรม"},
+   {en:"It was the best day", th:"เป็นวันที่ดีที่สุด", ph:"อิท วอส เดอะ เบสท์ เดย์", ex:"It was the best day of my life.", exth:"เป็นวันที่ดีที่สุดในชีวิตผม"},
+   {en:"I could not believe it", th:"ผมไม่อยากเชื่อเลย", ph:"ไอ คุด นอท บิ-ลีฟ อิท", ex:"I won! I could not believe it.", exth:"ผมชนะ! ผมไม่อยากเชื่อเลย"},
+   {en:"It took three hours", th:"ใช้เวลาสามชั่วโมง", ph:"อิท ทุค ธรี อาว-เอิร์ส", ex:"The trip took three hours.", exth:"การเดินทางใช้เวลาสามชั่วโมง"},
+   {en:"Have you ever been there?", th:"คุณเคยไปที่นั่นไหม", ph:"แฮฟ ยู เอฟ-เว่อร์ บีน แดร์", ex:"Have you ever been there before?", exth:"คุณเคยไปที่นั่นมาก่อนไหม"},
+   {en:"It is a long story", th:"มันเป็นเรื่องยาว", ph:"อิทส์ อะ ลอง สตอ-รี่", ex:"Why? Well, it is a long story.", exth:"ทำไมน่ะเหรอ มันเป็นเรื่องยาว"}
+  ],
+  dialog:{ title:"เล่าเรื่องทริปที่ไป", lines:[
+   {who:"A", en:"Have you ever been to Japan?", th:"คุณเคยไปญี่ปุ่นไหม"},
+   {who:"You", en:"Yes, I have been to Japan two times.", th:"เคยครับ ผมไปญี่ปุ่นมาสองครั้ง"},
+   {who:"A", en:"Wow! How was it?", th:"ว้าว เป็นยังไงบ้าง"},
+   {who:"You", en:"At first it was very cold, then I loved it.", th:"ตอนแรกหนาวมาก แล้วผมก็ชอบมันเลย"},
+   {who:"A", en:"How long did you stay?", th:"อยู่นานแค่ไหน"},
+   {who:"You", en:"Ten days. It took seven hours to fly there.", th:"สิบวันครับ บินไปใช้เวลาเจ็ดชั่วโมง"}
+  ]}},
+
+{ id:"u20", level:"L3", emoji:"🙏", title:"ขอร้อง ปฏิเสธ ขอโทษ อย่างสุภาพ", goal:"พูดเรื่องยากๆ ให้สุภาพและไม่เสียความสัมพันธ์",
+  words:[
+   {en:"Would you mind helping me?", th:"รบกวนช่วยหน่อยได้ไหม", ph:"วุด ยู ไมนด์ เฮลพ์-ปิ้ง มี", ex:"Would you mind helping me with this?", exth:"รบกวนช่วยเรื่องนี้หน่อยได้ไหม"},
+   {en:"Could you please repeat that?", th:"ช่วยพูดอีกครั้งได้ไหม", ph:"คุด ยู พลีซ รี-พีท แดท", ex:"Sorry, could you please repeat that?", exth:"ขอโทษครับ ช่วยพูดอีกครั้งได้ไหม"},
+   {en:"I am afraid I cannot", th:"เกรงว่าผมคงไม่ได้", ph:"ไอ แอม อะ-เฟรด ไอ แคน-นอท", ex:"I am afraid I cannot come today.", exth:"เกรงว่าวันนี้ผมคงมาไม่ได้"},
+   {en:"Sorry for the delay", th:"ขอโทษที่ล่าช้า", ph:"ซอ-รี่ ฟอร์ เดอะ ดี-เลย์", ex:"Sorry for the delay in my reply.", exth:"ขอโทษที่ตอบช้าครับ"},
+   {en:"No worries", th:"ไม่เป็นไรครับ", ph:"โน วอ-รี่ส์", ex:"No worries, it happens.", exth:"ไม่เป็นไรครับ มันเกิดขึ้นได้"},
+   {en:"Thank you for your patience", th:"ขอบคุณที่รอ", ph:"แธ้งก์ คิว ฟอร์ ยัวร์ เพ-เชี่ยนซ์", ex:"Thank you for your patience today.", exth:"ขอบคุณที่รอวันนี้นะครับ"},
+   {en:"May I ask a question?", th:"ขอถามอะไรหน่อยได้ไหม", ph:"เมย์ ไอ อาสค์ อะ เควส-ชั่น", ex:"Excuse me, may I ask a question?", exth:"ขอโทษครับ ขอถามอะไรหน่อยได้ไหม"},
+   {en:"If you do not mind", th:"ถ้าคุณไม่ว่าอะไร", ph:"อิฟ ยู ดู นอท ไมนด์", ex:"If you do not mind, I will go first.", exth:"ถ้าคุณไม่ว่าอะไร ผมขอไปก่อนนะ"},
+   {en:"I appreciate it", th:"ผมซาบซึ้งมาก", ph:"ไอ อะ-พรี-ชี-เอท อิท", ex:"Thank you, I appreciate it.", exth:"ขอบคุณครับ ผมซาบซึ้งมาก"},
+   {en:"That is very kind of you", th:"คุณใจดีมากเลย", ph:"แดทส์ เว-รี่ ไคนด์ ออฟ ยู", ex:"That is very kind of you. Thank you.", exth:"คุณใจดีมากเลย ขอบคุณครับ"},
+   {en:"Excuse me for a moment", th:"ขอตัวสักครู่", ph:"เอ็กซ์-คิวส์ มี ฟอร์ อะ โม-เม่นท์", ex:"Excuse me for a moment, please.", exth:"ขอตัวสักครู่นะครับ"},
+   {en:"Please let me know", th:"ช่วยบอกผมด้วยนะ", ph:"พลีซ เล็ท มี โนว์", ex:"Please let me know if you need help.", exth:"ถ้าต้องการความช่วยเหลือ บอกผมด้วยนะครับ"}
+  ],
+  dialog:{ title:"ขอความช่วยเหลือแบบสุภาพ", lines:[
+   {who:"A", en:"You look busy. Do you need help?", th:"คุณดูยุ่งนะ ต้องการให้ช่วยไหม"},
+   {who:"You", en:"Would you mind helping me with this?", th:"รบกวนช่วยเรื่องนี้หน่อยได้ไหมครับ"},
+   {who:"A", en:"Of course. What do you need?", th:"ได้เลย ต้องการอะไร"},
+   {who:"You", en:"Could you please check these numbers?", th:"ช่วยตรวจตัวเลขพวกนี้ให้หน่อยได้ไหม"},
+   {who:"A", en:"Sure, no problem at all.", th:"ได้เลย ไม่มีปัญหา"},
+   {who:"You", en:"Thank you. That is very kind of you.", th:"ขอบคุณครับ คุณใจดีมากเลย"}
+  ]}},
+
+/* ===================== ระดับ 4 · ระดับมืออาชีพ (B2–C1) ===================== */
+
+{ id:"u21", level:"L4", emoji:"💼", title:"ประชุมงาน", goal:"เปิดประชุม เสริมประเด็น และสรุปงานได้",
+  words:[
+   {en:"Let us get started", th:"เริ่มกันเลยนะครับ", ph:"เล็ทส์ เก็ท สตาร์-เท็ด", ex:"Everyone is here. Let us get started.", exth:"มากันครบแล้ว เริ่มกันเลยนะครับ"},
+   {en:"Thank you all for joining", th:"ขอบคุณทุกคนที่เข้าร่วม", ph:"แธ้งก์ คิว ออล ฟอร์ จอย-นิ่ง", ex:"Thank you all for joining today.", exth:"ขอบคุณทุกคนที่เข้าร่วมวันนี้"},
+   {en:"I would like to add something", th:"ผมขอเสริมหน่อย", ph:"ไอ วุด ไลค์ ทู แอด ซัม-ธิง", ex:"I would like to add something here.", exth:"ผมขอเสริมตรงนี้หน่อย"},
+   {en:"Could you clarify that?", th:"ช่วยขยายความหน่อยได้ไหม", ph:"คุด ยู แคล-ริ-ไฟ แดท", ex:"Sorry, could you clarify that point?", exth:"ขอโทษครับ ช่วยขยายความประเด็นนั้นหน่อย"},
+   {en:"Let us move on", th:"ไปเรื่องต่อกันเลย", ph:"เล็ทส์ มูฟ ออน", ex:"Good. Let us move on to the budget.", exth:"ดีครับ ไปเรื่องงบประมาณกันต่อ"},
+   {en:"Let us circle back to that", th:"ไว้ค่อยกลับมาคุยเรื่องนั้น", ph:"เล็ทส์ เซอร์-เคิ้ล แบค ทู แดท", ex:"Let us circle back to that later.", exth:"ไว้ค่อยกลับมาคุยเรื่องนั้นทีหลัง"},
+   {en:"To summarize", th:"สรุปคือ", ph:"ทู ซัม-มะ-ไรซ์", ex:"To summarize, we need two more weeks.", exth:"สรุปคือ เราต้องการอีกสองสัปดาห์"},
+   {en:"What are the next steps?", th:"ขั้นตอนต่อไปคืออะไร", ph:"วอท อาร์ เดอะ เน็กซท์ สเต็ปส์", ex:"OK, what are the next steps?", exth:"โอเค ขั้นตอนต่อไปคืออะไร"},
+   {en:"Who will take the lead?", th:"ใครจะเป็นคนดูแล", ph:"ฮู วิล เทค เดอะ ลีด", ex:"Who will take the lead on this?", exth:"ใครจะเป็นคนดูแลเรื่องนี้"},
+   {en:"Let us keep it brief", th:"ขอสั้นๆ นะครับ", ph:"เล็ทส์ คีพ อิท บรีฟ", ex:"We have ten minutes. Let us keep it brief.", exth:"เรามีสิบนาที ขอสั้นๆ นะครับ"},
+   {en:"I will follow up by email", th:"เดี๋ยวผมส่งอีเมลตามไป", ph:"ไอ วิล ฟอล-โล่ว อัพ บาย อี-เมล", ex:"I will follow up by email today.", exth:"วันนี้เดี๋ยวผมส่งอีเมลตามไป"},
+   {en:"Does everyone agree?", th:"ทุกคนเห็นตรงกันไหม", ph:"ดัส เอฟ-รี่-วัน อะ-กรี", ex:"That is the plan. Does everyone agree?", exth:"นั่นคือแผน ทุกคนเห็นตรงกันไหมครับ"}
+  ],
+  dialog:{ title:"ประชุมทีมตอนเช้า", lines:[
+   {who:"A", en:"Thank you all for joining. Let us get started.", th:"ขอบคุณทุกคนที่เข้าร่วม เริ่มกันเลยนะครับ"},
+   {who:"You", en:"Before we begin, could you clarify the budget?", th:"ก่อนเริ่ม ช่วยขยายความเรื่องงบหน่อยได้ไหมครับ"},
+   {who:"A", en:"Sure. We have fifty thousand baht.", th:"ได้ครับ เรามีห้าหมื่นบาท"},
+   {who:"You", en:"I would like to add something about the timeline.", th:"ผมขอเสริมเรื่องกำหนดเวลาหน่อยครับ"},
+   {who:"A", en:"Go ahead, please.", th:"เชิญเลยครับ"},
+   {who:"You", en:"To summarize, we need two more weeks. I will follow up by email.", th:"สรุปคือเราต้องการอีกสองสัปดาห์ เดี๋ยวผมส่งอีเมลตามไป"}
+  ]}},
+
+{ id:"u22", level:"L4", emoji:"📊", title:"นำเสนองาน", goal:"เปิด ดำเนิน และปิดการนำเสนออย่างมั่นใจ",
+  words:[
+   {en:"Today I will cover three points", th:"วันนี้ผมจะพูดสามหัวข้อ", ph:"ทู-เดย์ ไอ วิล คัฟ-เว่อร์ ธรี พอยนทส์", ex:"Today I will cover three points quickly.", exth:"วันนี้ผมจะพูดสามหัวข้อสั้นๆ"},
+   {en:"As you can see here", th:"อย่างที่เห็นตรงนี้", ph:"แอส ยู แคน ซี เฮียร์", ex:"As you can see here, sales are up.", exth:"อย่างที่เห็นตรงนี้ ยอดขายเพิ่มขึ้น"},
+   {en:"This chart shows our sales", th:"กราฟนี้แสดงยอดขายของเรา", ph:"ดิส ชาร์ท โชวส์ อาว-เอ้อร์ เซลส์", ex:"This chart shows our sales this year.", exth:"กราฟนี้แสดงยอดขายปีนี้ของเรา"},
+   {en:"The main reason is cost", th:"เหตุผลหลักคือต้นทุน", ph:"เดอะ เมน รี-ซั่น อิส คอสท์", ex:"The main reason is cost, not quality.", exth:"เหตุผลหลักคือต้นทุน ไม่ใช่คุณภาพ"},
+   {en:"Let me give you an example", th:"ขอยกตัวอย่างนะครับ", ph:"เล็ท มี กิฟ ยู แอน เอ็กซ์-แซม-เพิ่ล", ex:"Let me give you an example from last month.", exth:"ขอยกตัวอย่างจากเดือนที่แล้วนะครับ"},
+   {en:"Moving on to the next slide", th:"ไปที่สไลด์ถัดไป", ph:"มู-วิ่ง ออน ทู เดอะ เน็กซท์ สไลด์", ex:"Moving on to the next slide, please.", exth:"ไปที่สไลด์ถัดไปนะครับ"},
+   {en:"In conclusion", th:"สรุปแล้ว", ph:"อิน คอน-คลู-ชั่น", ex:"In conclusion, we should invest more.", exth:"สรุปแล้ว เราควรลงทุนเพิ่ม"},
+   {en:"Any questions?", th:"มีคำถามไหมครับ", ph:"เอ-นี่ เควส-ชั่นส์", ex:"That is all. Any questions?", exth:"หมดแล้วครับ มีคำถามไหม"},
+   {en:"That is a great question", th:"เป็นคำถามที่ดีมาก", ph:"แดทส์ อะ เกรท เควส-ชั่น", ex:"That is a great question, thank you.", exth:"เป็นคำถามที่ดีมาก ขอบคุณครับ"},
+   {en:"Let me get back to you on that", th:"ขอกลับไปหาข้อมูลก่อนนะครับ", ph:"เล็ท มี เก็ท แบค ทู ยู ออน แดท", ex:"I am not sure. Let me get back to you on that.", exth:"ผมไม่แน่ใจ ขอกลับไปหาข้อมูลก่อนนะครับ"},
+   {en:"Thank you for your time", th:"ขอบคุณสำหรับเวลา", ph:"แธ้งก์ คิว ฟอร์ ยัวร์ ไทม์", ex:"Thank you for your time today.", exth:"ขอบคุณสำหรับเวลาวันนี้ครับ"},
+   {en:"I am happy to explain further", th:"ยินดีอธิบายเพิ่มเติมครับ", ph:"ไอ แอม แฮพ-ปี้ ทู เอ็กซ์-เพลน เฟอร์-เท่อร์", ex:"I am happy to explain further after the meeting.", exth:"ยินดีอธิบายเพิ่มเติมหลังประชุมครับ"}
+  ],
+  dialog:{ title:"นำเสนอผลงานให้ผู้บริหาร", lines:[
+   {who:"A", en:"The floor is yours.", th:"เชิญคุณเลยครับ"},
+   {who:"You", en:"Thank you. Today I will cover three points.", th:"ขอบคุณครับ วันนี้ผมจะพูดสามหัวข้อ"},
+   {who:"A", en:"Please go ahead.", th:"เชิญเลยครับ"},
+   {who:"You", en:"As you can see here, this chart shows our sales.", th:"อย่างที่เห็นตรงนี้ กราฟนี้แสดงยอดขายของเรา"},
+   {who:"A", en:"Interesting. So how much should we invest?", th:"น่าสนใจ แล้วเราควรลงทุนเท่าไหร่"},
+   {who:"You", en:"That is a great question. Let me get back to you on that.", th:"เป็นคำถามที่ดีมาก ขอกลับไปหาข้อมูลก่อนนะครับ"}
+  ]}},
+
+{ id:"u23", level:"L4", emoji:"🤝", title:"เจรจาต่อรองธุรกิจ", goal:"ต่อรองราคาและปิดดีลอย่างมืออาชีพ",
+  words:[
+   {en:"We are looking for a better price", th:"เราอยากได้ราคาที่ดีกว่านี้", ph:"วี อาร์ ลุค-กิ้ง ฟอร์ อะ เบ็ท-เท่อร์ ไพรซ์", ex:"We are looking for a better price this year.", exth:"ปีนี้เราอยากได้ราคาที่ดีกว่านี้"},
+   {en:"That is outside our budget", th:"เกินงบของเรา", ph:"แดทส์ เอาท์-ไซด์ อาว-เอ้อร์ บัด-เจ็ท", ex:"Sorry, that is outside our budget.", exth:"ขอโทษครับ อันนั้นเกินงบของเรา"},
+   {en:"Would you consider a discount?", th:"พิจารณาลดราคาได้ไหม", ph:"วุด ยู คอน-ซิ-เด่อร์ อะ ดิส-เคานท์", ex:"Would you consider a discount for a big order?", exth:"ถ้าสั่งเยอะ พิจารณาลดราคาได้ไหมครับ"},
+   {en:"Let us meet in the middle", th:"มาเจอกันครึ่งทางดีกว่า", ph:"เล็ทส์ มีท อิน เดอะ มิด-เดิ้ล", ex:"Let us meet in the middle at ninety.", exth:"มาเจอกันครึ่งทางที่เก้าสิบดีกว่า"},
+   {en:"What is included?", th:"รวมอะไรบ้าง", ph:"วอทส์ อิน-คลู-เด็ด", ex:"In that price, what is included?", exth:"ในราคานั้น รวมอะไรบ้างครับ"},
+   {en:"That works for us", th:"แบบนั้นเราโอเค", ph:"แดท เวิร์คส์ ฟอร์ อัส", ex:"Yes, that works for us.", exth:"ครับ แบบนั้นเราโอเค"},
+   {en:"I need to check with my boss", th:"ผมต้องถามหัวหน้าก่อน", ph:"ไอ นีด ทู เช็ค วิธ มาย บอส", ex:"Give me a day. I need to check with my boss.", exth:"ขอเวลาหนึ่งวัน ผมต้องถามหัวหน้าก่อน"},
+   {en:"Can you do better than that?", th:"ให้ดีกว่านี้ได้ไหม", ph:"แคน ยู ดู เบ็ท-เท่อร์ แดน แดท", ex:"Hmm, can you do better than that?", exth:"อืม ให้ดีกว่านี้ได้ไหมครับ"},
+   {en:"It is a deal", th:"ตกลงตามนี้", ph:"อิทส์ อะ ดีล", ex:"Great, it is a deal.", exth:"เยี่ยม ตกลงตามนี้"},
+   {en:"Let us put it in writing", th:"ทำเป็นลายลักษณ์อักษรกันดีกว่า", ph:"เล็ทส์ พุท อิท อิน ไร-ทิ่ง", ex:"Good. Let us put it in writing.", exth:"ดีครับ ทำเป็นลายลักษณ์อักษรกันดีกว่า"},
+   {en:"We appreciate your offer", th:"ขอบคุณสำหรับข้อเสนอ", ph:"วี อะ-พรี-ชี-เอท ยัวร์ ออฟ-เฟ่อร์", ex:"We appreciate your offer very much.", exth:"เราขอบคุณสำหรับข้อเสนอมากครับ"},
+   {en:"Let us review and get back to you", th:"ขอดูก่อนแล้วจะติดต่อกลับ", ph:"เล็ทส์ รี-วิว แอนด์ เก็ท แบค ทู ยู", ex:"Let us review and get back to you on Monday.", exth:"ขอดูก่อน แล้ววันจันทร์จะติดต่อกลับครับ"}
+  ],
+  dialog:{ title:"ต่อรองกับซัพพลายเออร์", lines:[
+   {who:"A", en:"Our price is one hundred thousand baht.", th:"ราคาของเราคือหนึ่งแสนบาทครับ"},
+   {who:"You", en:"That is outside our budget. Would you consider a discount?", th:"เกินงบของเราครับ พิจารณาลดราคาได้ไหม"},
+   {who:"A", en:"How much are you thinking?", th:"คุณคิดที่เท่าไหร่ครับ"},
+   {who:"You", en:"Eighty thousand. Can you do better than that?", th:"แปดหมื่น ให้ดีกว่านี้ได้ไหมครับ"},
+   {who:"A", en:"I can do ninety. Let us meet in the middle.", th:"ผมให้ได้เก้าหมื่น มาเจอกันครึ่งทางดีกว่า"},
+   {who:"You", en:"That works for us. It is a deal.", th:"แบบนั้นเราโอเค ตกลงตามนี้ครับ"}
+  ]}},
+
+{ id:"u24", level:"L4", emoji:"🧑‍💼", title:"สัมภาษณ์งาน", goal:"ตอบคำถามสัมภาษณ์ยอดฮิตได้อย่างมั่นใจ",
+  words:[
+   {en:"Tell me about yourself", th:"เล่าเกี่ยวกับตัวคุณหน่อย", ph:"เทล มี อะ-เบาท์ ยัวร์-เซลฟ์", ex:"Please tell me about yourself.", exth:"ช่วยเล่าเกี่ยวกับตัวคุณหน่อยครับ"},
+   {en:"I have five years of experience", th:"ผมมีประสบการณ์ห้าปี", ph:"ไอ แฮฟ ไฟฟ์ เยียร์ส ออฟ เอ็กซ์-พี-เรี่ยน-ซ์", ex:"I have five years of experience in sales.", exth:"ผมมีประสบการณ์ด้านการขายห้าปี"},
+   {en:"My strength is teamwork", th:"จุดแข็งของผมคือการทำงานเป็นทีม", ph:"มาย สเตรงธ์ อิส ทีม-เวิร์ค", ex:"My strength is teamwork and planning.", exth:"จุดแข็งของผมคือการทำงานเป็นทีมและการวางแผน"},
+   {en:"I am a fast learner", th:"ผมเรียนรู้เร็ว", ph:"ไอ แอม อะ ฟาสท์ เลิร์น-เน่อร์", ex:"I am a fast learner and I work hard.", exth:"ผมเรียนรู้เร็วและขยัน"},
+   {en:"I work well under pressure", th:"ผมทำงานภายใต้ความกดดันได้ดี", ph:"ไอ เวิร์ค เวล อัน-เด่อร์ เพรช-เช่อร์", ex:"I work well under pressure.", exth:"ผมทำงานภายใต้ความกดดันได้ดี"},
+   {en:"Why do you want this job?", th:"ทำไมคุณถึงอยากได้งานนี้", ph:"วาย ดู ยู วอนท์ ดิส จอบ", ex:"So, why do you want this job?", exth:"แล้วทำไมคุณถึงอยากได้งานนี้ครับ"},
+   {en:"I am looking for a new challenge", th:"ผมกำลังมองหาความท้าทายใหม่", ph:"ไอ แอม ลุค-กิ้ง ฟอร์ อะ นิว แช-เล่นจ์", ex:"I am looking for a new challenge in my career.", exth:"ผมกำลังมองหาความท้าทายใหม่ในอาชีพ"},
+   {en:"What are your weaknesses?", th:"จุดอ่อนของคุณคืออะไร", ph:"วอท อาร์ ยัวร์ วีค-เน็ส-เซส", ex:"And what are your weaknesses?", exth:"แล้วจุดอ่อนของคุณคืออะไรครับ"},
+   {en:"I am working on my English", th:"ผมกำลังพัฒนาภาษาอังกฤษอยู่", ph:"ไอ แอม เวิร์ค-กิ้ง ออน มาย อิง-กลิช", ex:"I am working on my English every day.", exth:"ผมพัฒนาภาษาอังกฤษทุกวัน"},
+   {en:"Where do you see yourself in five years?", th:"อีกห้าปีคุณมองตัวเองเป็นอะไร", ph:"แวร์ ดู ยู ซี ยัวร์-เซลฟ์ อิน ไฟฟ์ เยียร์ส", ex:"Where do you see yourself in five years?", exth:"อีกห้าปีคุณมองตัวเองเป็นอะไรครับ"},
+   {en:"Do you have any questions for us?", th:"คุณมีคำถามอะไรไหม", ph:"ดู ยู แฮฟ เอ-นี่ เควส-ชั่นส์ ฟอร์ อัส", ex:"Do you have any questions for us?", exth:"คุณมีคำถามอะไรจะถามเราไหมครับ"},
+   {en:"Thank you for the opportunity", th:"ขอบคุณสำหรับโอกาสครับ", ph:"แธ้งก์ คิว ฟอร์ ดิ ออพ-พอร์-ทู-นิ-ตี้", ex:"Thank you for the opportunity to meet you.", exth:"ขอบคุณสำหรับโอกาสได้พบกันครับ"}
+  ],
+  dialog:{ title:"สัมภาษณ์งานจริง", lines:[
+   {who:"A", en:"Good morning. Please tell me about yourself.", th:"อรุณสวัสดิ์ครับ ช่วยเล่าเกี่ยวกับตัวคุณหน่อย"},
+   {who:"You", en:"I have five years of experience. My strength is teamwork.", th:"ผมมีประสบการณ์ห้าปี จุดแข็งของผมคือการทำงานเป็นทีม"},
+   {who:"A", en:"Why do you want this job?", th:"ทำไมคุณถึงอยากได้งานนี้"},
+   {who:"You", en:"I am looking for a new challenge.", th:"ผมกำลังมองหาความท้าทายใหม่ครับ"},
+   {who:"A", en:"Do you have any questions for us?", th:"คุณมีคำถามอะไรจะถามเราไหม"},
+   {who:"You", en:"Yes. When will you make a decision? Thank you for the opportunity.", th:"มีครับ ท่านจะตัดสินใจเมื่อไหร่ ขอบคุณสำหรับโอกาสครับ"}
+  ]}},
+
+{ id:"u25", level:"L4", emoji:"📧", title:"อีเมล & ดูแลลูกค้า", goal:"ตอบอีเมลและรับมือลูกค้าที่ไม่พอใจได้",
+  words:[
+   {en:"I am following up on my last email", th:"ผมติดตามเรื่องจากอีเมลที่แล้ว", ph:"ไอ แอม ฟอล-โล่ว-อิ้ง อัพ ออน มาย ลาสท์ อี-เมล", ex:"Hello, I am following up on my last email.", exth:"สวัสดีครับ ผมติดตามเรื่องจากอีเมลที่แล้ว"},
+   {en:"Please find attached the report", th:"แนบรายงานมาให้แล้วครับ", ph:"พลีซ ไฟนด์ อะ-แทชด์ เดอะ รี-พอร์ท", ex:"Please find attached the report for May.", exth:"แนบรายงานเดือนพฤษภาคมมาให้แล้วครับ"},
+   {en:"Apologies for the delay", th:"ขออภัยที่ล่าช้า", ph:"อะ-พอล-โล-จีส์ ฟอร์ เดอะ ดี-เลย์", ex:"Apologies for the delay in my reply.", exth:"ขออภัยที่ตอบล่าช้าครับ"},
+   {en:"I will get back to you shortly", th:"เดี๋ยวผมติดต่อกลับเร็วๆ นี้", ph:"ไอ วิล เก็ท แบค ทู ยู ชอร์ท-ลี่", ex:"I will get back to you shortly with an answer.", exth:"เดี๋ยวผมติดต่อกลับพร้อมคำตอบเร็วๆ นี้"},
+   {en:"Let me know if you need anything", th:"ถ้าต้องการอะไรบอกได้นะครับ", ph:"เล็ท มี โนว์ อิฟ ยู นีด เอ-นี่-ธิง", ex:"Let me know if you need anything else.", exth:"ถ้าต้องการอะไรเพิ่มบอกได้นะครับ"},
+   {en:"Thank you for your patience", th:"ขอบคุณที่รอครับ", ph:"แธ้งก์ คิว ฟอร์ ยัวร์ เพ-เชี่ยนซ์", ex:"Thank you for your patience with this issue.", exth:"ขอบคุณที่รอเรื่องนี้นะครับ"},
+   {en:"I understand your concern", th:"ผมเข้าใจความกังวลของคุณ", ph:"ไอ อัน-เดอร์-สแตนด์ ยัวร์ คอน-เซิร์น", ex:"I understand your concern completely.", exth:"ผมเข้าใจความกังวลของคุณดีครับ"},
+   {en:"We are sorry for the inconvenience", th:"ขออภัยในความไม่สะดวก", ph:"วี อาร์ ซอ-รี่ ฟอร์ ดิ อิน-คอน-วี-เนี่ยนซ์", ex:"We are sorry for the inconvenience.", exth:"ขออภัยในความไม่สะดวกครับ"},
+   {en:"We will fix it right away", th:"เราจะแก้ไขทันที", ph:"วี วิล ฟิกซ์ อิท ไรท์ อะ-เวย์", ex:"Do not worry, we will fix it right away.", exth:"ไม่ต้องกังวล เราจะแก้ไขทันทีครับ"},
+   {en:"Could you send me the details?", th:"ช่วยส่งรายละเอียดมาหน่อยได้ไหม", ph:"คุด ยู เซนด์ มี เดอะ ดี-เทลส์", ex:"Could you send me the details by email?", exth:"ช่วยส่งรายละเอียดมาทางอีเมลได้ไหมครับ"},
+   {en:"Looking forward to hearing from you", th:"รอฟังข่าวจากคุณนะครับ", ph:"ลุค-กิ้ง ฟอร์-เวิร์ด ทู เฮีย-ริ่ง ฟรอม ยู", ex:"Looking forward to hearing from you soon.", exth:"รอฟังข่าวจากคุณเร็วๆ นี้นะครับ"},
+   {en:"Best regards", th:"ด้วยความนับถือ (ปิดท้ายอีเมล)", ph:"เบสท์ รี-การ์ดส์", ex:"Thank you again. Best regards, Ben.", exth:"ขอบคุณอีกครั้ง ด้วยความนับถือ เบน"}
+  ],
+  dialog:{ title:"รับมือลูกค้าไม่พอใจ", lines:[
+   {who:"A", en:"I am not happy. My order is three days late.", th:"ผมไม่พอใจนะ ของผมช้าไปสามวันแล้ว"},
+   {who:"You", en:"I understand your concern. Apologies for the delay.", th:"ผมเข้าใจความกังวลของคุณ ขออภัยที่ล่าช้าครับ"},
+   {who:"A", en:"What are you going to do about it?", th:"แล้วคุณจะทำยังไงกับเรื่องนี้"},
+   {who:"You", en:"We will fix it right away. Could you send me the order number?", th:"เราจะแก้ไขทันที ช่วยส่งเลขที่สั่งซื้อมาได้ไหมครับ"},
+   {who:"A", en:"It is four four seven one.", th:"เลข 4471"},
+   {who:"You", en:"Thank you for your patience. I will get back to you shortly.", th:"ขอบคุณที่รอครับ เดี๋ยวผมติดต่อกลับเร็วๆ นี้"}
   ]}}
+];
+
+/* ====== พูดให้เหมือนเจ้าของภาษา: ประโยคเดียวกัน 3 ระดับ ======
+   basic  = พอสื่อสารได้ แต่ฟังดูห้วนหรือแปลตรงจากไทย
+   better = ถูกต้องและสุภาพ ระดับที่ควรใช้ในชีวิตจริง
+   native = แบบที่เจ้าของภาษาพูดกันจริงๆ                              */
+
+const UPGRADES = [
+ { cat:"ร้านอาหาร", th:"ขอเมนูหน่อย",
+   basic:"Give me menu.", better:"Can I have the menu, please?", native:"Could we see the menu, please?",
+   note:"“Give me…” ฟังดูเหมือนสั่ง ควรขึ้นต้นด้วย Can I / Could I แล้วปิดท้ายด้วย please เสมอ" },
+ { cat:"ร้านอาหาร", th:"สั่งอาหาร",
+   basic:"I want chicken.", better:"I would like the chicken, please.", native:"I will have the chicken, please.",
+   note:"เวลาสั่งอาหาร เจ้าของภาษาใช้ “I'll have…” มากที่สุด รองลงมาคือ “I'd like…”" },
+ { cat:"ร้านอาหาร", th:"ปฏิเสธเวลาถูกถามว่ารับอะไรเพิ่มไหม",
+   basic:"No.", better:"No, thank you.", native:"I am good, thanks.",
+   note:"ตอบ No เฉยๆ ฟังดูห้วนมาก อย่างน้อยต้องมี thank you ต่อท้ายเสมอ" },
+ { cat:"ร้านอาหาร", th:"บอกว่าอร่อย",
+   basic:"Good.", better:"It is very good.", native:"This is really nice, thank you.",
+   note:"เติม really / very ทำให้ฟังดูจริงใจ ไม่ใช่ตอบไปงั้นๆ" },
+ { cat:"ร้านอาหาร", th:"ขอเก็บเงิน",
+   basic:"Money.", better:"Can I have the bill, please?", native:"Could we get the check, please?",
+   note:"อเมริกาใช้ check อังกฤษใช้ bill ทั้งคู่ถูกหมด" },
+
+ { cat:"ซื้อของ", th:"ถามราคา",
+   basic:"How much?", better:"How much is this?", native:"How much is this one?",
+   note:"“How much?” คำเดียวใช้ได้แต่ห้วน เติม is this ให้เป็นประโยคเต็มจะดูดีกว่ามาก" },
+ { cat:"ซื้อของ", th:"บอกว่าแพงไป",
+   basic:"Too expensive.", better:"That is a bit expensive.", native:"That is a little out of my price range.",
+   note:"เติม a bit / a little ทำให้ไม่ฟังดูตำหนิคนขาย เป็นเทคนิคสำคัญของภาษาอังกฤษ" },
+ { cat:"ซื้อของ", th:"ขอลดราคา",
+   basic:"Discount!", better:"Can you give me a discount?", native:"Is there any chance you could do a bit better?",
+   note:"ประโยคสุดท้ายคือแบบที่ฝรั่งใช้ต่อรองจริงๆ ฟังดูนุ่มนวลแต่ได้ผล" },
+ { cat:"ซื้อของ", th:"บอกว่าขอดูก่อน",
+   basic:"I look.", better:"I am just looking, thank you.", native:"Just browsing, thanks.",
+   note:"“I look” ผิดไวยากรณ์ ต้องเป็น I am looking เพราะกำลังทำอยู่ตอนนี้" },
+
+ { cat:"ที่ทำงาน", th:"ทักทายตอนเช้า",
+   basic:"Hello.", better:"Good morning. How are you?", native:"Morning! How is it going?",
+   note:"ที่ทำงานจริงๆ คนพูดสั้นๆ ว่า “Morning!” และถาม “How's it going?” มากกว่า How are you" },
+ { cat:"ที่ทำงาน", th:"ตอบว่าสบายดี",
+   basic:"I am fine.", better:"I am good, thanks. And you?", native:"Pretty good, thanks. You?",
+   note:"“I'm fine” ฟังดูเหมือนหนังสือเรียน คนจริงตอบ good / pretty good และ<b>ถามกลับเสมอ</b>" },
+ { cat:"ที่ทำงาน", th:"ขอให้ช่วย",
+   basic:"Help me.", better:"Could you help me with this?", native:"Would you mind giving me a hand?",
+   note:"“Help me.” เหมือนสั่ง ใช้ Could you / Would you mind จะสุภาพกว่ามาก" },
+ { cat:"ที่ทำงาน", th:"บอกว่าจะรับไปทำ",
+   basic:"I do it.", better:"I will do it.", native:"I will take care of it.",
+   note:"“I do it” หมายถึงทำเป็นประจำ ถ้าจะทำตอนนี้ต้องใช้ I will" },
+ { cat:"ที่ทำงาน", th:"บอกว่ายังทำไม่เสร็จ",
+   basic:"Not finish.", better:"It is not finished yet.", native:"I am still working on it.",
+   note:"อย่าลืม is/am และคำว่า yet ที่แปลว่า “ยัง”" },
+ { cat:"ที่ทำงาน", th:"ขัดจังหวะเพื่อขอพูดบ้าง",
+   basic:"Stop. I talk.", better:"Excuse me, can I say something?", native:"Sorry to jump in, but can I add something?",
+   note:"“Sorry to jump in” คือวลีมาตรฐานในที่ประชุมสากล ใช้แล้วดูมืออาชีพทันที" },
+ { cat:"ที่ทำงาน", th:"ขอเวลาไปหาคำตอบ",
+   basic:"Wait.", better:"Let me think about it.", native:"Let me get back to you on that.",
+   note:"ประโยคสุดท้ายคือวิธีซื้อเวลาแบบมืออาชีพ ใช้ได้ทั้งประชุมและสัมภาษณ์งาน" },
+ { cat:"ที่ทำงาน", th:"ขอให้อธิบายเพิ่ม",
+   basic:"Explain more.", better:"Could you explain that again?", native:"Could you walk me through that?",
+   note:"“walk me through” = พาไล่ดูทีละขั้น เป็นวลีที่ใช้บ่อยมากในที่ทำงาน" },
+ { cat:"ที่ทำงาน", th:"เริ่มประชุม",
+   basic:"Start.", better:"Let us start.", native:"Alright, shall we get started?",
+   note:"ตั้งคำถามแทนการสั่ง ทำให้ทุกคนรู้สึกมีส่วนร่วม" },
+
+ { cat:"เข้าสังคม", th:"ขอโทษที่มาสาย",
+   basic:"Sorry late.", better:"Sorry I am late.", native:"Sorry, I got held up in traffic.",
+   note:"ให้เหตุผลสั้นๆ ต่อท้ายคำขอโทษ จะดูจริงใจกว่าขอโทษลอยๆ" },
+ { cat:"เข้าสังคม", th:"บอกว่าฟังไม่ทัน",
+   basic:"I do not understand.", better:"Sorry, I did not catch that.", native:"Sorry, could you run that by me again?",
+   note:"“I didn't catch that” = ฟังไม่ทัน (ไม่ได้แปลว่าโง่) ฝรั่งเองก็ใช้กันทุกวัน" },
+ { cat:"เข้าสังคม", th:"ขอให้พูดช้าลง",
+   basic:"Speak slowly.", better:"Could you speak more slowly, please?", native:"Would you mind slowing down a little?",
+   note:"อย่าสั่งว่า Speak slowly ให้ขึ้นต้นด้วย Could you / Would you mind" },
+ { cat:"เข้าสังคม", th:"ขอบคุณ",
+   basic:"Thank you.", better:"Thank you very much.", native:"Thanks a lot, I really appreciate it.",
+   note:"“I really appreciate it” ทำให้คำขอบคุณหนักแน่นขึ้นมาก ใช้ได้ทั้งงานและเพื่อน" },
+ { cat:"เข้าสังคม", th:"ตอบรับคำขอบคุณ",
+   basic:"OK.", better:"You are welcome.", native:"No problem at all.",
+   note:"ตอบ OK เฉยๆ ฟังดูเย็นชา คนจริงใช้ No problem / Sure / Anytime" },
+ { cat:"เข้าสังคม", th:"ปฏิเสธคำชวน",
+   basic:"I cannot.", better:"Sorry, I cannot make it.", native:"I would love to, but I have got something on.",
+   note:"ขึ้นต้นด้วย “I'd love to, but…” ทำให้ปฏิเสธได้โดยไม่ทำร้ายความรู้สึก" },
+ { cat:"เข้าสังคม", th:"เห็นด้วย",
+   basic:"Yes.", better:"I agree.", native:"That is exactly what I was thinking.",
+   note:"ประโยคสุดท้ายทำให้อีกฝ่ายรู้สึกดีมาก ใช้ในที่ประชุมได้ผลเสมอ" },
+ { cat:"เข้าสังคม", th:"ไม่เห็นด้วย",
+   basic:"No, wrong.", better:"I do not agree.", native:"I see what you mean, but I am not so sure.",
+   note:"ห้ามพูดว่า You are wrong เด็ดขาด ให้ยอมรับความเห็นเขาก่อนแล้วค่อยแย้ง" },
+ { cat:"เข้าสังคม", th:"ถามความเห็น",
+   basic:"You think?", better:"What do you think?", native:"How do you feel about that?",
+   note:"“How do you feel about that?” ชวนให้อีกฝ่ายเล่ามากกว่าตอบสั้นๆ" },
+
+ { cat:"โทรศัพท์ & อีเมล", th:"รับสาย",
+   basic:"Hello?", better:"Hello, this is Ben.", native:"Ben speaking, how can I help?",
+   note:"ทางโทรศัพท์ใช้ “This is Ben” หรือ “Ben speaking” ห้ามใช้ “I am Ben”" },
+ { cat:"โทรศัพท์ & อีเมล", th:"ขอสาย",
+   basic:"I want Anna.", better:"Can I speak to Anna, please?", native:"Is Anna available, by any chance?",
+   note:"“by any chance” ทำให้คำขอฟังดูเกรงใจขึ้นทันที" },
+ { cat:"โทรศัพท์ & อีเมล", th:"จบสายอย่างสุภาพ",
+   basic:"Bye.", better:"Thank you, goodbye.", native:"Great, thanks for your time. Talk soon.",
+   note:"ขอบคุณเรื่องเวลาก่อนวางสาย เป็นมารยาทมาตรฐานในการทำงาน" },
+ { cat:"โทรศัพท์ & อีเมล", th:"ส่งงานช้า",
+   basic:"Sorry late work.", better:"Sorry for the delay.", native:"Apologies for the delay — it took longer than expected.",
+   note:"Apologies เป็นทางการกว่า Sorry เหมาะกับอีเมลถึงลูกค้าหรือหัวหน้า" },
+ { cat:"โทรศัพท์ & อีเมล", th:"ปิดท้ายอีเมล",
+   basic:"Bye.", better:"Thank you. Best regards.", native:"Thanks again — looking forward to hearing from you.",
+   note:"อีเมลงานห้ามลงท้ายว่า Bye เด็ดขาด ใช้ Best regards หรือ Kind regards" }
 ];
 
 /* ====== บทสนทนาสำหรับโหมด "คุยกับติวเตอร์" ======
@@ -482,7 +999,7 @@ const NUMS = ["one","two","three","four","five","six","seven","eight","nine","te
               "eleven","twelve","twenty","thirty","forty","fifty"];
 
 const SCENES = [
-{ id:"intro", emoji:"🤝", title:"แนะนำตัวกับเพื่อนใหม่", sub:"บอกชื่อ บอกว่ามาจากไหน และถามกลับ", who:"Anna",
+{ id:"intro", level:"L1", emoji:"🤝", title:"แนะนำตัวกับเพื่อนใหม่", sub:"บอกชื่อ บอกว่ามาจากไหน และถามกลับ", who:"Anna",
   turns:[
     { bot:"Hello! My name is Anna. What is your name?", botTh:"สวัสดี ฉันชื่อแอนนา คุณชื่ออะไร",
       say:"บอกชื่อของคุณ", model:"My name is Somchai.", modelTh:"ผมชื่อสมชาย",
@@ -515,7 +1032,7 @@ const SCENES = [
       ok:"Bye bye! Take care.", okTh:"บ๊ายบาย ดูแลตัวเองนะ" }
   ]},
 
-{ id:"food", emoji:"🍜", title:"สั่งอาหารในร้าน", sub:"สั่งอาหาร ถามราคา และเก็บเงิน", who:"พนักงาน",
+{ id:"food", level:"L1", emoji:"🍜", title:"สั่งอาหารในร้าน", sub:"สั่งอาหาร ถามราคา และเก็บเงิน", who:"พนักงาน",
   turns:[
     { bot:"Hello! Welcome. How many people?", botTh:"สวัสดีค่ะ ยินดีต้อนรับ มากี่คนคะ",
       say:"บอกจำนวนคน (เช่น สองคน)", model:"Two people, please.", modelTh:"สองคนครับ",
@@ -553,7 +1070,7 @@ const SCENES = [
       ok:"Sure, one moment.", okTh:"ได้ค่ะ สักครู่นะคะ" }
   ]},
 
-{ id:"shop", emoji:"🛍️", title:"ซื้อของและต่อราคา", sub:"ถามราคา ต่อรอง แล้วจ่ายเงิน", who:"แม่ค้า",
+{ id:"shop", level:"L1", emoji:"🛍️", title:"ซื้อของและต่อราคา", sub:"ถามราคา ต่อรอง แล้วจ่ายเงิน", who:"แม่ค้า",
   turns:[
     { bot:"Hello! Can I help you?", botTh:"สวัสดีค่ะ ให้ช่วยอะไรไหมคะ",
       say:"บอกว่าขอดูก่อน", model:"I am just looking, thank you.", modelTh:"ขอดูก่อนครับ ขอบคุณ",
@@ -591,7 +1108,7 @@ const SCENES = [
       botReply:"Sorry, cash only. There is an ATM over there.", botReplyTh:"ขอโทษค่ะ รับแต่เงินสด มีตู้เอทีเอ็มอยู่ตรงโน้นค่ะ" }
   ]},
 
-{ id:"way", emoji:"🚕", title:"หลงทาง ถามทางคนอื่น", sub:"ขอความช่วยเหลือ และบอกว่าฟังไม่ทัน", who:"คนแปลกหน้า",
+{ id:"way", level:"L2", emoji:"🚕", title:"หลงทาง ถามทางคนอื่น", sub:"ขอความช่วยเหลือ และบอกว่าฟังไม่ทัน", who:"คนแปลกหน้า",
   turns:[
     { bot:"Hi! You look lost. Can I help you?", botTh:"สวัสดีครับ คุณดูเหมือนหลงทาง ให้ช่วยไหม",
       say:"บอกว่าใช่ คุณหลงทาง", model:"Yes, please. I am lost.", modelTh:"ครับ ช่วยหน่อย ผมหลงทาง",
@@ -626,7 +1143,7 @@ const SCENES = [
       ok:"You are welcome. Have a good trip!", okTh:"ยินดีครับ เดินทางปลอดภัยนะ" }
   ]},
 
-{ id:"work", emoji:"💼", title:"คุยเรื่องงานกับเพื่อนร่วมงาน", sub:"เล่าเรื่องงาน และนัดเจอกัน", who:"Tom",
+{ id:"work", level:"L2", emoji:"💼", title:"คุยเรื่องงานกับเพื่อนร่วมงาน", sub:"เล่าเรื่องงาน และนัดเจอกัน", who:"Tom",
   turns:[
     { bot:"Hey! Good morning. What do you do here?", botTh:"เฮ้ อรุณสวัสดิ์ คุณทำงานอะไรที่นี่",
       say:"บอกว่าคุณทำงานอะไร", model:"I work at a factory.", modelTh:"ผมทำงานที่โรงงาน",
@@ -659,7 +1176,7 @@ const SCENES = [
       ok:"Perfect. See you then!", okTh:"เยี่ยม เจอกันตอนนั้นนะ" }
   ]},
 
-{ id:"chat", emoji:"☕", title:"คุยเล่นกับฝรั่ง", sub:"คุยเรื่องอากาศ อาหาร และวันหยุด", who:"Mike",
+{ id:"chat", level:"L2", emoji:"☕", title:"คุยเล่นกับฝรั่ง", sub:"คุยเรื่องอากาศ อาหาร และวันหยุด", who:"Mike",
   turns:[
     { bot:"Hi! Wow, how is the weather today?", botTh:"หวัดดี ว้าว วันนี้อากาศเป็นยังไงบ้าง",
       say:"บอกว่าวันนี้ร้อนมาก", model:"It is very hot today.", modelTh:"วันนี้ร้อนมากเลย",
@@ -690,6 +1207,154 @@ const SCENES = [
       say:"บอกว่าคุยสนุกเหมือนกัน แล้วลา", model:"Nice talking to you too. Goodbye!", modelTh:"คุยกับคุณสนุกเหมือนกัน ลาก่อน",
       need:[["you","too"],["goodbye"],["bye"],["see","you"]], extra:0,
       ok:"Bye! See you around.", okTh:"บาย! ไว้เจอกันใหม่" }
+  ]},
+
+/* ---------- ฉากระดับมืออาชีพ ---------- */
+
+{ id:"meeting", level:"L4", emoji:"💼", title:"ประชุมกับทีมต่างชาติ", sub:"เสนอความเห็น ขอความชัดเจน และสรุปงาน", who:"หัวหน้าทีม",
+  turns:[
+    { bot:"Good morning everyone. Thanks for joining. Shall we get started?",
+      botTh:"อรุณสวัสดิ์ทุกคน ขอบคุณที่เข้าร่วม เริ่มกันเลยไหมครับ",
+      say:"ตอบรับ แล้วบอกว่าคุณพร้อมแล้ว", model:"Yes, let us get started.", modelTh:"ครับ เริ่มกันเลย",
+      need:[["let","us","get","started"],["lets","get","started"],["yes"],["ready"],["ok"]], extra:0,
+      ok:"Great. First, the budget.", okTh:"เยี่ยม เรื่องแรก งบประมาณ" },
+
+    { bot:"We have fifty thousand baht for this project. Any thoughts?",
+      botTh:"เรามีห้าหมื่นบาทสำหรับโปรเจกต์นี้ ใครมีความเห็นไหม",
+      say:"ขอให้เขาขยายความเรื่องงบ", model:"Could you clarify that?", modelTh:"ช่วยขยายความหน่อยได้ไหมครับ",
+      need:[["clarify"],["explain"],["more","detail"],["what","do","you","mean"]], extra:0,
+      ok:"Sure. Thirty for materials, twenty for labour.", okTh:"ได้ครับ สามหมื่นค่าวัสดุ สองหมื่นค่าแรง" },
+
+    { bot:"Does that make sense to everyone?", botTh:"ทุกคนเข้าใจตรงกันไหมครับ",
+      say:"บอกว่าคุณขอเสริมเรื่องกำหนดเวลา", model:"I would like to add something about the timeline.",
+      modelTh:"ผมขอเสริมเรื่องกำหนดเวลาหน่อยครับ",
+      need:[["i","would","like","to","add"],["id","like","to","add"],["can","i","add"],["i","want","to","add"]], extra:0,
+      ok:"Please go ahead.", okTh:"เชิญเลยครับ" },
+
+    { bot:"", botTh:"",
+      say:"บอกว่าเราต้องการเวลาเพิ่มอีกสองสัปดาห์", model:"To summarize, we need two more weeks.",
+      modelTh:"สรุปคือ เราต้องการอีกสองสัปดาห์",
+      need:[["we","need"],["to","summarize"],["i","think","we","need"]], oneOf:NUMS, extra:0,
+      ok:"Understood. That is a fair point.", okTh:"เข้าใจแล้ว เป็นประเด็นที่สมเหตุสมผล" },
+
+    { askBack:true, bot:"", botTh:"",
+      say:"ถามว่าขั้นตอนต่อไปคืออะไร", model:"What are the next steps?", modelTh:"ขั้นตอนต่อไปคืออะไรครับ",
+      need:[["next","steps"],["what","is","next"],["whats","next"]], extra:0,
+      botReply:"Marketing will prepare the plan, and you will review it on Friday.",
+      botReplyTh:"ฝ่ายการตลาดจะเตรียมแผน แล้วคุณตรวจในวันศุกร์" },
+
+    { bot:"Anything else before we wrap up?", botTh:"มีอะไรอีกไหมก่อนเราจบประชุม",
+      say:"บอกว่าคุณจะส่งอีเมลตามไป", model:"I will follow up by email.", modelTh:"เดี๋ยวผมส่งอีเมลตามไปครับ",
+      need:[["follow","up"],["i","will","send"],["ill","send"],["by","email"]], extra:0,
+      ok:"Perfect. Thanks everyone, see you Friday.", okTh:"เยี่ยมมาก ขอบคุณทุกคน เจอกันวันศุกร์" }
+  ]},
+
+{ id:"interview", level:"L4", emoji:"🧑‍💼", title:"สัมภาษณ์งาน", sub:"ตอบคำถามยอดฮิตให้ได้งาน", who:"HR",
+  turns:[
+    { bot:"Good morning. Thank you for coming in. Please tell me about yourself.",
+      botTh:"อรุณสวัสดิ์ครับ ขอบคุณที่มา ช่วยเล่าเกี่ยวกับตัวคุณหน่อย",
+      say:"บอกประสบการณ์ของคุณ (กี่ปี ด้านอะไร)", model:"I have five years of experience in a factory.",
+      modelTh:"ผมมีประสบการณ์ห้าปีในโรงงาน",
+      need:[["i","have"],["experience"],["i","worked"],["i","work"]], extra:1,
+      ok:"That is good experience.", okTh:"เป็นประสบการณ์ที่ดีนะครับ" },
+
+    { bot:"What would you say is your greatest strength?", botTh:"คุณคิดว่าจุดแข็งที่สุดของคุณคืออะไร",
+      say:"บอกจุดแข็งของคุณ", model:"My strength is teamwork.", modelTh:"จุดแข็งของผมคือการทำงานเป็นทีม",
+      need:[["my","strength"],["i","am","good","at"],["im","good","at"],["i","am","a"]], extra:1,
+      ok:"We value that here.", okTh:"ที่นี่ให้ความสำคัญกับเรื่องนั้นมาก" },
+
+    { bot:"And why do you want this job?", botTh:"แล้วทำไมคุณถึงอยากได้งานนี้",
+      say:"บอกว่าคุณกำลังมองหาความท้าทายใหม่", model:"I am looking for a new challenge.",
+      modelTh:"ผมกำลังมองหาความท้าทายใหม่",
+      need:[["looking","for"],["i","want","to"],["new","challenge"],["i","would","like","to"]], extra:0,
+      ok:"I like that answer.", okTh:"ผมชอบคำตอบนี้นะ" },
+
+    { bot:"What about your weaknesses?", botTh:"แล้วจุดอ่อนของคุณล่ะ",
+      say:"ตอบว่าภาษาอังกฤษ แต่กำลังพัฒนาอยู่", model:"My English is not perfect, but I am working on it.",
+      modelTh:"ภาษาอังกฤษผมยังไม่สมบูรณ์ แต่ผมกำลังพัฒนาอยู่",
+      need:[["working","on"],["i","am","learning"],["im","learning"],["i","study"],["improving"]], extra:0,
+      ok:"Honest answer — I respect that.", okTh:"ตอบตรงไปตรงมาดี ผมนับถือเลย" },
+
+    { askBack:true, bot:"Do you have any questions for us?", botTh:"คุณมีคำถามอะไรจะถามเราไหม",
+      say:"ถามว่าเขาจะตัดสินใจเมื่อไหร่", model:"When will you make a decision?", modelTh:"ท่านจะตัดสินใจเมื่อไหร่ครับ",
+      need:[["when","will","you"],["when","do","you"],["how","long"]], extra:0,
+      botReply:"We will contact you by next Friday.", botReplyTh:"เราจะติดต่อกลับภายในวันศุกร์หน้า" },
+
+    { bot:"", botTh:"",
+      say:"กล่าวขอบคุณสำหรับโอกาส", model:"Thank you for the opportunity.", modelTh:"ขอบคุณสำหรับโอกาสครับ",
+      need:[["thank","you"],["thanks"]], extra:0,
+      ok:"Thank you for your time. We will be in touch.", okTh:"ขอบคุณสำหรับเวลาครับ เดี๋ยวเราติดต่อกลับ" }
+  ]},
+
+{ id:"deal", level:"L4", emoji:"🤝", title:"เจรจากับซัพพลายเออร์", sub:"ต่อรองราคาให้ได้ดีลที่ดีที่สุด", who:"ซัพพลายเออร์",
+  turns:[
+    { bot:"Thanks for meeting me. Our price for this order is one hundred thousand baht.",
+      botTh:"ขอบคุณที่มาพบครับ ราคาสำหรับออเดอร์นี้คือหนึ่งแสนบาท",
+      say:"บอกว่าเกินงบของคุณ", model:"That is outside our budget.", modelTh:"เกินงบของเราครับ",
+      need:[["outside","our","budget"],["too","expensive"],["over","our","budget"],["too","much"]], extra:0,
+      ok:"I see. What did you have in mind?", okTh:"เข้าใจครับ แล้วคุณคิดที่เท่าไหร่" },
+
+    { bot:"", botTh:"",
+      say:"เสนอราคาแปดหมื่น", model:"We were thinking eighty thousand.", modelTh:"เราคิดไว้ที่แปดหมื่น",
+      need:[[]], oneOf:NUMS, extra:1,
+      ok:"Hmm, that is quite low for us.", okTh:"อืม ต่ำไปหน่อยสำหรับเรานะครับ" },
+
+    { askBack:true, bot:"", botTh:"",
+      say:"ถามว่าในราคานั้นรวมอะไรบ้าง", model:"What is included in that price?", modelTh:"ในราคานั้นรวมอะไรบ้างครับ",
+      need:[["what","is","included"],["whats","included"],["does","it","include"]], extra:0,
+      botReply:"Delivery and one year of service are included.", botReplyTh:"รวมค่าจัดส่งและบริการหนึ่งปีครับ" },
+
+    { bot:"I can go down to ninety thousand. That is my best price.",
+      botTh:"ผมลดให้เหลือเก้าหมื่นได้ นั่นคือราคาดีที่สุดแล้ว",
+      say:"ขอให้เขาให้ดีกว่านั้นอีกหน่อย", model:"Can you do a little better than that?",
+      modelTh:"ให้ดีกว่านั้นอีกนิดได้ไหมครับ",
+      need:[["do","better"],["a","little","better"],["any","chance"],["lower"]], extra:0,
+      ok:"Alright — eighty-five, and that is final.", okTh:"ก็ได้ครับ แปดหมื่นห้า และนี่คือราคาสุดท้าย" },
+
+    { bot:"Can we agree on that?", botTh:"ตกลงตามนั้นได้ไหมครับ",
+      say:"ตกลงรับข้อเสนอ", model:"That works for us. It is a deal.", modelTh:"แบบนั้นเราโอเค ตกลงตามนี้",
+      need:[["that","works"],["it","is","a","deal"],["its","a","deal"],["we","agree"],["ok"]], extra:0,
+      ok:"Excellent. Pleasure doing business with you.", okTh:"ยอดเยี่ยม ยินดีที่ได้ร่วมงานกันครับ" },
+
+    { askBack:true, bot:"", botTh:"",
+      say:"ขอให้ทำเป็นเอกสารเป็นลายลักษณ์อักษร", model:"Let us put it in writing.", modelTh:"ทำเป็นลายลักษณ์อักษรกันดีกว่า",
+      need:[["in","writing"],["contract"],["send","me","the","contract"],["document"]], extra:0,
+      botReply:"Of course. I will email the contract this afternoon.",
+      botReplyTh:"แน่นอนครับ บ่ายนี้ผมจะส่งสัญญาไปทางอีเมล" }
+  ]},
+
+{ id:"client", level:"L4", emoji:"📞", title:"รับมือลูกค้าไม่พอใจ", sub:"รับฟัง ขอโทษ และแก้ปัญหาให้จบ", who:"ลูกค้า",
+  turns:[
+    { bot:"Hello? I am calling because I am not happy. My order is three days late!",
+      botTh:"ฮัลโหล ผมโทรมาเพราะผมไม่พอใจ ของผมช้าไปสามวันแล้ว",
+      say:"แสดงว่าคุณเข้าใจความรู้สึกเขา", model:"I understand your concern.", modelTh:"ผมเข้าใจความกังวลของคุณครับ",
+      need:[["i","understand"],["i","am","sorry"],["im","sorry"],["i","apologize"]], extra:0,
+      ok:"Well, at least someone is listening.", okTh:"อย่างน้อยก็มีคนฟังบ้าง" },
+
+    { bot:"So what are you going to do about it?", botTh:"แล้วคุณจะทำยังไงกับเรื่องนี้",
+      say:"ขอโทษเรื่องความล่าช้า", model:"Apologies for the delay.", modelTh:"ขออภัยที่ล่าช้าครับ",
+      need:[["apologies"],["sorry","for","the","delay"],["i","am","sorry"],["im","sorry"],["we","are","sorry"]], extra:0,
+      ok:"OK. But I still need my order.", okTh:"โอเค แต่ผมก็ยังต้องการของอยู่ดีนะ" },
+
+    { bot:"", botTh:"",
+      say:"บอกว่าเราจะแก้ไขให้ทันที", model:"We will fix it right away.", modelTh:"เราจะแก้ไขทันทีครับ",
+      need:[["we","will","fix"],["ill","fix"],["i","will","fix"],["right","away"],["we","will","send"]], extra:0,
+      ok:"Good. How soon?", okTh:"ดี เร็วแค่ไหน" },
+
+    { askBack:true, bot:"", botTh:"",
+      say:"ขอเลขที่สั่งซื้อจากเขา", model:"Could you send me the order number?", modelTh:"ช่วยส่งเลขที่สั่งซื้อมาได้ไหมครับ",
+      need:[["order","number"],["could","you","send"],["can","you","send"],["what","is","your","order"]], extra:0,
+      botReply:"It is four four seven one.", botReplyTh:"เลข 4471 ครับ" },
+
+    { bot:"How long will it take now?", botTh:"ตอนนี้จะใช้เวลานานแค่ไหน",
+      say:"บอกว่าจะติดต่อกลับเร็วๆ นี้", model:"I will get back to you shortly.", modelTh:"เดี๋ยวผมติดต่อกลับเร็วๆ นี้ครับ",
+      need:[["get","back","to","you"],["i","will","call","you"],["ill","call","you"],["i","will","contact"]], extra:0,
+      ok:"Alright. I will wait for your call.", okTh:"ก็ได้ ผมจะรอสายคุณนะ" },
+
+    { bot:"", botTh:"",
+      say:"ขอบคุณเขาที่รอ", model:"Thank you for your patience.", modelTh:"ขอบคุณที่รอครับ",
+      need:[["thank","you"],["thanks"]], extra:0,
+      ok:"You are welcome. Thanks for sorting it out.", okTh:"ด้วยความยินดี ขอบคุณที่จัดการให้นะ" }
   ]}
 ];
 </script>
@@ -707,6 +1372,7 @@ const todayKey = ()=>new Date().toISOString().slice(0,10);
 const KEY = "speakenglish.v1";
 const DEFAULT_STATE = {
   srs:{}, units:{}, xpByDay:{}, streak:0, lastDay:null, goal:20,
+  level:"L1", placed:false, scenes:{}, upSeen:{},
   rate:0.85, theme:null, talkIdx:0, totalSpoken:0
 };
 let S = load();
@@ -919,6 +1585,143 @@ function scoreSpeech(target, said){
   const d = prev[n];
   return Math.max(0, Math.round(100 * (1 - d/Math.max(m,n||1))));
 }
+/* ================== ตัวโค้ช: บอกว่าผิดตรงคำไหน และต้องแก้ยังไง ==================
+   1) จับคู่คำในประโยคที่ถูก กับคำที่ผู้เรียนพูดจริง (word alignment)
+   2) ชี้ว่าคำไหนถูก คำไหนขาด คำไหนพูดผิดเป็นคำอื่น
+   3) วิเคราะห์เป็นภาษาไทยว่าเป็นข้อผิดพลาดแบบไหน — เน้นจุดที่คนไทยพลาดบ่อย   */
+
+function alignWords(T, S){
+  const m = T.length, n = S.length;
+  const d = [], bt = [];
+  for(let i=0;i<=m;i++){ d.push(new Array(n+1).fill(0)); bt.push(new Array(n+1).fill("")); }
+  for(let i=1;i<=m;i++){ d[i][0] = i; bt[i][0] = "miss"; }
+  for(let j=1;j<=n;j++){ d[0][j] = j; bt[0][j] = "extra"; }
+  for(let i=1;i<=m;i++) for(let j=1;j<=n;j++){
+    /* ใช้ sameWord เพื่อ "จับคู่" คำที่ใกล้เคียงกันให้ตรงตำแหน่ง
+       แต่จะนับว่าพูดถูกก็ต่อเมื่อตรงเป๊ะเท่านั้น — เพราะการลืม s หรือ -ed
+       คือสิ่งที่ผู้เรียนต้องรู้ ไม่ใช่สิ่งที่ควรปล่อยผ่าน */
+    const near = sameWord(T[i-1], S[j-1]);
+    const exact = T[i-1] === S[j-1];
+    const sub = d[i-1][j-1] + (near ? 0 : 1);
+    const del = d[i-1][j] + 1;
+    const ins = d[i][j-1] + 1;
+    const b = Math.min(sub, del, ins);
+    d[i][j] = b;
+    bt[i][j] = (b === sub) ? (exact ? "ok" : "wrong") : (b === del ? "miss" : "extra");
+  }
+  const ops = [];
+  let i = m, j = n;
+  while(i > 0 || j > 0){
+    const op = (i === 0) ? "extra" : (j === 0) ? "miss" : bt[i][j];
+    if(op === "ok" || op === "wrong"){ ops.push({op, t:T[i-1], s:S[j-1]}); i--; j--; }
+    else if(op === "miss"){ ops.push({op:"miss", t:T[i-1]}); i--; }
+    else { ops.push({op:"extra", s:S[j-1]}); j--; }
+  }
+  return ops.reverse();
+}
+
+const BE_WORDS   = ["am","is","are","was","were","be","been"];
+const ARTICLES   = ["a","an","the"];
+const AUX_WORDS  = ["do","does","did","will","would","can","could","have","has","should"];
+const TH_HARD    = { "th":"เสียง th ต้องแลบลิ้นแตะฟันบนเบาๆ ไม่ใช่เสียง ด / ท / ส",
+                     "v":"เสียง V ต้องเอาฟันบนแตะริมฝีปากล่าง ไม่ใช่เสียง ว",
+                     "r":"เสียง R ห้ามให้ลิ้นแตะเพดานปาก (ไม่ใช่ ร เรือแบบไทย)",
+                     "l":"เสียง L ต้องเอาลิ้นแตะเพดานปากค้างไว้ และออกเสียงท้ายคำให้ครบ" };
+
+function coachTips(target, said, ops){
+  const T = norm(target).split(" ").filter(Boolean);
+  const S = norm(said).split(" ").filter(Boolean);
+  const tips = [];
+  const miss  = ops.filter(o => o.op === "miss").map(o => o.t);
+  const wrong = ops.filter(o => o.op === "wrong");
+
+  if(!S.length) return ["ยังไม่ได้ยินเสียงเลย ลองพูดดังขึ้นแล้วกดไมค์ใหม่"];
+
+  if(miss.some(w => BE_WORDS.includes(w)))
+    tips.push(`ขาด verb to be (<b>${miss.filter(w=>BE_WORDS.includes(w)).join(", ")}</b>) — ภาษาไทยไม่มีคำว่า “เป็น/อยู่/คือ” ในประโยคแบบนี้ แต่ภาษาอังกฤษ<b>ต้องมีเสมอ</b>`);
+
+  if(miss.some(w => ARTICLES.includes(w)))
+    tips.push(`ขาดคำนำหน้านาม (<b>${miss.filter(w=>ARTICLES.includes(w)).join(", ")}</b>) — ภาษาอังกฤษต้องมี a / an / the หน้าคำนาม เช่น “a teacher” ไม่ใช่ “teacher” เฉยๆ`);
+
+  if(miss.some(w => AUX_WORDS.includes(w)))
+    tips.push(`ขาดกริยาช่วย (<b>${miss.filter(w=>AUX_WORDS.includes(w)).join(", ")}</b>) — คำพวก do / did / will / can ห้ามตัดทิ้ง ไม่งั้นความหมายเพี้ยน`);
+
+  wrong.forEach(o=>{
+    if(o.t === o.s + "s")
+      tips.push(`ลืมเสียง <b>s</b> ท้ายคำ — พูดว่า “${o.s}” แต่ต้องเป็น “<b>${o.t}</b>” ฝรั่งฟังออกนะครับ`);
+    else if(o.t === o.s + "ed" || o.t === o.s + "d")
+      tips.push(`ประโยคนี้เป็น<b>อดีต</b> ต้องเติม -ed — “${o.s}” ต้องเป็น “<b>${o.t}</b>”`);
+    else if(o.t.replace(/l/g,"r") === o.s.replace(/l/g,"r") && o.t !== o.s)
+      tips.push(TH_HARD.r + ` — คุณพูด “${o.s}” แต่คำที่ถูกคือ “<b>${o.t}</b>”`);
+  });
+
+  /* เสียงที่คนไทยออกยาก — เตือนเฉพาะคำที่พูดผิดจริง */
+  const badWords = wrong.map(o => o.t).concat(miss);
+  if(badWords.some(w => w.startsWith("th"))) tips.push(TH_HARD.th);
+  if(badWords.some(w => w.includes("v")))    tips.push(TH_HARD.v);
+  if(badWords.some(w => /l$/.test(w)))       tips.push(TH_HARD.l);
+
+  if(!tips.length && miss.length)
+    tips.push(`ขาดคำว่า <b>${miss.join(", ")}</b> — ลองพูดช้าๆ ให้ครบทุกคำ`);
+  if(!tips.length && wrong.length)
+    tips.push(`คำที่ยังไม่ตรงคือ <b>${wrong.map(o=>o.t).join(", ")}</b> — กดปุ่มฝึกทีละคำด้านล่างได้ครับ`);
+  if(S.length > T.length + 2)
+    tips.push("พูดเกินมาหลายคำ ลองพูดเฉพาะประโยคที่ให้ไว้ สั้นๆ ชัดๆ ก็พอ");
+
+  return tips.slice(0, 3);
+}
+
+/* แสดงผลเป็น HTML: ประโยคที่ถูก โดยระบายสีทีละคำว่าถูก/ผิด/ขาด */
+function coachHtml(target, said){
+  const T = norm(target).split(" ").filter(Boolean);
+  const S = norm(said || "").split(" ").filter(Boolean);
+  const ops = alignWords(T, S);
+  const tw = String(target).split(/\s+/);   /* คำจริงพร้อมเครื่องหมาย ไว้แสดงผล */
+  let ti = 0;
+  const marked = ops.filter(o => o.op !== "extra").map(o=>{
+    const disp = tw[ti++] || o.t;
+    const cls = o.op === "ok" ? "w-ok" : o.op === "wrong" ? "w-bad" : "w-miss";
+    const title = o.op === "wrong" ? ` title="คุณพูดว่า ${esc(o.s)}"` : "";
+    return `<span class="${cls}"${title}>${esc(disp)}</span>`;
+  }).join(" ");
+  const extra = ops.filter(o => o.op === "extra").map(o => o.s);
+  const tips = coachTips(target, said, ops);
+  const okCount = ops.filter(o => o.op === "ok").length;
+
+  return `
+    <div class="coach">
+      <div class="coach-head">พูดถูก ${okCount} จาก ${T.length} คำ</div>
+      <div class="coach-sent">${marked}</div>
+      <div class="coach-key">
+        <span><i class="k-ok"></i>ถูก</span>
+        <span><i class="k-bad"></i>ผิดคำ</span>
+        <span><i class="k-miss"></i>ไม่ได้พูด</span>
+      </div>
+      ${extra.length ? `<div class="coach-extra">คำที่พูดเกินมา: ${esc(extra.join(", "))}</div>` : ""}
+      ${tips.length ? `<ul class="coach-tips">${tips.map(t=>`<li>${t}</li>`).join("")}</ul>` : ""}
+    </div>`;
+}
+
+/* อ่านประโยคทีละคำ ช้าๆ พร้อมไฮไลต์คำที่กำลังอ่าน */
+let wordTimer = null;
+function playWordByWord(target, container){
+  clearTimeout(wordTimer);
+  const words = String(target).split(/\s+/);
+  const box = container.querySelector(".coach-sent");
+  if(!box) { speak(target, true); return; }
+  const spans = box.querySelectorAll("span");
+  let i = 0;
+  const step = ()=>{
+    spans.forEach(sp => sp.classList.remove("w-now"));
+    if(i >= words.length){ setTimeout(()=>speak(target, true), 400); return; }
+    if(spans[i]) spans[i].classList.add("w-now");
+    speak(words[i].replace(/[^A-Za-z']/g, ""));
+    i++;
+    wordTimer = setTimeout(step, 900);
+  };
+  step();
+}
+
 function bestScore(target, alts){
   let best = 0, bestText = alts[0]||"";
   alts.forEach(a=>{ const sc = scoreSpeech(target,a); if(sc>best){ best=sc; bestText=a; } });
@@ -1008,15 +1811,19 @@ function nav(name, data){
   render();
 }
 function render(){
-  const f = ({home:viewHome, review:viewReview, talk:viewTalk, me:viewMe, lesson:viewLesson})[VIEW.name] || viewHome;
+  const f = ({home:viewHome, review:viewReview, talk:viewTalk, me:viewMe,
+              lesson:viewLesson, up:viewUpgrade, place:viewPlacement})[VIEW.name] || viewHome;
   f();
 }
 $("#backBtn").addEventListener("click", ()=>{
   if(VIEW.name === "talk" && T){ T = null; render(); return; }
+  if(VIEW.name === "up" && U && U.drill){ U = null; render(); return; }
+  if(VIEW.name === "place"){ P = null; nav("home"); return; }
   nav("home");
 });
 document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   if(b.dataset.tab === "talk") T = null;
+  if(b.dataset.tab === "up") U = null;
   nav(b.dataset.tab);
 }));
 $("#themeBtn").addEventListener("click", ()=>{
@@ -1029,14 +1836,23 @@ if(S.theme) document.documentElement.setAttribute("data-theme", S.theme);
 addEventListener("scroll", ()=> $("#topbar").classList.toggle("scrolled", scrollY>4));
 
 /* ================== ความคืบหน้าของบท ================== */
+const unitsOf = (lv)=> COURSE.filter(u => u.level === lv);
+const scenesOf = (lv)=> SCENES.filter(sc => sc.level === lv);
+function levelPct(lv){
+  const us = unitsOf(lv);
+  if(!us.length) return 0;
+  return Math.round(us.reduce((a,u)=>a+unitPct(u),0) / us.length);
+}
 function unitPct(u){
   let seen=0, strong=0;
   u.words.forEach((w,i)=>{ const c=S.srs[cardKey(u,i)]; if(c){ seen++; if(c.box>=2) strong++; } });
   return Math.round((seen/u.words.length)*55 + (strong/u.words.length)*45);
 }
 function nextUnit(){
+  const inLevel = unitsOf(S.level || "L1");
+  for(const u of inLevel){ if(unitPct(u) < 80) return u; }
   for(const u of COURSE){ if(unitPct(u) < 80) return u; }
-  return COURSE[0];
+  return inLevel[0] || COURSE[0];
 }
 
 /* ================== หน้าแรก ================== */
@@ -1093,11 +1909,36 @@ function viewHome(){
       </div>
     </div>`}
 
-    <div class="sect-title">บทเรียนทั้งหมด (${COURSE.length} บท • ${COURSE.length*12} ประโยค)</div>
+    ${S.placed ? "" : `<div class="card" style="border:2px dashed var(--brand)">
+      <b>🎯 ยังไม่รู้ว่าตัวเองอยู่ระดับไหน?</b>
+      <div class="small muted" style="margin-top:4px">ทำแบบวัดระดับ 12 ข้อ ใช้เวลาไม่ถึง 2 นาที แล้วแอปจะบอกว่าควรเริ่มตรงไหน</div>
+      <div class="row"><button class="btn primary wide" id="goPlace">เริ่มวัดระดับ</button></div>
+    </div>`}
+
+    <div class="sect-title">เลือกระดับ (${COURSE.length} บท • ${COURSE.length*12} ประโยค)</div>
+    <div id="levelBar"></div>
+    <div id="levelInfo"></div>
     <div id="units"></div>`;
 
+  /* แถบเลือกระดับ */
+  const lb = $("#levelBar");
+  lb.className = "levelbar";
+  LEVELS.forEach(L=>{
+    const p = levelPct(L.id);
+    const b = el(`<button class="lvbtn ${S.level===L.id?"on":""}">
+        <span class="lvn">${L.emoji} ${L.n}</span>
+        <span class="lvp">${p}%</span></button>`);
+    b.onclick = ()=>{ S.level = L.id; save(); render(); };
+    lb.appendChild(b);
+  });
+  const L = LEVELS.find(x=>x.id===S.level) || LEVELS[0];
+  $("#levelInfo").innerHTML = `<div class="card" style="padding:12px">
+      <b>${L.emoji} ระดับ ${L.n} · ${esc(L.name)} <span class="pill">${esc(L.cefr)}</span></b>
+      <div class="small muted" style="margin-top:3px">${esc(L.sub)}</div>
+    </div>`;
+
   const ul = $("#units");
-  COURSE.forEach((u,idx)=>{
+  unitsOf(S.level).forEach((u,idx)=>{
     const p = unitPct(u);
     const b = el(`<button class="unit ${p>=80?"done":""}">
       <div class="num">${p>=80 ? "✓" : idx+1}</div>
@@ -1113,6 +1954,7 @@ function viewHome(){
   });
   $("#goNext").addEventListener("click", ()=>startLesson(nu));
   if($("#goReview")) $("#goReview").addEventListener("click", ()=>nav("review"));
+  if($("#goPlace")) $("#goPlace").addEventListener("click", ()=>nav("place"));
   $("#soundTest").addEventListener("click", ()=>{
     warnedNoSound = false; ttsProven = false; hideSoundHelp();
     speak("Hello! Can you hear me?");
@@ -1174,8 +2016,18 @@ function speakCard(cfg){
                : score>=45 ? "เกือบแล้ว ลองฟังแล้วพูดตามอีกครั้ง"
                : "ยังไม่ตรง ลองกด 🐢 ฟังช้าๆ แล้วพูดตามทีละคำ";
     fb.innerHTML = `<div class="feedback ${cls}">${head} (${score}%)
-        <div class="heard">แอปได้ยินว่า: “${esc(text||"—")}”</div>
-        <div class="heard">ประโยคที่ถูก: “${esc(cfg.target)}”</div></div>`;
+        <div class="heard">แอปได้ยินว่า: “${esc(text||"—")}”</div></div>`
+      + (ok && score >= 95 ? "" : coachHtml(cfg.target, text));
+    const coachBox = fb.querySelector(".coach");
+    if(coachBox){
+      const tools = el(`<div class="row" style="margin-top:10px">
+          <button class="btn sm" id="cWord">🔤 ฟังทีละคำ</button>
+          <button class="btn sm" id="cSlow">🐢 ฟังช้าๆ ทั้งประโยค</button>
+        </div>`);
+      coachBox.appendChild(tools);
+      tools.querySelector("#cWord").onclick = ()=>playWordByWord(cfg.target, coachBox);
+      tools.querySelector("#cSlow").onclick = ()=>speak(cfg.target, true);
+    }
     micArea.innerHTML = "";
     $("#navRow").innerHTML = "";
     const again = el(`<button class="btn sm">🔁 ลองใหม่</button>`);
@@ -1564,7 +2416,16 @@ function talkPicker(){
     </div>
     <div id="scenes"></div>`;
   const box = $("#scenes");
-  SCENES.forEach((sc, i)=>{
+  LEVELS.forEach(L=>{
+    const list = scenesOf(L.id);
+    if(!list.length) return;
+    box.appendChild(el(`<div class="sect-title">${L.emoji} ระดับ ${L.n} · ${esc(L.name)}</div>`));
+    renderScenes(list, box);
+  });
+}
+
+function renderScenes(list, box){
+  list.forEach((sc, i)=>{
     const done = (S.scenes && S.scenes[sc.id]) || 0;
     const b = el(`<button class="unit ${done>=80?"done":""}">
       <div class="num">${done>=80 ? "✓" : sc.emoji}</div>
@@ -1705,7 +2566,17 @@ function talkScene(){
         ${head} ${esc(best.why || "")}
         <div class="heard">แอปได้ยินว่า: “${esc(bestText)}” (ตรง ${best.sim}%)</div>
         ${lastTry ? `<div class="heard">ประโยคที่ถูกคือ: “${esc(turn.model)}” — ${esc(turn.modelTh)}</div>` : ""}
-      </div>`;
+      </div>`
+      + coachHtml(turn.model, bestText);
+    const cb = fb.querySelector(".coach");
+    if(cb){
+      const tools = el(`<div class="row" style="margin-top:10px">
+          <button class="btn sm" id="tWord">🔤 ฟังทีละคำ</button>
+          <button class="btn sm" id="tSlow">🐢 ฟังช้าๆ</button></div>`);
+      cb.appendChild(tools);
+      tools.querySelector("#tWord").onclick = ()=>playWordByWord(turn.model, cb);
+      tools.querySelector("#tSlow").onclick = ()=>speak(turn.model, true);
+    }
     if(lastTry){
       speak(turn.model, true);
       const row = el(`<div class="row"></div>`);
@@ -1749,6 +2620,171 @@ function talkSummary(){
   const scene = T.scene;
   $("#again").onclick = ()=>{ T = {scene, pos:0, tries:0, msgs:[], right:0, total:0}; render(); };
   $("#other").onclick = ()=>{ T = null; render(); };
+}
+
+/* ================== แบบวัดระดับ ================== */
+let P = null;   /* {items, pos, right} */
+
+function buildPlacement(){
+  const pick = (lv, n)=>{
+    const pool = [];
+    unitsOf(lv).forEach(u => u.words.forEach((w,i)=> pool.push({u, i, w, lv})));
+    return shuffle(pool).slice(0, n);
+  };
+  const items = [...pick("L1",3), ...pick("L2",3), ...pick("L3",3), ...pick("L4",3)];
+  return items.map(it=>{
+    const wrong = shuffle(COURSE.flatMap(u=>u.words).filter(w=>w.th !== it.w.th)).slice(0,3);
+    return { ...it, options: shuffle([it.w, ...wrong]) };
+  });
+}
+
+function viewPlacement(){
+  setTitle("วัดระดับของคุณ", "12 ข้อ ไม่ถึง 2 นาที", true);
+  if(!P) P = { items: buildPlacement(), pos:0, right:0, byLevel:{L1:0,L2:0,L3:0,L4:0} };
+  const it = P.items[P.pos];
+
+  if(!it){
+    /* ให้ผ่านระดับหนึ่งๆ ต้องตอบถูกอย่างน้อย 2 จาก 3 ข้อของระดับนั้น */
+    let rec = "L1";
+    ["L1","L2","L3","L4"].forEach(lv=>{ if(P.byLevel[lv] >= 2) rec = lv; });
+    const nextIdx = Math.min(3, LEVELS.findIndex(l=>l.id===rec) + (P.byLevel[rec] === 3 ? 1 : 0));
+    const start = LEVELS[nextIdx] || LEVELS[0];
+    const score = P.right, byLevel = P.byLevel;
+    P = null;
+    S.level = start.id; S.placed = true; save();
+    scr().innerHTML = `
+      <div class="card center">
+        <div class="confetti">${start.emoji}</div>
+        <h2 style="margin:8px 0 2px">คุณควรเริ่มที่ ระดับ ${start.n}</h2>
+        <div style="font-size:17px; font-weight:800; color:var(--brand)">${esc(start.name)} <span class="pill">${esc(start.cefr)}</span></div>
+        <div class="small muted" style="margin-top:6px">${esc(start.sub)}</div>
+        <div class="small muted" style="margin-top:12px">ตอบถูก ${score} จาก 12 ข้อ</div>
+        <div class="statrow">
+          ${LEVELS.map(l=>`<div class="stat"><b>${byLevel[l.id]}/3</b><span>ระดับ ${l.n}</span></div>`).join("")}
+        </div>
+        <div class="small muted" style="margin-top:12px">
+          ไม่ต้องกังวลถ้าได้ระดับต่ำ — ระดับล่างคือรากฐาน ยิ่งแน่นยิ่งไปได้ไกล
+          และคุณเปลี่ยนระดับเองได้ตลอดจากแถบด้านบนหน้าแรก
+        </div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn" id="again">วัดใหม่</button>
+          <button class="btn primary" id="go">ไปเรียนระดับ ${start.n}</button>
+        </div>
+      </div>`;
+    $("#again").onclick = ()=>{ S.placed = false; save(); nav("place"); };
+    $("#go").onclick = ()=>nav("home");
+    return;
+  }
+
+  const pct = Math.round(P.pos / P.items.length * 100);
+  scr().innerHTML = `
+    <div class="lesson-top"><div class="bar"><i style="width:${pct}%"></i></div>
+      <span class="tiny muted">${P.pos+1}/${P.items.length}</span></div>
+    <div class="card">
+      <span class="steplabel">ระดับ ${LEVELS.find(l=>l.id===it.lv).n}</span>
+      <div class="small muted">ประโยคนี้แปลว่าอะไร</div>
+      <div class="word-en" style="font-size:25px">${esc(it.w.en)}</div>
+      <div class="row"><button class="btn sm" id="pl">🔊 ฟัง</button></div>
+      <div style="margin-top:14px" id="opts"></div>
+      <div id="fb"></div>
+    </div>`;
+  $("#pl").onclick = ()=>speak(it.w.en);
+  const box = $("#opts");
+  it.options.forEach(o=>{
+    const b = el(`<button class="choice">${esc(o.th)}</button>`);
+    b.onclick = ()=>{
+      if(box.dataset.done) return;
+      box.dataset.done = "1";
+      const ok = o.th === it.w.th;
+      b.classList.add(ok ? "right" : "wrong");
+      if(!ok) [...box.children].forEach(c=>{ if(c.textContent === it.w.th) c.classList.add("right"); });
+      if(ok){ P.right++; P.byLevel[it.lv]++; }
+      $("#fb").innerHTML = `<div class="feedback ${ok?"good":"bad"}">${ok?"ถูกต้อง":"ที่ถูกคือ"} — <b>${esc(it.w.en)}</b> = ${esc(it.w.th)}</div>`;
+      const row = el(`<div class="row"><button class="btn primary">ต่อไป →</button></div>`);
+      row.firstElementChild.onclick = ()=>{ P.pos++; render(); };
+      $("#fb").appendChild(row);
+    };
+    box.appendChild(b);
+  });
+}
+
+/* ================== หน้ายกระดับ: พูดให้เหมือนเจ้าของภาษา ================== */
+let U = null;   /* {cat} หรือ {drill:[...], pos} */
+
+function viewUpgrade(){
+  setTitle("พูดให้เหมือนเจ้าของภาษา", "ประโยคเดียวกัน 3 ระดับ ต่างกันตรงไหน", !!(U && U.drill));
+  if(U && U.drill){ upgradeDrill(); return; }
+
+  const cats = [...new Set(UPGRADES.map(u => u.cat))];
+  const cat = (U && U.cat) || cats[0];
+  scr().innerHTML = `
+    <div class="card">
+      <b style="font-size:16px">ทำไมพูดถูกแล้วยังฟังดูแปลก?</b>
+      <div class="small muted" style="margin-top:6px">
+        เพราะประโยคที่ “ถูกไวยากรณ์” กับประโยคที่ “เจ้าของภาษาใช้จริง” มักไม่ใช่อันเดียวกัน
+        หน้านี้เทียบให้เห็น 3 ระดับของประโยคเดียวกัน พร้อมบอกว่าต่างกันตรงไหน
+      </div>
+      <div class="row"><button class="btn primary wide" id="drill">🎤 ฝึกพูดระดับเจ้าของภาษา ${UPGRADES.length} ประโยค</button></div>
+    </div>
+    <div id="catbar" class="levelbar" style="flex-wrap:wrap"></div>
+    <div id="list"></div>`;
+
+  const cb = $("#catbar");
+  cats.forEach(c=>{
+    const b = el(`<button class="lvbtn ${c===cat?"on":""}" style="flex:0 0 auto; padding:8px 12px"><span class="lvn">${esc(c)}</span></button>`);
+    b.onclick = ()=>{ U = {cat:c}; render(); };
+    cb.appendChild(b);
+  });
+
+  const list = $("#list");
+  UPGRADES.filter(u => u.cat === cat).forEach(u=>{
+    const card = el(`<div class="card">
+      <div class="tiny muted" style="font-weight:800">สถานการณ์: ${esc(u.th)}</div>
+      <div class="tier t-basic"><span class="tag">พื้นฐาน</span><b>${esc(u.basic)}</b></div>
+      <div class="tier t-better"><span class="tag">ดีขึ้น</span><b>${esc(u.better)}</b></div>
+      <div class="tier t-native"><span class="tag">เจ้าของภาษา</span><b>${esc(u.native)}</b></div>
+      <div class="upnote">💡 ${u.note}</div>
+      <div class="row">
+        <button class="btn sm" data-say="${esc(u.better)}">🔊 แบบดีขึ้น</button>
+        <button class="btn sm" data-say="${esc(u.native)}">🔊 แบบเจ้าของภาษา</button>
+      </div>
+    </div>`);
+    card.querySelectorAll("[data-say]").forEach(b => b.onclick = ()=>speak(b.dataset.say));
+    list.appendChild(card);
+  });
+
+  $("#drill").onclick = ()=>{ U = {drill: shuffle(UPGRADES).slice(0,10), pos:0, right:0}; render(); };
+}
+
+function upgradeDrill(){
+  const it = U.drill[U.pos];
+  if(!it){
+    const r = U.right, n = U.drill.length;
+    U = null;
+    scr().innerHTML = `<div class="card center">
+        <div class="confetti">🎓</div>
+        <h2 style="margin:8px 0 2px">ฝึกครบแล้ว!</h2>
+        <div class="small muted">พูดได้ระดับเจ้าของภาษา ${r} จาก ${n} ประโยค</div>
+        <div class="row" style="margin-top:14px"><button class="btn primary wide" id="back">กลับไปดูรายการ</button></div>
+      </div>`;
+    $("#back").onclick = ()=>render();
+    return;
+  }
+  const pct = Math.round(U.pos / U.drill.length * 100);
+  speakCard({
+    label:"พูดแบบเจ้าของภาษา",
+    target: it.native,
+    autoPlay: false,
+    top:`<div class="lesson-top"><div class="bar"><i style="width:${pct}%"></i></div>
+         <span class="tiny muted">${U.pos+1}/${U.drill.length}</span></div>`,
+    promptHtml:`<div class="tiny muted" style="font-weight:800">สถานการณ์: ${esc(it.th)}</div>
+      <div class="tier t-basic" style="margin-top:8px"><span class="tag">อย่าพูดแบบนี้</span><b>${esc(it.basic)}</b></div>
+      <div class="small muted" style="margin-top:10px">พูดประโยคระดับเจ้าของภาษาแทน — กด 💡 ถ้าจำไม่ได้</div>
+      <details style="margin-top:6px"><summary class="small muted" style="cursor:pointer">💡 ขอดูประโยค</summary>
+        <div style="font-size:19px; font-weight:800; margin-top:6px; color:var(--ok)">${esc(it.native)}</div>
+        <div class="upnote" style="margin-top:8px">💡 ${it.note}</div></details>`,
+    onDone:(ok)=>{ if(ok){ U.right++; addXP(1); } U.pos++; render(); }
+  });
 }
 
 /* ================== หน้าตั้งค่า / วิธีใช้ ================== */
@@ -1801,17 +2837,19 @@ function viewMe(){
         <b>2. พูดออกเสียงดังๆ เสมอ</b> — ห้ามอ่านในใจ ปากต้องขยับ กล้ามเนื้อปากต้องจำ<br>
         <b>3. จำเป็น “ประโยค” ไม่ใช่คำเดี่ยว</b> — แอปนี้ให้คุณจำทั้งก้อน จะได้พูดออกมาได้ทันทีโดยไม่ต้องแต่งประโยคเอง<br>
         <b>4. ผิดได้ ไม่ต้องอาย</b> — คนที่พูดผิดบ่อยคือคนที่เก่งเร็วที่สุด<br>
-        <b>5. อย่าเพิ่งเรียนไวยากรณ์</b> — เอาให้พูดได้ก่อน แล้วค่อยเข้าใจกฎทีหลัง<br>
-        <b>6. ทบทวนทุกวัน</b> — แอปจะเลือกคำที่คุณ “กำลังจะลืม” มาให้พอดี กดแท็บ 🔁 ทบทวน
+        <b>5. ผิดแล้วต้องรู้ว่าผิดตรงไหน</b> — ทุกครั้งที่พูดผิด แอปจะระบายสีให้เห็นทีละคำ ว่าคำไหนถูก คำไหนขาด แล้วบอกเป็นภาษาไทยว่าต้องแก้ยังไง<br>
+        <b>6. อย่าเพิ่งเรียนไวยากรณ์</b> — เอาให้พูดได้ก่อน แล้วค่อยเข้าใจกฎทีหลัง<br>
+        <b>7. ทบทวนทุกวัน</b> — แอปจะเลือกคำที่คุณ “กำลังจะลืม” มาให้พอดี กดแท็บ 🔁 ทบทวน
       </div>
     </div>
 
     <div class="card">
       <b>ใช้ยังไงให้ไม่หลง</b>
       <div class="small muted" style="margin-top:8px; line-height:1.9">
-        🏠 <b>บทเรียน</b> — เรียนเรียงจากบทที่ 1 ไปเรื่อยๆ<br>
+        🏠 <b>บทเรียน</b> — เลือกระดับด้านบน แล้วเรียนเรียงทีละบท<br>
         🔁 <b>ทบทวน</b> — เข้ามาทุกวันตอนเช้า ใช้เวลา 3–5 นาที<br>
-        💬 <b>คุยกับติวเตอร์</b> — เลือกสถานการณ์ แล้วคุยโต้ตอบด้วยเสียงจริง ทั้งตอบและถามกลับ<br>
+        💬 <b>คุยโต้ตอบ</b> — เลือกสถานการณ์ แล้วคุยด้วยเสียงจริง ทั้งตอบและถามกลับ<br>
+        🎓 <b>ยกระดับ</b> — เทียบประโยคเดียวกัน 3 ระดับ ว่าเจ้าของภาษาพูดยังไง<br>
         ⌨️ ถ้าอยู่ที่เงียบไม่ได้ กดปุ่ม “พิมพ์แทน” ในหน้าฝึกพูดได้
       </div>
     </div>
