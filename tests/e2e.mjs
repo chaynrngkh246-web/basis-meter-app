@@ -171,14 +171,62 @@ await t('ทบทวน: ตอบข้อแรกแล้วไปข้อ
   if (before === after) throw new Error('ไม่ขยับไปข้อถัดไป');
 });
 
-await t('แท็บคุยกับติวเตอร์ถามคำถามและรับคำตอบได้', async () => {
+await t('แท็บคุยกับติวเตอร์: มีสถานการณ์ให้เลือก', async () => {
   await page.click('[data-tab="talk"]');
-  await page.waitForSelector('.msg.bot', { timeout: 3000 });
+  await page.waitForSelector('.unit', { timeout: 3000 });
+  const n = await page.locator('.unit').count();
+  if (n !== 6) throw new Error('เจอ ' + n + ' สถานการณ์');
+});
+
+await t('คุย: ติวเตอร์ทักทายก่อน แล้วบอกว่าตาคุณตอบอะไร', async () => {
+  await page.locator('.unit').first().click();
+  await page.waitForSelector('#micBtn', { timeout: 3000 });
+  const bot = await page.textContent('.msg.bot');
+  if (!/what is your name/i.test(bot)) throw new Error('ติวเตอร์ไม่ได้ถามชื่อ: ' + bot.slice(0, 60));
+  const hint = await page.textContent('.hintbox');
+  if (!/ตาคุณตอบ/.test(hint)) throw new Error('ไม่มีคำสั่งบอกว่าต้องพูดอะไร');
+});
+
+// เคสสำคัญที่สุด: ตอบมั่วต้องไม่ผ่าน (บั๊กเดิมคือพูดยาว 4 คำอะไรก็ได้ก็ผ่าน)
+await t('คุย: ตอบมั่วต้องไม่ผ่าน และต้องอยู่ตาเดิม', async () => {
+  const before = await page.textContent('.lesson-top');
+  await page.evaluate(() => { window.__nextSaid = 'banana helicopter yesterday window'; });
+  await page.click('#micBtn');
+  await page.waitForSelector('#fb .feedback', { timeout: 3000 });
+  const fb = await page.textContent('#fb .feedback');
+  if (!/ยังไม่ใช่|เกือบแล้ว/.test(fb)) throw new Error('ตอบมั่วแล้วผ่าน: ' + fb.slice(0, 70));
+  if (!/ยังไม่มีคำว่า/.test(fb)) throw new Error('ไม่ได้บอกว่าผิดตรงไหน: ' + fb.slice(0, 90));
+  await page.waitForTimeout(400);
+  const after = await page.textContent('.lesson-top');
+  if (before !== after) throw new Error('ตอบมั่วแล้วยังเลื่อนไปตาถัดไป');
+});
+
+await t('คุย: ตอบถูกแล้วติวเตอร์ตอบกลับ และเลื่อนไปตาถัดไป', async () => {
+  await page.click('#fb .btn.primary');           // ลองใหม่อีกครั้ง
   await page.evaluate(() => { window.__nextSaid = 'My name is Somchai'; });
   await page.click('#micBtn');
-  await page.waitForTimeout(400);
-  const n = await page.locator('.msg.me').count();
-  if (!n) throw new Error('ไม่มีข้อความของผู้ใช้');
+  await page.waitForTimeout(2800);
+  const top = await page.textContent('.lesson-top');
+  if (!/ตาที่ 2/.test(top)) throw new Error('ไม่เลื่อนไปตาที่ 2: ' + top);
+  const chat = await page.innerText('#chat');
+  if (!/Nice to meet you/.test(chat)) throw new Error('ติวเตอร์ไม่ได้ตอบกลับตามเนื้อหา');
+});
+
+await t('คุย: ตอบผิดสองครั้งแล้วต้องเฉลยประโยคที่ถูกให้', async () => {
+  await page.evaluate(() => { window.__nextSaid = 'zzz qqq'; });
+  await page.click('#micBtn');
+  await page.waitForSelector('#fb .feedback', { timeout: 3000 });
+  await page.click('#fb .btn.primary');           // ลองใหม่
+  await page.click('#micBtn');
+  await page.waitForSelector('#fb .feedback', { timeout: 3000 });
+  const fb = await page.innerText('#fb');
+  if (!/ประโยคที่ถูกคือ/.test(fb)) throw new Error('ไม่เฉลยประโยคที่ถูก');
+});
+
+await t('คุย: มีตาที่ผู้เรียนต้องเป็นฝ่ายถามกลับ', async () => {
+  const hasAsk = await page.evaluate(() =>
+    SCENES.every(sc => sc.turns.some(t => t.askBack && t.botReply)));
+  if (!hasAsk) throw new Error('บางสถานการณ์ไม่มีตาให้ผู้เรียนถามกลับ');
 });
 
 await t('แท็บตั้งค่าเปิดได้', async () => {

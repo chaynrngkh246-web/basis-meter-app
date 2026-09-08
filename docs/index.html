@@ -483,36 +483,230 @@ const COURSE = [
   ]}}
 ];
 
-/* ====== คลังคำถามสำหรับโหมด "คุยกับติวเตอร์" ====== */
-const TALK_BANK = [
- {q:"Hello! What is your name?", qth:"สวัสดี คุณชื่ออะไร", hint:"My name is Somchai.", hintth:"ผมชื่อสมชาย", keys:["name","i am","my"]},
- {q:"Nice to meet you. How are you today?", qth:"ยินดีที่ได้รู้จัก วันนี้เป็นยังไงบ้าง", hint:"I am fine, thank you.", hintth:"สบายดี ขอบคุณ", keys:["fine","good","ok","great","tired","happy","not"]},
- {q:"Where are you from?", qth:"คุณมาจากไหน", hint:"I am from Thailand.", hintth:"ผมมาจากประเทศไทย", keys:["from","thailand","bangkok","i am"]},
- {q:"How old are you?", qth:"คุณอายุเท่าไหร่", hint:"I am thirty years old.", hintth:"ผมอายุสามสิบปี", keys:["years","old","i am","am"]},
- {q:"Do you have brothers or sisters?", qth:"คุณมีพี่น้องไหม", hint:"Yes, I have one brother.", hintth:"มีครับ ผมมีพี่ชายหนึ่งคน", keys:["yes","no","brother","sister","have"]},
- {q:"What do you do?", qth:"คุณทำงานอะไร", hint:"I work at a factory.", hintth:"ผมทำงานที่โรงงาน", keys:["work","i am","teacher","student","driver","job"]},
- {q:"What time do you wake up?", qth:"คุณตื่นกี่โมง", hint:"I wake up at six.", hintth:"ผมตื่นหกโมง", keys:["wake","at","o'clock","six","seven","five","eight"]},
- {q:"What do you eat for breakfast?", qth:"มื้อเช้าคุณกินอะไร", hint:"I eat rice and eggs.", hintth:"ผมกินข้าวกับไข่", keys:["eat","rice","bread","coffee","egg","nothing","i"]},
- {q:"Do you like coffee?", qth:"คุณชอบกาแฟไหม", hint:"Yes, I like coffee.", hintth:"ชอบครับ ผมชอบกาแฟ", keys:["yes","no","like","coffee","tea"]},
- {q:"What is your favorite food?", qth:"อาหารที่คุณชอบที่สุดคืออะไร", hint:"My favorite food is fried rice.", hintth:"อาหารที่ผมชอบคือข้าวผัด", keys:["favorite","food","like","rice","chicken","noodle"]},
- {q:"Are you busy today?", qth:"วันนี้คุณยุ่งไหม", hint:"No, I am free today.", hintth:"ไม่ วันนี้ผมว่าง", keys:["yes","no","busy","free","today"]},
- {q:"How is the weather today?", qth:"วันนี้อากาศเป็นยังไง", hint:"It is hot today.", hintth:"วันนี้ร้อน", keys:["hot","cold","rain","sunny","it is","good"]},
- {q:"Where do you live?", qth:"คุณอยู่ที่ไหน", hint:"I live in Bangkok.", hintth:"ผมอยู่กรุงเทพ", keys:["live","in","i"]},
- {q:"How do you go to work?", qth:"คุณไปทำงานยังไง", hint:"I go by motorbike.", hintth:"ผมไปด้วยมอเตอร์ไซค์", keys:["by","go","car","bus","bike","walk","train"]},
- {q:"What do you do on the weekend?", qth:"วันหยุดคุณทำอะไร", hint:"I stay home with my family.", hintth:"ผมอยู่บ้านกับครอบครัว", keys:["i","home","family","sleep","work","rest","go"]},
- {q:"Do you have children?", qth:"คุณมีลูกไหม", hint:"Yes, I have two children.", hintth:"มีครับ ผมมีลูกสองคน", keys:["yes","no","children","child","have","son","daughter"]},
- {q:"Can you speak English?", qth:"คุณพูดอังกฤษได้ไหม", hint:"A little.", hintth:"ได้นิดหน่อย", keys:["little","yes","no","speak","can"]},
- {q:"What did you eat yesterday?", qth:"เมื่อวานคุณกินอะไร", hint:"I ate chicken and rice.", hintth:"ผมกินไก่กับข้าว", keys:["ate","eat","rice","chicken","noodle","i"]},
- {q:"Are you tired now?", qth:"ตอนนี้คุณเหนื่อยไหม", hint:"Yes, I am a little tired.", hintth:"เหนื่อยนิดหน่อย", keys:["yes","no","tired","fine","not"]},
- {q:"Do you like music?", qth:"คุณชอบเพลงไหม", hint:"Yes, I like music.", hintth:"ชอบครับ ผมชอบเพลง", keys:["yes","no","like","music"]},
- {q:"What is your favorite color?", qth:"สีที่คุณชอบคือสีอะไร", hint:"My favorite color is blue.", hintth:"สีที่ผมชอบคือสีน้ำเงิน", keys:["blue","red","green","black","white","color","like"]},
- {q:"Why do you want to speak English?", qth:"ทำไมคุณอยากพูดอังกฤษได้", hint:"I want to speak English for my job.", hintth:"ผมอยากพูดอังกฤษได้เพื่องาน", keys:["work","job","travel","talk","friend","because","want"]},
- {q:"What time do you go home?", qth:"คุณกลับบ้านกี่โมง", hint:"I go home at six.", hintth:"ผมกลับบ้านหกโมงเย็น", keys:["go","home","at","o'clock","six","five"]},
- {q:"Thank you for talking with me. See you tomorrow?", qth:"ขอบคุณที่คุยกันนะ พรุ่งนี้เจอกันไหม", hint:"Yes, see you tomorrow!", hintth:"ได้ แล้วพรุ่งนี้เจอกัน", keys:["yes","see you","tomorrow","ok","bye"]}
-];
+/* ====== บทสนทนาสำหรับโหมด "คุยกับติวเตอร์" ======
+   แต่ละฉากคือบทสนทนาจริงที่โต้ตอบกันไปมา ไม่ใช่คำถามลอยๆ
+   ผู้เรียนได้ทั้ง "ตอบ" และ "ถามกลับ" ติวเตอร์จะตอบตามเนื้อหาที่ถูกถาม
 
-const PRAISE = ["Good job!","Nice!","Very good!","That is great.","Well done!","Perfect!"];
-const SOFT   = ["OK, I understand.","Thank you for telling me.","I see.","Got it."];
+   วิธีตรวจคำตอบของแต่ละเทิร์น:
+     need  = ชุดคำที่ต้องมีครบ (มีชุดใดชุดหนึ่งก็พอ) — เป็นโครงประโยค
+     oneOf = ต้องมีอย่างน้อยหนึ่งคำจากลิสต์นี้ (เช่น ต้องมีตัวเลข)
+     extra = ต้องมีคำอื่นเพิ่มจากโครงกี่คำ (เช่น ชื่อ อาชีพ)
+   ตอบมั่วจะไม่ผ่าน เพราะไม่มีโครงประโยคและคะแนนความเหมือนต่ำ         */
+
+const NUMS = ["one","two","three","four","five","six","seven","eight","nine","ten",
+              "eleven","twelve","twenty","thirty","forty","fifty"];
+
+const SCENES = [
+{ id:"intro", emoji:"🤝", title:"แนะนำตัวกับเพื่อนใหม่", sub:"บอกชื่อ บอกว่ามาจากไหน และถามกลับ", who:"Anna",
+  turns:[
+    { bot:"Hello! My name is Anna. What is your name?", botTh:"สวัสดี ฉันชื่อแอนนา คุณชื่ออะไร",
+      say:"บอกชื่อของคุณ", model:"My name is Somchai.", modelTh:"ผมชื่อสมชาย",
+      need:[["my","name","is"],["i","am"],["im"]], extra:1,
+      ok:"Nice to meet you!", okTh:"ยินดีที่ได้รู้จัก" },
+
+    { bot:"Nice to meet you! How are you today?", botTh:"ยินดีที่ได้รู้จัก วันนี้เป็นยังไงบ้าง",
+      say:"บอกว่าสบายดี แล้วขอบคุณ", model:"I am fine, thank you.", modelTh:"สบายดี ขอบคุณ",
+      need:[["fine"],["good"],["great"],["ok"],["happy"],["tired"],["not","good"]], extra:0,
+      ok:"I am happy to hear that.", okTh:"ดีใจที่ได้ยินแบบนั้น" },
+
+    { bot:"Where are you from?", botTh:"คุณมาจากไหน",
+      say:"บอกว่าคุณมาจากประเทศไทย", model:"I am from Thailand.", modelTh:"ผมมาจากประเทศไทย",
+      need:[["i","am","from"],["im","from"],["from"]], extra:1,
+      ok:"Thailand! I want to visit one day.", okTh:"ประเทศไทย! สักวันฉันอยากไปเที่ยว" },
+
+    { askBack:true, bot:"", botTh:"",
+      say:"ถามกลับบ้างว่า “แล้วคุณมาจากไหน”", model:"And where are you from?", modelTh:"แล้วคุณมาจากไหนล่ะ",
+      need:[["where","are","you","from"],["and","you"],["where","you","from"],["how","about","you"]], extra:0,
+      botReply:"I am from Canada. I live in Bangkok now.", botReplyTh:"ฉันมาจากแคนาดา ตอนนี้อยู่กรุงเทพ" },
+
+    { bot:"What do you do?", botTh:"คุณทำงานอะไร",
+      say:"บอกว่าคุณทำงานอะไร (เช่น ครู / ทำงานโรงงาน)", model:"I work at a factory.", modelTh:"ผมทำงานที่โรงงาน",
+      need:[["i","work"],["i","am","a"],["im","a"]], extra:1,
+      ok:"That sounds like hard work!", okTh:"ฟังดูเป็นงานที่หนักเลยนะ" },
+
+    { bot:"It was very nice talking to you. I have to go now.", botTh:"คุยกับคุณสนุกมาก ฉันต้องไปแล้วนะ",
+      say:"บอกลา", model:"See you later! Goodbye.", modelTh:"แล้วเจอกันนะ ลาก่อน",
+      need:[["see","you"],["goodbye"],["bye"],["good","bye"]], extra:0,
+      ok:"Bye bye! Take care.", okTh:"บ๊ายบาย ดูแลตัวเองนะ" }
+  ]},
+
+{ id:"food", emoji:"🍜", title:"สั่งอาหารในร้าน", sub:"สั่งอาหาร ถามราคา และเก็บเงิน", who:"พนักงาน",
+  turns:[
+    { bot:"Hello! Welcome. How many people?", botTh:"สวัสดีค่ะ ยินดีต้อนรับ มากี่คนคะ",
+      say:"บอกจำนวนคน (เช่น สองคน)", model:"Two people, please.", modelTh:"สองคนครับ",
+      need:[[]], oneOf:NUMS, extra:0,
+      ok:"This way, please.", okTh:"เชิญทางนี้ค่ะ" },
+
+    { bot:"Here is the menu. What would you like?", botTh:"นี่เมนูค่ะ รับอะไรดีคะ",
+      say:"สั่งอาหารที่คุณอยากกิน", model:"I want rice and chicken.", modelTh:"ผมขอข้าวกับไก่",
+      need:[["i","want"],["i","would","like"],["can","i","have"],["i","will","have"]], extra:1,
+      ok:"Good choice!", okTh:"เลือกได้ดีค่ะ" },
+
+    { bot:"Anything to drink?", botTh:"รับเครื่องดื่มไหมคะ",
+      say:"สั่งเครื่องดื่ม หรือบอกว่าไม่รับ", model:"One water, please.", modelTh:"ขอน้ำหนึ่งขวดครับ",
+      need:[["water"],["coffee"],["tea"],["coke"],["beer"],["juice"],["no","thank","you"],["nothing"]], extra:0,
+      ok:"OK, coming right up.", okTh:"ได้ค่ะ เดี๋ยวมาค่ะ" },
+
+    { askBack:true, bot:"", botTh:"",
+      say:"ถามว่าราคาเท่าไหร่", model:"How much is it?", modelTh:"ราคาเท่าไหร่ครับ",
+      need:[["how","much"]], extra:0,
+      botReply:"It is two hundred baht.", botReplyTh:"สองร้อยบาทค่ะ" },
+
+    { bot:"Here you are. Enjoy your meal!", botTh:"นี่ค่ะ ทานให้อร่อยนะคะ",
+      say:"กล่าวขอบคุณ", model:"Thank you very much.", modelTh:"ขอบคุณมากครับ",
+      need:[["thank","you"],["thanks"]], extra:0,
+      ok:"You are welcome.", okTh:"ด้วยความยินดีค่ะ" },
+
+    { bot:"How was the food?", botTh:"อาหารเป็นยังไงบ้างคะ",
+      say:"บอกว่าอร่อยมาก", model:"It was delicious!", modelTh:"อร่อยมากเลยครับ",
+      need:[["delicious"],["very","good"],["good"],["it","was"],["i","like","it"]], extra:0,
+      ok:"I am so glad you liked it.", okTh:"ดีใจที่ชอบนะคะ" },
+
+    { bot:"Would you like anything else?", botTh:"รับอะไรเพิ่มไหมคะ",
+      say:"ขอเก็บเงิน", model:"No, the bill please.", modelTh:"ไม่แล้วครับ เก็บเงินด้วย",
+      need:[["bill"],["check"]], extra:0,
+      ok:"Sure, one moment.", okTh:"ได้ค่ะ สักครู่นะคะ" }
+  ]},
+
+{ id:"shop", emoji:"🛍️", title:"ซื้อของและต่อราคา", sub:"ถามราคา ต่อรอง แล้วจ่ายเงิน", who:"แม่ค้า",
+  turns:[
+    { bot:"Hello! Can I help you?", botTh:"สวัสดีค่ะ ให้ช่วยอะไรไหมคะ",
+      say:"บอกว่าขอดูก่อน", model:"I am just looking, thank you.", modelTh:"ขอดูก่อนครับ ขอบคุณ",
+      need:[["just","looking"],["looking"],["no","thank","you"],["yes"]], extra:0,
+      ok:"Sure, take your time.", okTh:"ได้ค่ะ ดูตามสบายเลย" },
+
+    { bot:"Do you like this shirt? It is very popular.", botTh:"ชอบเสื้อตัวนี้ไหมคะ ขายดีมากเลย",
+      say:"บอกว่าชอบ", model:"Yes, I like it.", modelTh:"ครับ ผมชอบ",
+      need:[["yes"],["i","like"],["i","love"],["no"]], extra:0,
+      ok:"It is a good color for you.", okTh:"สีนี้เหมาะกับคุณเลยค่ะ" },
+
+    { askBack:true, bot:"", botTh:"",
+      say:"ถามว่าตัวนี้ราคาเท่าไหร่", model:"How much is this?", modelTh:"อันนี้ราคาเท่าไหร่ครับ",
+      need:[["how","much"]], extra:0,
+      botReply:"This one is five hundred baht.", botReplyTh:"ตัวนี้ห้าร้อยบาทค่ะ" },
+
+    { bot:"", botTh:"",
+      say:"บอกว่ามันแพงไป", model:"That is expensive.", modelTh:"แพงจังเลยครับ",
+      need:[["expensive"],["too","much"],["so","much"]], extra:0,
+      ok:"Hmm, but the quality is very good.", okTh:"อืม แต่คุณภาพดีมากนะคะ" },
+
+    { askBack:true, bot:"", botTh:"",
+      say:"ขอให้ลดราคาหน่อย", model:"Can you give me a discount?", modelTh:"ลดหน่อยได้ไหมครับ",
+      need:[["discount"],["cheaper"],["lower"],["less"]], extra:0,
+      botReply:"OK, OK. Four hundred baht. That is my best price.", botReplyTh:"ได้ๆ สี่ร้อยบาท ราคาดีที่สุดแล้วค่ะ" },
+
+    { bot:"So, do you want it?", botTh:"ตกลงเอาไหมคะ",
+      say:"ตกลงซื้อ", model:"OK, I will take it.", modelTh:"โอเค ผมเอาครับ",
+      need:[["i","will","take","it"],["i","take","it"],["ok"],["yes"],["i","will","buy"]], extra:0,
+      ok:"Great! Thank you.", okTh:"เยี่ยมเลยค่ะ ขอบคุณค่ะ" },
+
+    { askBack:true, bot:"", botTh:"",
+      say:"ถามว่าจ่ายด้วยบัตรได้ไหม", model:"Can I pay by card?", modelTh:"จ่ายด้วยบัตรได้ไหมครับ",
+      need:[["card"]], extra:0,
+      botReply:"Sorry, cash only. There is an ATM over there.", botReplyTh:"ขอโทษค่ะ รับแต่เงินสด มีตู้เอทีเอ็มอยู่ตรงโน้นค่ะ" }
+  ]},
+
+{ id:"way", emoji:"🚕", title:"หลงทาง ถามทางคนอื่น", sub:"ขอความช่วยเหลือ และบอกว่าฟังไม่ทัน", who:"คนแปลกหน้า",
+  turns:[
+    { bot:"Hi! You look lost. Can I help you?", botTh:"สวัสดีครับ คุณดูเหมือนหลงทาง ให้ช่วยไหม",
+      say:"บอกว่าใช่ คุณหลงทาง", model:"Yes, please. I am lost.", modelTh:"ครับ ช่วยหน่อย ผมหลงทาง",
+      need:[["i","am","lost"],["im","lost"],["yes"],["help"]], extra:0,
+      ok:"No problem, I can help.", okTh:"ไม่มีปัญหา ผมช่วยได้" },
+
+    { bot:"Where do you want to go?", botTh:"คุณอยากไปที่ไหนครับ",
+      say:"บอกว่าอยากไปสถานีรถไฟ", model:"I want to go to the train station.", modelTh:"ผมอยากไปสถานีรถไฟ",
+      need:[["i","want","to","go"],["train","station"],["hotel"],["airport"],["i","go","to"]], extra:0,
+      ok:"Ah, I know that place.", okTh:"อ๋อ ผมรู้จักที่นั่น" },
+
+    { bot:"OK. Go straight for two hundred meters, then turn left at the bank, and it is next to the post office.",
+      botTh:"โอเค ตรงไปสองร้อยเมตร แล้วเลี้ยวซ้ายตรงธนาคาร มันอยู่ข้างไปรษณีย์",
+      say:"บอกว่าไม่เข้าใจ ขอให้พูดช้าๆ", model:"Sorry, I do not understand. Please speak slowly.",
+      modelTh:"ขอโทษครับ ผมไม่เข้าใจ ช่วยพูดช้าๆ หน่อย",
+      need:[["slowly"],["repeat"],["do","not","understand"],["dont","understand"],["again"]], extra:0,
+      ok:"Oh, sorry! Go... straight... then... turn... left.", okTh:"โอ้ ขอโทษ ตรง...ไป... แล้ว...เลี้ยว...ซ้าย" },
+
+    { bot:"Do you understand now?", botTh:"ตอนนี้เข้าใจไหมครับ",
+      say:"บอกว่าเข้าใจแล้ว", model:"Yes, I understand now.", modelTh:"ครับ ตอนนี้เข้าใจแล้ว",
+      need:[["i","understand"],["yes"],["no"]], extra:0,
+      ok:"Good!", okTh:"ดีเลย" },
+
+    { askBack:true, bot:"", botTh:"",
+      say:"ถามว่าไกลไหม", model:"Is it far?", modelTh:"ไกลไหมครับ",
+      need:[["is","it","far"],["far"],["near"],["how","far"]], extra:0,
+      botReply:"No, it is very near. About five minutes on foot.", botReplyTh:"ไม่ไกลเลย ใกล้มาก เดินประมาณห้านาที" },
+
+    { bot:"", botTh:"",
+      say:"ขอบคุณเขา", model:"Thank you very much for your help.", modelTh:"ขอบคุณมากสำหรับความช่วยเหลือ",
+      need:[["thank","you"],["thanks"]], extra:0,
+      ok:"You are welcome. Have a good trip!", okTh:"ยินดีครับ เดินทางปลอดภัยนะ" }
+  ]},
+
+{ id:"work", emoji:"💼", title:"คุยเรื่องงานกับเพื่อนร่วมงาน", sub:"เล่าเรื่องงาน และนัดเจอกัน", who:"Tom",
+  turns:[
+    { bot:"Hey! Good morning. What do you do here?", botTh:"เฮ้ อรุณสวัสดิ์ คุณทำงานอะไรที่นี่",
+      say:"บอกว่าคุณทำงานอะไร", model:"I work at a factory.", modelTh:"ผมทำงานที่โรงงาน",
+      need:[["i","work"],["i","am","a"],["im","a"]], extra:1,
+      ok:"Oh, I see. Interesting.", okTh:"อ๋อ เข้าใจแล้ว น่าสนใจนะ" },
+
+    { bot:"Do you like your job?", botTh:"ชอบงานของคุณไหม",
+      say:"บอกว่าชอบงานของคุณ", model:"Yes, I like my job.", modelTh:"ครับ ผมชอบงานของผม",
+      need:[["i","like"],["yes"],["no"],["i","do","not","like"]], extra:0,
+      ok:"That is important.", okTh:"นั่นสำคัญมากเลย" },
+
+    { bot:"What time do you start work?", botTh:"คุณเริ่มงานกี่โมง",
+      say:"บอกเวลาที่เริ่มงาน (เช่น แปดโมง)", model:"I start at eight o'clock.", modelTh:"ผมเริ่มแปดโมง",
+      need:[[]], oneOf:NUMS, extra:0,
+      ok:"That is early!", okTh:"เช้าจังเลย" },
+
+    { askBack:true, bot:"", botTh:"",
+      say:"ถามกลับว่าเขาทำงานอะไร", model:"And what do you do?", modelTh:"แล้วคุณทำงานอะไรล่ะ",
+      need:[["what","do","you","do"],["and","you"],["how","about","you"]], extra:0,
+      botReply:"I am an English teacher. I teach at a school near here.", botReplyTh:"ผมเป็นครูสอนภาษาอังกฤษ สอนอยู่โรงเรียนแถวนี้" },
+
+    { bot:"Are you free tomorrow?", botTh:"พรุ่งนี้คุณว่างไหม",
+      say:"บอกว่าพรุ่งนี้คุณว่าง", model:"Yes, I am free tomorrow.", modelTh:"ว่างครับ พรุ่งนี้ผมว่าง",
+      need:[["free"],["busy"],["yes"],["no"]], extra:0,
+      ok:"Great!", okTh:"เยี่ยมเลย" },
+
+    { bot:"Let us have coffee together. How about two o'clock?", botTh:"ไปกินกาแฟด้วยกันไหม บ่ายสองดีไหม",
+      say:"ตกลง แล้วบอกว่าเจอกันพรุ่งนี้", model:"Sounds good. See you tomorrow!", modelTh:"ดีเลย พรุ่งนี้เจอกัน",
+      need:[["see","you"],["sounds","good"],["ok"],["yes"]], extra:0,
+      ok:"Perfect. See you then!", okTh:"เยี่ยม เจอกันตอนนั้นนะ" }
+  ]},
+
+{ id:"chat", emoji:"☕", title:"คุยเล่นกับฝรั่ง", sub:"คุยเรื่องอากาศ อาหาร และวันหยุด", who:"Mike",
+  turns:[
+    { bot:"Hi! Wow, how is the weather today?", botTh:"หวัดดี ว้าว วันนี้อากาศเป็นยังไงบ้าง",
+      say:"บอกว่าวันนี้ร้อนมาก", model:"It is very hot today.", modelTh:"วันนี้ร้อนมากเลย",
+      need:[["hot"],["cold"],["cool"],["rain"],["nice"]], extra:0,
+      ok:"Yes! Too hot for me.", okTh:"ใช่เลย ร้อนเกินไปสำหรับผม" },
+
+    { bot:"Do you like Thai food?", botTh:"คุณชอบอาหารไทยไหม",
+      say:"บอกว่าชอบ", model:"Yes, I love Thai food.", modelTh:"ชอบครับ ผมรักอาหารไทย",
+      need:[["i","like"],["i","love"],["yes"],["no"]], extra:0,
+      ok:"Me too! It is the best.", okTh:"ผมก็เหมือนกัน อร่อยที่สุดเลย" },
+
+    { bot:"What is your favorite food?", botTh:"อาหารที่คุณชอบที่สุดคืออะไร",
+      say:"บอกอาหารที่คุณชอบที่สุด", model:"My favorite food is fried rice.", modelTh:"อาหารที่ผมชอบคือข้าวผัด",
+      need:[["my","favorite"],["i","like"],["i","love"]], extra:1,
+      ok:"That sounds delicious.", okTh:"ฟังดูน่าอร่อยมาก" },
+
+    { askBack:true, bot:"", botTh:"",
+      say:"ถามกลับว่าเขาชอบอาหารอะไร", model:"What food do you like?", modelTh:"แล้วคุณชอบอาหารอะไร",
+      need:[["what","food"],["and","you"],["what","do","you","like"],["how","about","you"]], extra:0,
+      botReply:"I love mango sticky rice. I eat it every week!", botReplyTh:"ผมชอบข้าวเหนียวมะม่วง กินทุกสัปดาห์เลย" },
+
+    { bot:"What do you do on the weekend?", botTh:"วันหยุดคุณทำอะไร",
+      say:"เล่าว่าวันหยุดคุณทำอะไร", model:"I stay home with my family.", modelTh:"ผมอยู่บ้านกับครอบครัว",
+      need:[["home"],["family"],["work"],["sleep"],["travel"],["watch"],["play"],["rest"]], extra:0,
+      ok:"That sounds relaxing.", okTh:"ฟังดูสบายดีนะ" },
+
+    { bot:"I have to go now. It was nice talking to you!", botTh:"ผมต้องไปแล้ว คุยกับคุณสนุกมาก",
+      say:"บอกว่าคุยสนุกเหมือนกัน แล้วลา", model:"Nice talking to you too. Goodbye!", modelTh:"คุยกับคุณสนุกเหมือนกัน ลาก่อน",
+      need:[["you","too"],["goodbye"],["bye"],["see","you"]], extra:0,
+      ok:"Bye! See you around.", okTh:"บาย! ไว้เจอกันใหม่" }
+  ]}
+];
 </script>
 
 <script>
@@ -832,8 +1026,14 @@ function render(){
   const f = ({home:viewHome, review:viewReview, talk:viewTalk, me:viewMe, lesson:viewLesson})[VIEW.name] || viewHome;
   f();
 }
-$("#backBtn").addEventListener("click", ()=>nav("home"));
-document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>nav(b.dataset.tab)));
+$("#backBtn").addEventListener("click", ()=>{
+  if(VIEW.name === "talk" && T){ T = null; render(); return; }
+  nav("home");
+});
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
+  if(b.dataset.tab === "talk") T = null;
+  nav(b.dataset.tab);
+}));
 $("#themeBtn").addEventListener("click", ()=>{
   const cur = document.documentElement.getAttribute("data-theme");
   const next = cur === "dark" ? "light" : cur === "light" ? "dark" : (matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "dark");
@@ -1332,89 +1532,238 @@ function viewReview(){
 }
 
 /* ================== หน้าคุยกับติวเตอร์ ================== */
-let T = null;
+/* ตรวจคำตอบแบบเข้มงวด: ต้องมีโครงประโยคที่ถูกต้อง ไม่ใช่แค่พูดยาวๆ แล้วผ่าน */
+function judgeTurn(said, t){
+  const n = norm(said);
+  const w = n.split(" ").filter(Boolean);
+  const sim = scoreSpeech(t.model, said);
+  if(!w.length) return {r:"empty", sim:0};
+
+  const frames = (t.need || []).filter(f => f.length);
+  const frame  = frames.find(f => f.every(x => w.includes(x)));
+  const frameOk = frames.length === 0 || !!frame;
+  const oneOfOk = !t.oneOf || t.oneOf.some(x => w.includes(x));
+  const used = frame ? frame.length : 0;
+  const extraOk = !t.extra || (w.length - used) >= t.extra;
+
+  if(frameOk && oneOfOk && extraOk) return {r:"ok", sim};
+  if(sim >= 65) return {r:"ok", sim};          /* พูดตรงกับประโยคตัวอย่างมาก ก็ถือว่าผ่าน */
+
+  /* ผิดตรงไหน บอกให้ชัด */
+  let why;
+  if(!oneOfOk)      why = "ยังไม่ได้บอกตัวเลขหรือเวลา";
+  else if(!frameOk) why = frames.length ? `ยังไม่มีคำว่า “${frames[0].join(" ")}”` : "ยังไม่ตรงกับที่ถาม";
+  else if(!extraOk) why = "ตอบสั้นไป ต้องบอกรายละเอียดด้วย";
+  else              why = "ยังไม่ตรงกับที่ถาม";
+
+  return { r: (sim >= 35 || frameOk) ? "close" : "no", sim, why };
+}
+
+let T = null;   /* {scene, pos, tries, msgs, right, total} */
+
 function viewTalk(){
-  setTitle("คุยกับติวเตอร์", "ฝึกตอบเป็นประโยคจริง ผิดได้ ไม่มีใครว่า", false);
-  if(!T){
-    T = {msgs:[{who:"sys", en:"เริ่มบทสนทนา — ติวเตอร์จะถามทีละคำถาม ตอบสั้นๆ ก็พอครับ"}], qi:(S.talkIdx||0)%TALK_BANK.length, waiting:true};
-  }
-  const q = TALK_BANK[T.qi];
+  setTitle("คุยกับติวเตอร์", T ? T.scene.title : "เลือกสถานการณ์ที่อยากฝึกคุย", !!T);
+  if(!T){ talkPicker(); return; }
+  talkScene();
+}
+
+/* ---------- หน้าเลือกสถานการณ์ ---------- */
+function talkPicker(){
   scr().innerHTML = `
     <div class="card">
-      <div class="chat" id="chat"></div>
+      <b style="font-size:16px">เลือกสถานการณ์ที่อยากฝึกคุย</b>
+      <div class="small muted" style="margin-top:6px">
+        ติวเตอร์จะสวมบทเป็นคู่สนทนาจริง คุณต้องทั้ง <b>ตอบ</b> และ <b>ถามกลับ</b>
+        ตอบผิดจะบอกให้แก้ ตอบมั่วไม่ผ่านนะครับ
+      </div>
     </div>
-    <div class="card" id="panel"></div>`;
-  const chat = $("#chat");
-  T.msgs.forEach(m=>{
-    if(m.who==="sys"){ chat.appendChild(el(`<div class="msg sys">${esc(m.en)}</div>`)); return; }
-    const b = el(`<div class="msg ${m.who}">${esc(m.en)}${m.th?`<span class="th">${esc(m.th)}</span>`:""}</div>`);
-    if(m.who==="bot") b.onclick = ()=>speak(m.en);
-    chat.appendChild(b);
+    <div id="scenes"></div>`;
+  const box = $("#scenes");
+  SCENES.forEach((sc, i)=>{
+    const done = (S.scenes && S.scenes[sc.id]) || 0;
+    const b = el(`<button class="unit ${done>=80?"done":""}">
+      <div class="num">${done>=80 ? "✓" : sc.emoji}</div>
+      <div class="meta">
+        <b>${esc(sc.title)}</b>
+        <span>${esc(sc.sub)} • ${sc.turns.length} ตา</span>
+        ${done ? `<div class="bar ${done>=80?"ok":""}"><i style="width:${done}%"></i></div>` : ""}
+      </div>
+      <div class="tiny muted">${done ? done+"%" : "เริ่ม"}</div>
+    </button>`);
+    b.onclick = ()=>{
+      T = { scene:sc, pos:0, tries:0, msgs:[], right:0, total:0, shadow:false };
+      render();
+    };
+    box.appendChild(b);
   });
-  if(T.waiting){
-    const b = el(`<div class="msg bot">${esc(q.q)}<span class="th">${esc(q.qth)}</span></div>`);
-    b.onclick = ()=>speak(q.q);
+}
+
+/* ---------- หน้าคุยจริง ---------- */
+function talkScene(){
+  const sc = T.scene, turn = sc.turns[T.pos];
+
+  if(!turn){ talkSummary(); return; }
+
+  const pct = Math.round(T.pos / sc.turns.length * 100);
+  scr().innerHTML = `
+    <div class="lesson-top"><div class="bar"><i style="width:${pct}%"></i></div>
+      <span class="tiny muted">ตาที่ ${T.pos+1}/${sc.turns.length}</span></div>
+    <div class="card"><div class="chat" id="chat"></div></div>
+    <div class="card" id="panel"></div>`;
+
+  const chat = $("#chat");
+  const push = (m)=>{
+    if(m.who === "sys"){ chat.appendChild(el(`<div class="msg sys">${esc(m.en)}</div>`)); return; }
+    const b = el(`<div class="msg ${m.who}">${esc(m.en)}${m.th ? `<span class="th">${esc(m.th)}</span>` : ""}</div>`);
+    if(m.who === "bot") b.onclick = ()=>speak(m.en);
     chat.appendChild(b);
-    setTimeout(()=>speak(q.q), 300);
+  };
+  T.msgs.forEach(push);
+
+  /* ติวเตอร์พูดประโยคของเทิร์นนี้ (ถ้ามี) */
+  if(turn.bot && !T.msgs.some(m => m.en === turn.bot && m.who === "bot")){
+    const m = {who:"bot", en:turn.bot, th:turn.botTh};
+    T.msgs.push(m); push(m);
+    setTimeout(()=>speak(turn.bot), 300);
   }
+  chat.lastElementChild && chat.lastElementChild.scrollIntoView({block:"nearest"});
+
   const panel = $("#panel");
   panel.innerHTML = `
+    <div class="hintbox">${turn.askBack ? "❓ <b>ตาคุณถาม</b> — " : "🎤 <b>ตาคุณตอบ</b> — "}${esc(turn.say)}</div>
     <div class="row">
-      <button class="btn sm" id="rep">🔊 ฟังคำถามอีกครั้ง</button>
-      <button class="btn sm" id="hint">💡 ใบ้คำตอบ</button>
-      <button class="btn sm" id="skip">⏭ ข้ามคำถาม</button>
+      ${turn.bot ? `<button class="btn sm" id="rep">🔊 ฟังอีกครั้ง</button>` : ""}
+      <button class="btn sm" id="hint">💡 ใบ้</button>
+      <button class="btn sm" id="mode">⌨️ พิมพ์</button>
+      <button class="btn sm ghost" id="skip">⏭ ข้าม</button>
     </div>
     <div id="hintBox"></div>
-    <div id="mic"></div>
+    <div id="input"></div>
     <div id="fb"></div>`;
-  $("#rep").onclick = ()=>speak(q.q);
-  $("#skip").onclick = ()=>{ nextQ(); };
-  $("#hint").onclick = ()=>{
-    $("#hintBox").innerHTML = `<div class="hintbox">ลองพูดว่า: “${esc(q.hint)}”<br><span class="small">${esc(q.hintth)}</span></div>`;
-    speak(q.hint, true);
-  };
-  drawMic();
 
-  function drawMic(){
-    $("#mic").innerHTML = SR_OK
-      ? `<button class="mic" id="micBtn">🎤</button><div class="center small muted" id="mh">กดไมค์ แล้วตอบเป็นภาษาอังกฤษ</div>`
-      : `<input type="text" id="tin" placeholder="พิมพ์คำตอบภาษาอังกฤษ"><div class="row"><button class="btn primary" id="tgo">ส่งคำตอบ</button></div>`;
-    if(SR_OK){
-      $("#micBtn").onclick = ()=>{
-        const btn = $("#micBtn"); btn.classList.add("listening"); btn.textContent="⏹"; $("#mh").textContent="กำลังฟัง...";
-        listen(alts=>{ btn.classList.remove("listening"); btn.textContent="🎤"; handle(alts[0]||"", alts); },
-               err=>{ btn.classList.remove("listening"); btn.textContent="🎤";
-                      $("#fb").innerHTML = `<div class="feedback mid">${esc(micErrText(err))}</div>`; },
-               ()=>{ btn.classList.remove("listening"); btn.textContent="🎤"; $("#mh").textContent="กดไมค์ แล้วตอบเป็นภาษาอังกฤษ"; });
-      };
-    }else{
+  if($("#rep")) $("#rep").onclick = ()=>speak(turn.bot);
+  $("#hint").onclick = ()=>{
+    $("#hintBox").innerHTML = `<div class="hintbox" style="margin-top:8px">
+      พูดว่า: “${esc(turn.model)}”<br><span class="small">${esc(turn.modelTh)}</span></div>`;
+    speak(turn.model, true);
+  };
+  $("#skip").onclick = ()=>{ T.total++; nextTurn(); };
+
+  let typing = !SR_OK;
+  $("#mode").onclick = ()=>{ typing = !typing; $("#mode").textContent = typing ? "🎤 เสียง" : "⌨️ พิมพ์"; drawInput(); };
+  drawInput();
+
+  function drawInput(){
+    const box = $("#input");
+    if(typing){
+      box.innerHTML = `<input type="text" id="tin" placeholder="พิมพ์ประโยคภาษาอังกฤษ" autocomplete="off" autocapitalize="off">
+        <div class="row"><button class="btn primary" id="tgo">ส่งคำตอบ</button></div>`;
       $("#tgo").onclick = ()=>handle($("#tin").value, [$("#tin").value]);
-      $("#tin").onkeydown = (e)=>{ if(e.key==="Enter") handle($("#tin").value, [$("#tin").value]); };
+      $("#tin").onkeydown = (e)=>{ if(e.key === "Enter") handle($("#tin").value, [$("#tin").value]); };
+    }else{
+      box.innerHTML = `<button class="mic" id="micBtn">🎤</button>
+        <div class="center small muted" id="mh">กดไมค์ แล้วพูดเป็นภาษาอังกฤษ</div>`;
+      $("#micBtn").onclick = ()=>{
+        const btn = $("#micBtn");
+        btn.classList.add("listening"); btn.textContent = "⏹"; $("#mh").textContent = "กำลังฟัง...";
+        listen(
+          (alts)=>{ btn.classList.remove("listening"); btn.textContent = "🎤"; handle(alts[0] || "", alts); },
+          (err)=>{ btn.classList.remove("listening"); btn.textContent = "🎤";
+                   $("#fb").innerHTML = `<div class="feedback mid">${esc(micErrText(err))}</div>`; },
+          ()=>{ btn.classList.remove("listening"); btn.textContent = "🎤";
+                $("#mh").textContent = "กดไมค์ แล้วพูดเป็นภาษาอังกฤษ"; }
+        );
+      };
     }
   }
+
   function handle(text, alts){
-    if(!String(text).trim()) return;
-    const n = norm(text);
-    const words = n.split(" ").filter(Boolean);
-    const hitKey = q.keys.some(k=>n.includes(norm(k)));
-    const sim = bestScore(q.hint, alts).score;
-    const good = hitKey || sim >= 55 || words.length >= 4;
-    T.msgs.push({who:"me", en:text});
-    T.waiting = false;
-    const reply = good
-      ? `${rnd(PRAISE)} ${q.followUp || ""}`.trim()
-      : `${rnd(SOFT)} You can say: "${q.hint}"`;
-    T.msgs.push({who:"bot", en:reply, th: good ? "" : q.hintth});
-    if(good) addXP(1);
-    S.totalSpoken = (S.totalSpoken||0)+1;
-    S.talkIdx = (T.qi+1) % TALK_BANK.length; save();
+    text = String(text || "").trim();
+    if(!text) return;
+
+    /* เลือกคำตอบที่ดีที่สุดจากหลายตัวเลือกที่เครื่องได้ยิน */
+    const rank = {ok:3, close:2, no:1, empty:0};
+    let best = null, bestText = text;
+    (alts || [text]).forEach(a=>{
+      const j = judgeTurn(a, turn);
+      if(!best || rank[j.r] > rank[best.r] || (rank[j.r] === rank[best.r] && j.sim > best.sim)){
+        best = j; bestText = a;
+      }
+    });
+    if(!best) best = judgeTurn(text, turn);
+
+    T.msgs.push({who:"me", en:bestText});
+
+    if(best.r === "ok"){
+      T.right++; T.total++; addXP(1);
+      S.totalSpoken = (S.totalSpoken||0) + 1; save();
+      const reply = turn.askBack ? turn.botReply : turn.ok;
+      const replyTh = turn.askBack ? turn.botReplyTh : turn.okTh;
+      if(reply) T.msgs.push({who:"bot", en:reply, th:replyTh});
+      T.tries = 0;
+      render();
+      if(reply) setTimeout(()=>speak(reply), 250);
+      setTimeout(()=>{ T.pos++; render(); }, reply ? Math.max(1800, reply.length*75) : 500);
+      return;
+    }
+
+    /* ตอบยังไม่ถูก — ไม่ผ่าน และไม่ไปข้อถัดไป */
+    T.tries++;
+    S.totalSpoken = (S.totalSpoken||0) + 1; save();
+    const lastTry = T.tries >= 2;
+    const head = best.r === "close" ? "เกือบแล้ว!" : "ยังไม่ใช่นะครับ";
+    T.msgs.push({who:"sys", en:`❌ ${head} ${best.why || ""}`});
     render();
-    setTimeout(()=>{ speak(reply); }, 200);
-    setTimeout(()=>{ T.qi = S.talkIdx; T.waiting = true; render();
-      const c = $("#chat"); if(c) c.scrollIntoView({block:"end"});
-    }, Math.max(1800, reply.length*80));
+
+    const fb = $("#fb");
+    fb.innerHTML = `<div class="feedback ${best.r === "close" ? "mid" : "bad"}">
+        ${head} ${esc(best.why || "")}
+        <div class="heard">แอปได้ยินว่า: “${esc(bestText)}” (ตรง ${best.sim}%)</div>
+        ${lastTry ? `<div class="heard">ประโยคที่ถูกคือ: “${esc(turn.model)}” — ${esc(turn.modelTh)}</div>` : ""}
+      </div>`;
+    if(lastTry){
+      speak(turn.model, true);
+      const row = el(`<div class="row"></div>`);
+      const again = el(`<button class="btn">🔁 พูดตามประโยคนี้</button>`);
+      again.onclick = ()=>{ T.tries = 1; fb.innerHTML = ""; };
+      const nx = el(`<button class="btn primary">ตาต่อไป →</button>`);
+      nx.onclick = ()=>{ T.total++; nextTurn(); };
+      row.append(again, nx);
+      fb.appendChild(row);
+    }else{
+      const row = el(`<div class="row"><button class="btn primary wide">ลองใหม่อีกครั้ง</button></div>`);
+      row.firstElementChild.onclick = ()=>{ fb.innerHTML = ""; };
+      fb.appendChild(row);
+    }
   }
-  function nextQ(){ S.talkIdx = (T.qi+1)%TALK_BANK.length; save(); T.qi = S.talkIdx; T.waiting = true; render(); }
+
+  function nextTurn(){ T.tries = 0; T.pos++; render(); }
+}
+
+/* ---------- สรุปผลท้ายฉาก ---------- */
+function talkSummary(){
+  const sc = T.scene;
+  const pct = T.total ? Math.round(T.right / T.total * 100) : 0;
+  S.scenes = S.scenes || {};
+  S.scenes[sc.id] = Math.max(S.scenes[sc.id] || 0, pct);
+  save();
+  scr().innerHTML = `
+    <div class="card center">
+      <div class="confetti">${pct >= 80 ? "🎉" : "💪"}</div>
+      <h2 style="margin:8px 0 2px">คุยจบแล้ว!</h2>
+      <div class="small muted">${esc(sc.title)} — ตอบถูกเองได้ ${T.right} จาก ${T.total} ตา (${pct}%)</div>
+      <div class="small muted" style="margin-top:12px">
+        ${pct >= 80 ? "เก่งมากครับ ลองสถานการณ์อื่นต่อได้เลย"
+                    : "ยังไม่ต้องรีบ ลองคุยฉากนี้ซ้ำอีกรอบ เดี๋ยวก็คล่องเองครับ"}
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" id="again">คุยฉากนี้อีกครั้ง</button>
+        <button class="btn primary" id="other">เลือกฉากอื่น</button>
+      </div>
+    </div>`;
+  const scene = T.scene;
+  $("#again").onclick = ()=>{ T = {scene, pos:0, tries:0, msgs:[], right:0, total:0}; render(); };
+  $("#other").onclick = ()=>{ T = null; render(); };
 }
 
 /* ================== หน้าตั้งค่า / วิธีใช้ ================== */
@@ -1477,7 +1826,7 @@ function viewMe(){
       <div class="small muted" style="margin-top:8px; line-height:1.9">
         🏠 <b>บทเรียน</b> — เรียนเรียงจากบทที่ 1 ไปเรื่อยๆ<br>
         🔁 <b>ทบทวน</b> — เข้ามาทุกวันตอนเช้า ใช้เวลา 3–5 นาที<br>
-        💬 <b>คุยกับติวเตอร์</b> — ตอบคำถามด้วยเสียงจริง เหมือนคุยกับคน<br>
+        💬 <b>คุยกับติวเตอร์</b> — เลือกสถานการณ์ แล้วคุยโต้ตอบด้วยเสียงจริง ทั้งตอบและถามกลับ<br>
         ⌨️ ถ้าอยู่ที่เงียบไม่ได้ กดปุ่ม “พิมพ์แทน” ในหน้าฝึกพูดได้
       </div>
     </div>
