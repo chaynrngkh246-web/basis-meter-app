@@ -19,6 +19,14 @@ https://chaynrngkh246-web.github.io/basis-meter-app/
 ส่งเข้า LINE / Messenger / Facebook ได้เลย (เครื่องที่แชร์ตรงๆ ไม่ได้ จะคัดลอกลิงก์พร้อม
 ข้อความชวนให้อัตโนมัติ) และเวลาวางลิงก์ในแชท จะขึ้นรูปพรีวิวสวยๆ ให้ด้วย
 
+**📱 QR code** — อยู่ในการ์ดเดียวกัน แตะเพื่อขยายเต็มจอ ให้เพื่อนที่อยู่ตรงหน้าส่องกล้องสแกน
+ได้ทันที เหมาะกับการสอนเป็นกลุ่มหรือแปะไว้ในห้องเรียน QR ถูกฝังเป็น SVG อยู่ในหน้าเว็บเลย
+จึงแสดงได้แม้ไม่มีเน็ต
+
+> QR สร้างด้วยไลบรารี `qrcode` มาตรฐานตอน build (`npm run qr`) ไม่ได้เขียนตัวเข้ารหัสเอง
+> และมีชุดทดสอบ `tests/qr.mjs` ตรวจว่าทุกช่องในภาพตรงกับที่ไลบรารีสร้างจริง
+> ถ้าเปลี่ยนลิงก์แอป ต้องรัน `npm run qr` ใหม่
+
 **ข้อมูลของแต่ละคนแยกกันสมบูรณ์** — ความคืบหน้า สถิติ และ streak เก็บอยู่ใน `localStorage`
 ของเครื่องแต่ละคน ไม่มีเซิร์ฟเวอร์กลาง ไม่มีการเก็บข้อมูลส่วนตัว แชร์ให้กี่คนก็ไม่ปนกัน
 และไม่มีค่าใช้จ่ายเพิ่มไม่ว่าจะมีคนใช้กี่คน (GitHub Pages ฟรีสำหรับ repo สาธารณะ)
@@ -187,6 +195,7 @@ https://chaynrngkh246-web.github.io/basis-meter-app/
 npm run build     # สร้าง index.html, docs/index.html, artifact/app.html, sw.js, manifest
 npm run icons     # สร้างไอคอนแอปใหม่จาก scripts/icon-source.html (ทำเมื่อจะเปลี่ยนไอคอน)
 npm run share-image  # สร้างรูปพรีวิวตอนแชร์ลิงก์ใหม่จาก scripts/share-source.html
+npm run qr        # สร้าง QR code ของลิงก์แอปใหม่ (ทำเมื่อเปลี่ยนลิงก์)
 npm test          # ทดสอบแอปจริงในเบราว์เซอร์ (ต้องมี playwright)
 npm run serve     # เปิดเซิร์ฟเวอร์ที่ http://localhost:8080
 ```
@@ -203,6 +212,8 @@ artifact/app.html       ← ผลลัพธ์สำหรับเผยแ�
 docs/sw.js              ← service worker (ทำให้ติดตั้งเป็นแอปได้ และใช้ออฟไลน์ได้)
 docs/icon-*.png         ← ไอคอนแอป สร้างจาก scripts/make-icons.mjs
 docs/share.png          ← รูปพรีวิวตอนแชร์ลิงก์ สร้างจาก scripts/make-share-image.mjs
+src/qr.svg              ← QR code ของลิงก์แอป ฝังเข้าหน้าเว็บตอน build
+tests/qr.mjs            ← ตรวจว่า QR ตรงกับไลบรารีมาตรฐานทุกช่อง
 ```
 
 **โครงสร้างข้อมูลใน `src/app.fragment.html`**

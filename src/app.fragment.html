@@ -187,6 +187,19 @@
   .soundhelp ol{margin:10px 0 8px; padding-inline-start:22px; line-height:1.8}
   .soundhelp li{margin-bottom:2px}
   .install{border:2px dashed var(--brand); background:var(--brand-soft)}
+
+  .qrwrap{margin-top:12px; display:flex; flex-direction:column; align-items:center; gap:8px}
+  .qrbox{border:1px solid var(--line); background:#fff; border-radius:12px; padding:8px;
+    width:156px; height:156px; cursor:pointer; display:block}
+  .qrbox svg{width:100%; height:100%; display:block}
+  .qrfull{position:fixed; inset:0; z-index:100; background:rgba(8,12,20,.72);
+    display:grid; place-items:center; padding:20px; backdrop-filter:blur(2px)}
+  .qrfull-card{background:#fff; color:#14181f; border-radius:18px; padding:22px;
+    width:min(94vw, 420px); text-align:center; box-shadow:0 24px 60px rgba(0,0,0,.4)}
+  .qrfull-card b{font-size:17px}
+  .qrfull-img{width:min(74vw, 320px); height:min(74vw, 320px); margin:14px auto 10px}
+  .qrfull-img svg{width:100%; height:100%; display:block}
+  .qrfull-url{font-size:12px; color:#61708a; word-break:break-all; margin-bottom:8px}
   .tier{display:flex; align-items:flex-start; gap:8px; padding:9px 0; border-bottom:1px dashed var(--line); font-size:16px}
   .tier:last-of-type{border-bottom:none}
   .tier .tag{flex:0 0 auto; font-size:10px; font-weight:800; padding:3px 7px; border-radius:99px; margin-top:3px}
@@ -1951,6 +1964,7 @@ function installHtml(){
 }
 /* ---------- ชวนคนอื่นมาใช้ ---------- */
 const INVITE = "ลองแอปนี้ดูสิ ฝึกพูดภาษาอังกฤษ อธิบายเป็นภาษาไทยทั้งหมด ใช้ฟรี ไม่ต้องสมัคร";
+const QR_SVG = "__QR_SVG__";   /* ใส่ให้อัตโนมัติตอน build จาก src/qr.svg */
 
 function shareHtml(){
   return `<div class="small">ส่งลิงก์นี้ให้ใครก็ได้ เปิดใช้ได้เลยทันที ไม่ต้องสมัครสมาชิก ไม่มีค่าใช้จ่าย</div>
@@ -1962,12 +1976,37 @@ function shareHtml(){
       <button class="btn sm" id="copyMsg">📝 คัดลอกข้อความชวน</button>
     </div>
     <div class="tiny muted" style="margin-top:8px; word-break:break-all">${APP_URL}</div>
-    <div class="tiny muted" style="margin-top:8px">
+
+    <div class="qrwrap">
+      <button class="qrbox" id="qrSmall" aria-label="ขยาย QR code">${QR_SVG}</button>
+      <div class="tiny muted center">อยู่ด้วยกัน? ให้เพื่อนสแกน QR นี้ได้เลย<br>แตะเพื่อขยายเต็มจอ</div>
+    </div>
+
+    <div class="tiny muted" style="margin-top:10px">
       ความคืบหน้าของแต่ละคนเก็บแยกกันในเครื่องของตัวเอง แชร์แล้วข้อมูลไม่ปนกันนะครับ
     </div>`;
 }
 
+/* ขยาย QR เต็มจอ พื้นขาวล้วน เพื่อให้กล้องจับง่ายที่สุด */
+function showBigQR(){
+  const ov = el(`<div class="qrfull" id="qrFull">
+      <div class="qrfull-card">
+        <b>สแกนเพื่อเปิดแอป</b>
+        <div class="qrfull-img">${QR_SVG}</div>
+        <div class="qrfull-url">${APP_URL}</div>
+        <div class="tiny" style="color:#5a6b85">เปิดกล้องมือถือแล้วส่องที่ QR นี้ได้เลย</div>
+        <button class="btn primary wide" id="qrClose" style="margin-top:14px">ปิด</button>
+      </div>
+    </div>`);
+  document.body.appendChild(ov);
+  const close = ()=>ov.remove();
+  ov.querySelector("#qrClose").onclick = close;
+  ov.onclick = (e)=>{ if(e.target === ov) close(); };
+}
+
 function wireShare(){
+  const q = document.getElementById("qrSmall");
+  if(q) q.onclick = showBigQR;
   const s1 = document.getElementById("doShare");
   if(s1) s1.onclick = async ()=>{
     const data = { title:"พูดอังกฤษได้", text:INVITE, url:APP_URL };

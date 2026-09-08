@@ -6,12 +6,14 @@
   "description": "แอปสอนภาษาอังกฤษสำหรับคนไทยที่เริ่มจากศูนย์ จนพูดได้",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node scripts/build.mjs && node tests/e2e.mjs",
+    "test": "node scripts/build.mjs && node tests/qr.mjs && node tests/e2e.mjs",
     "serve": "node scripts/build.mjs && python3 -m http.server 8080",
     "icons": "node scripts/make-icons.mjs",
-    "share-image": "node scripts/make-share-image.mjs"
+    "share-image": "node scripts/make-share-image.mjs",
+    "qr": "node scripts/make-qr.mjs"
   },
   "devDependencies": {
-    "playwright": "^1.56.1"
+    "playwright": "1.56.1",
+    "qrcode": "^1.5.4"
   }
 }

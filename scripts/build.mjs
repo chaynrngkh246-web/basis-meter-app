@@ -7,7 +7,12 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const fragment = readFileSync(resolve(root, "src/app.fragment.html"), "utf8");
+const fragmentSrc = readFileSync(resolve(root, "src/app.fragment.html"), "utf8");
+
+/* ฝัง QR code (สร้างไว้แล้วด้วย scripts/make-qr.mjs) ลงในโค้ดโดยตรง
+   จะได้ไม่ต้องโหลดรูปจากที่ไหน ใช้ได้แม้ไม่มีเน็ต และใช้ได้ทั้งเว็บและ Artifact */
+const qrSvg = readFileSync(resolve(root, "src/qr.svg"), "utf8").trim();
+const fragment = fragmentSrc.replace('"__QR_SVG__"', JSON.stringify(qrSvg));
 
 /* ที่อยู่จริงของแอป — ใช้ทำรูปพรีวิวตอนแชร์ลิงก์ ต้องเป็น URL เต็มเท่านั้น */
 const SITE = "https://chaynrngkh246-web.github.io/basis-meter-app/";

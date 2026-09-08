@@ -516,6 +516,35 @@ await t('แชร์: ผู้ใช้กดยกเลิกการแช
   if (await page.evaluate(() => window.__copied)) throw new Error('ยกเลิกแล้วยังคัดลอกให้');
 });
 
+await t('QR: แสดงในการ์ดแชร์ และขยายเต็มจอได้', async () => {
+  await page.click('[data-tab="home"]');
+  await page.waitForSelector('#qrSmall svg', { timeout: 3000 });
+  const box = await page.locator('#qrSmall svg').boundingBox();
+  if (!box || box.width < 100) throw new Error('QR เล็กเกินไป: ' + JSON.stringify(box));
+  const bg = await page.evaluate(() =>
+    getComputedStyle(document.querySelector('#qrSmall')).backgroundColor);
+  if (!/255, 255, 255/.test(bg)) throw new Error('พื้นหลัง QR ไม่ขาว: ' + bg);
+
+  await page.click('#qrSmall');
+  await page.waitForSelector('#qrFull', { timeout: 3000 });
+  const big = await page.locator('#qrFull svg').boundingBox();
+  if (!big || big.width < 200) throw new Error('QR เต็มจอเล็กไป: ' + JSON.stringify(big));
+  if (!/github\.io/.test(await page.innerText('#qrFull'))) throw new Error('ไม่แสดงลิงก์ใต้ QR');
+  await page.click('#qrClose');
+  await page.waitForTimeout(150);
+  if (await page.locator('#qrFull').count()) throw new Error('ปิด QR เต็มจอไม่ได้');
+});
+
+await t('QR: ฝังมาในหน้าเว็บจริง ไม่ต้องโหลดจากที่อื่น', async () => {
+  const r = await page.evaluate(() => ({
+    inline: QR_SVG.startsWith('<svg'),
+    noPlaceholder: !QR_SVG.includes('__QR_SVG__'),
+    modules: (QR_SVG.match(/M\d+ \d+h\d+v1h-\d+z/g) || []).length
+  }));
+  if (!r.inline || !r.noPlaceholder) throw new Error('QR ไม่ได้ถูกฝังตอน build');
+  if (r.modules < 50) throw new Error('เส้นใน QR น้อยผิดปกติ: ' + r.modules);
+});
+
 await t('แท็บตั้งค่าเปิดได้', async () => {
   await page.click('[data-tab="me"]');
   await page.waitForSelector('#rate', { timeout: 3000 });
