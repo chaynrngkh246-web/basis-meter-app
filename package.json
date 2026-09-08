@@ -8,7 +8,8 @@
     "build": "node scripts/build.mjs",
     "test": "node scripts/build.mjs && node tests/e2e.mjs",
     "serve": "node scripts/build.mjs && python3 -m http.server 8080",
-    "icons": "node scripts/make-icons.mjs"
+    "icons": "node scripts/make-icons.mjs",
+    "share-image": "node scripts/make-share-image.mjs"
   },
   "devDependencies": {
     "playwright": "^1.56.1"

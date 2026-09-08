@@ -9,12 +9,35 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const fragment = readFileSync(resolve(root, "src/app.fragment.html"), "utf8");
 
+/* ที่อยู่จริงของแอป — ใช้ทำรูปพรีวิวตอนแชร์ลิงก์ ต้องเป็น URL เต็มเท่านั้น */
+const SITE = "https://chaynrngkh246-web.github.io/basis-meter-app/";
+const TITLE = "พูดอังกฤษได้ — เรียนอังกฤษจากศูนย์ จนถึงระดับใช้ทำงาน";
+const TAB   = "พูดอังกฤษได้";   /* ชื่อสั้นๆ บนแท็บเบราว์เซอร์ ส่วน TITLE ใช้ตอนแชร์ลิงก์ */
+const DESC  = "แอปฟรี ภาษาไทยล้วน ฝึกพูดกับไมโครโฟนจริง คุยโต้ตอบกับติวเตอร์ได้ "
+            + "300 ประโยค 4 ระดับ ไม่ต้องสมัครสมาชิก ใช้ได้แม้ไม่มีเน็ต";
+
 const page = `<!doctype html>
 <html lang="th">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="แอปสอนภาษาอังกฤษสำหรับคนไทยที่เริ่มจากศูนย์ ฝึกพูดกับไมโครโฟนจริง พร้อมโหมดคุยกับติวเตอร์">
+<title>${TAB}</title>
+<meta name="description" content="${DESC}">
+
+<!-- รูปพรีวิวตอนส่งลิงก์เข้า LINE / Facebook / X -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="${SITE}">
+<meta property="og:title" content="${TITLE}">
+<meta property="og:description" content="${DESC}">
+<meta property="og:image" content="${SITE}share.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="th_TH">
+<meta property="og:site_name" content="พูดอังกฤษได้">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${TITLE}">
+<meta name="twitter:description" content="${DESC}">
+<meta name="twitter:image" content="${SITE}share.png">
 <meta name="theme-color" content="#2f6df6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="พูดอังกฤษได้">
@@ -25,7 +48,7 @@ const page = `<!doctype html>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>*{box-sizing:border-box}img{max-width:100%}[hidden]{display:none!important}body{margin:0}</style>
-${fragment}
+${fragment.replace(/^\s*<title>[\s\S]*?<\/title>\s*/, "")}
 </body>
 </html>
 `;
@@ -86,8 +109,8 @@ for (const dir of ["", "docs"]) {
   writeFileSync(resolve(out, "manifest.webmanifest"), manifest);
   writeFileSync(resolve(out, "sw.js"), sw);
 }
-// ไอคอนอยู่ใน docs/ อยู่แล้ว สำเนามาที่รากด้วยเพื่อให้เปิดจากไฟล์ได้เหมือนกัน
-for (const f of ["icon-192.png", "icon-512.png"]) {
+// ไอคอนและรูปพรีวิวอยู่ใน docs/ อยู่แล้ว สำเนามาที่รากด้วยเพื่อให้เปิดจากไฟล์ได้เหมือนกัน
+for (const f of ["icon-192.png", "icon-512.png", "share.png"]) {
   try { copyFileSync(resolve(root, "docs", f), resolve(root, f)); } catch {}
 }
 writeFileSync(resolve(root, "docs/.nojekyll"), "");

@@ -464,6 +464,58 @@ await t('ทุกคำตอบของติวเตอร์มีคำ�
   if (n.qa !== 10) throw new Error('ฉากที่มีคำถามเฉพาะ: ' + n.qa);
 });
 
+await t('แชร์: หน้าแรกมีการ์ดชวนเพื่อน พร้อมลิงก์และปุ่มคัดลอก', async () => {
+  await page.click('[data-tab="home"]');
+  await page.waitForSelector('#shareBox', { timeout: 3000 });
+  const txt = await page.innerText('#shareBox');
+  if (!/github\.io/.test(txt)) throw new Error('ไม่แสดงลิงก์: ' + txt.slice(0, 60));
+  if (!/ไม่ต้องสมัคร/.test(txt)) throw new Error('ไม่ได้บอกว่าเปิดใช้ได้เลย');
+  if (!/ไม่ปนกัน/.test(txt)) throw new Error('ไม่ได้บอกว่าข้อมูลแต่ละคนแยกกัน');
+  for (const id of ['#doShare', '#copyLink', '#copyMsg']) {
+    if (!await page.locator(id).count()) throw new Error('ไม่มีปุ่ม ' + id);
+  }
+});
+
+await t('แชร์: กดแชร์แล้วเรียก navigator.share พร้อมลิงก์ที่ถูกต้อง', async () => {
+  await page.evaluate(() => {
+    window.__shared = null;
+    navigator.share = (d) => { window.__shared = d; return Promise.resolve(); };
+  });
+  await page.click('#doShare');
+  await page.waitForTimeout(200);
+  const d = await page.evaluate(() => window.__shared);
+  if (!d) throw new Error('ไม่ได้เรียก navigator.share');
+  if (!/github\.io\/basis-meter-app/.test(d.url)) throw new Error('ลิงก์ผิด: ' + d.url);
+  if (!d.text || !d.title) throw new Error('ไม่มีข้อความชวน');
+});
+
+await t('แชร์: เครื่องที่แชร์ไม่ได้ ต้องคัดลอกให้แทน', async () => {
+  await page.evaluate(() => {
+    window.__copied = null;
+    delete navigator.share;
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: (t) => { window.__copied = t; return Promise.resolve(); } }
+    });
+  });
+  await page.click('#doShare');
+  await page.waitForTimeout(200);
+  const c = await page.evaluate(() => window.__copied);
+  if (!c || !/github\.io/.test(c)) throw new Error('ไม่ได้คัดลอกลิงก์ให้: ' + c);
+  if (!/ลองแอปนี้/.test(c)) throw new Error('ไม่มีข้อความชวนในสิ่งที่คัดลอก');
+  if (!/คัดลอกแล้ว/.test(await page.textContent('#doShare'))) throw new Error('ไม่บอกผู้ใช้ว่าคัดลอกแล้ว');
+});
+
+await t('แชร์: ผู้ใช้กดยกเลิกการแชร์ ต้องไม่ทำอะไรต่อ', async () => {
+  await page.evaluate(() => {
+    window.__copied = null;
+    navigator.share = () => Promise.reject(Object.assign(new Error('x'), { name: 'AbortError' }));
+  });
+  await page.click('#doShare');
+  await page.waitForTimeout(200);
+  if (await page.evaluate(() => window.__copied)) throw new Error('ยกเลิกแล้วยังคัดลอกให้');
+});
+
 await t('แท็บตั้งค่าเปิดได้', async () => {
   await page.click('[data-tab="me"]');
   await page.waitForSelector('#rate', { timeout: 3000 });

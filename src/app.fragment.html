@@ -1949,6 +1949,60 @@ function installHtml(){
        <li>กด <b>ติดตั้ง</b> — จะได้ไอคอนแอปบนหน้าจอ</li>
      </ol>`;
 }
+/* ---------- ชวนคนอื่นมาใช้ ---------- */
+const INVITE = "ลองแอปนี้ดูสิ ฝึกพูดภาษาอังกฤษ อธิบายเป็นภาษาไทยทั้งหมด ใช้ฟรี ไม่ต้องสมัคร";
+
+function shareHtml(){
+  return `<div class="small">ส่งลิงก์นี้ให้ใครก็ได้ เปิดใช้ได้เลยทันที ไม่ต้องสมัครสมาชิก ไม่มีค่าใช้จ่าย</div>
+    <div class="row">
+      <button class="btn primary wide" id="doShare">📤 แชร์ให้เพื่อน</button>
+    </div>
+    <div class="row">
+      <button class="btn sm" id="copyLink">📋 คัดลอกลิงก์</button>
+      <button class="btn sm" id="copyMsg">📝 คัดลอกข้อความชวน</button>
+    </div>
+    <div class="tiny muted" style="margin-top:8px; word-break:break-all">${APP_URL}</div>
+    <div class="tiny muted" style="margin-top:8px">
+      ความคืบหน้าของแต่ละคนเก็บแยกกันในเครื่องของตัวเอง แชร์แล้วข้อมูลไม่ปนกันนะครับ
+    </div>`;
+}
+
+function wireShare(){
+  const s1 = document.getElementById("doShare");
+  if(s1) s1.onclick = async ()=>{
+    const data = { title:"พูดอังกฤษได้", text:INVITE, url:APP_URL };
+    try{
+      if(navigator.share){ await navigator.share(data); return; }
+      throw new Error("no share");
+    }catch(e){
+      if(e && e.name === "AbortError") return;      /* ผู้ใช้กดยกเลิกเอง ไม่ต้องทำอะไร */
+      copyTo(INVITE + "\n" + APP_URL, s1, "✅ คัดลอกแล้ว — เอาไปวางในแชทได้เลย");
+    }
+  };
+  const c1 = document.getElementById("copyLink");
+  if(c1) c1.onclick = ()=>copyTo(APP_URL, c1, "✅ คัดลอกลิงก์แล้ว");
+  const c2 = document.getElementById("copyMsg");
+  if(c2) c2.onclick = ()=>copyTo(INVITE + "\n" + APP_URL, c2, "✅ คัดลอกข้อความแล้ว");
+}
+
+async function copyTo(text, btn, okMsg){
+  const old = btn.textContent;
+  try{
+    await navigator.clipboard.writeText(text);
+    btn.textContent = okMsg;
+  }catch(e){
+    /* เบราว์เซอร์เก่าบางตัวคัดลอกอัตโนมัติไม่ได้ ให้เลือกข้อความให้ผู้ใช้กดคัดลอกเอง */
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    let done = false;
+    try{ done = document.execCommand("copy"); }catch(e2){}
+    ta.remove();
+    btn.textContent = done ? okMsg : "คัดลอกไม่ได้ — กดค้างที่ลิงก์ด้านล่างแทน";
+  }
+  setTimeout(()=>{ btn.textContent = old; }, 2500);
+}
+
 function wireInstall(){
   const c = document.getElementById("copyUrl");
   if(c) c.onclick = async ()=>{
@@ -2067,6 +2121,11 @@ function viewHome(){
       <div id="installBox" style="margin-top:6px"></div>
     </div>`}
 
+    ${started ? `<div class="card">
+      <b>📢 ชวนเพื่อนมาใช้ด้วยกัน</b>
+      <div id="shareBox" style="margin-top:6px"></div>
+    </div>` : ""}
+
     ${started ? "" : `
     <div class="card">
       <b>แอปนี้สอนยังไง (4 ขั้น ทำซ้ำทุกบท)</b>
@@ -2130,6 +2189,7 @@ function viewHome(){
     speak("Hello! Can you hear me?");
   });
   if($("#installBox")){ $("#installBox").innerHTML = installHtml(); wireInstall(); }
+  if($("#shareBox")){ $("#shareBox").innerHTML = shareHtml(); wireShare(); }
 }
 
 /* ================== ตัวช่วยแสดง "การ์ดพูด" ================== */
@@ -3236,6 +3296,11 @@ function viewMe(){
     </div>
 
     <div class="card">
+      <b>📢 ชวนเพื่อนมาใช้ด้วยกัน</b>
+      <div id="shareBox2" style="margin-top:6px"></div>
+    </div>
+
+    <div class="card">
       <b>🔇 ไม่มีเสียง ทำยังไง</b>
       <ol class="steps">
         <li><b>กดปุ่มเพิ่มเสียงข้างเครื่อง</b> ตอนที่อยู่ในแอปนี้ (ต้องเป็นเสียง “สื่อ/มีเดีย”)</li>
@@ -3282,6 +3347,7 @@ function viewMe(){
   $("#test").onclick = ()=>{ warnedNoSound=false; ttsProven=false; hideSoundHelp(); speak("Hello! Can you hear me?"); };
   $("#test2").onclick = ()=>{ warnedNoSound=false; ttsProven=false; hideSoundHelp(); speak("Hello! Can you hear me?"); };
   $("#installBox2").innerHTML = installHtml(); wireInstall();
+  $("#shareBox2").innerHTML = shareHtml(); wireShare();
   $("#reset").onclick = ()=>{ if(confirm("ล้างความคืบหน้าทั้งหมดจริงๆ นะ?")){ S = structuredClone(DEFAULT_STATE); save(); nav("home"); } };
 }
 
