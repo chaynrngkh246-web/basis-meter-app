@@ -995,11 +995,134 @@ const UPGRADES = [
      extra = ต้องมีคำอื่นเพิ่มจากโครงกี่คำ (เช่น ชื่อ อาชีพ)
    ตอบมั่วจะไม่ผ่าน เพราะไม่มีโครงประโยคและคะแนนความเหมือนต่ำ         */
 
+/* ====== คลังคำตอบของติวเตอร์ สำหรับตอนที่ผู้เรียน "ถามเอง" ======
+   ติวเตอร์ชื่อ Anna เป็นครูสอนภาษาอังกฤษจากแคนาดา อาศัยอยู่กรุงเทพ
+   keys = ชุดคำที่ต้องมีครบ (ชุดใดชุดหนึ่ง) ถึงจะถือว่าถามเรื่องนี้
+   q    = รูปประโยคคำถามที่ถูกต้อง ใช้ทั้งเป็นตัวอย่างและใช้แก้ประโยคให้ผู้เรียน  */
+
+const ASKS = [
+/* --- เกี่ยวกับตัวติวเตอร์ --- */
+ { cat:"รู้จักติวเตอร์", q:"What is your name?", qth:"คุณชื่ออะไร",
+   keys:[["your","name"],["who","are","you"]],
+   a:"My name is Anna. I am your English tutor.", ath:"ฉันชื่อแอนนา เป็นติวเตอร์ภาษาอังกฤษของคุณ" },
+ { cat:"รู้จักติวเตอร์", q:"Where are you from?", qth:"คุณมาจากไหน",
+   keys:[["where","are","you","from"],["where","you","from"],["your","country"]],
+   a:"I am from Canada, but I live in Bangkok now.", ath:"ฉันมาจากแคนาดา แต่ตอนนี้อยู่กรุงเทพ" },
+ { cat:"รู้จักติวเตอร์", q:"How old are you?", qth:"คุณอายุเท่าไหร่",
+   keys:[["how","old"],["your","age"]],
+   a:"I am twenty-nine years old.", ath:"ฉันอายุยี่สิบเก้าปี" },
+ { cat:"รู้จักติวเตอร์", q:"What do you do?", qth:"คุณทำงานอะไร",
+   keys:[["what","do","you","do"],["your","job"],["your","work"]],
+   a:"I am an English teacher. I teach Thai students every day.", ath:"ฉันเป็นครูสอนภาษาอังกฤษ สอนนักเรียนไทยทุกวัน" },
+ { cat:"รู้จักติวเตอร์", q:"Where do you live?", qth:"คุณอยู่ที่ไหน",
+   keys:[["where","do","you","live"],["where","you","live"]],
+   a:"I live in Bangkok, near Ari station.", ath:"ฉันอยู่กรุงเทพ แถวๆ สถานีอารีย์" },
+ { cat:"รู้จักติวเตอร์", q:"Do you like Thailand?", qth:"คุณชอบเมืองไทยไหม",
+   keys:[["like","thailand"],["love","thailand"],["like","thai"]],
+   a:"I love Thailand! The people are so kind.", ath:"ฉันรักเมืองไทย! คนที่นี่ใจดีมาก" },
+ { cat:"รู้จักติวเตอร์", q:"Do you like Thai food?", qth:"คุณชอบอาหารไทยไหม",
+   keys:[["like","thai","food"],["thai","food"]],
+   a:"Yes! Pad kra pao is my favourite. I eat it every week.", ath:"ชอบมาก! ผัดกะเพราคือเมนูโปรด กินทุกสัปดาห์เลย" },
+ { cat:"รู้จักติวเตอร์", q:"Can you speak Thai?", qth:"คุณพูดไทยได้ไหม",
+   keys:[["speak","thai"],["you","thai"]],
+   a:"A little! I can say sawasdee and aroy mak.", ath:"ได้นิดหน่อย! พูดได้ว่า สวัสดี กับ อร่อยมาก" },
+ { cat:"รู้จักติวเตอร์", q:"How long have you been in Thailand?", qth:"คุณอยู่เมืองไทยมานานแค่ไหน",
+   keys:[["how","long","have","you"],["how","long","in","thailand"]],
+   a:"I have been here for four years now.", ath:"ฉันอยู่ที่นี่มาสี่ปีแล้ว" },
+ { cat:"รู้จักติวเตอร์", q:"Are you married?", qth:"คุณแต่งงานหรือยัง",
+   keys:[["are","you","married"],["you","married"]],
+   a:"No, I am not married. But I have a dog named Coco.", ath:"ยังไม่ได้แต่งงาน แต่มีหมาชื่อโคโค่" },
+ { cat:"รู้จักติวเตอร์", q:"Do you have any brothers or sisters?", qth:"คุณมีพี่น้องไหม",
+   keys:[["brothers"],["sisters"],["brother"],["sister"]],
+   a:"Yes, I have one younger brother. He is a nurse.", ath:"มีค่ะ น้องชายหนึ่งคน เขาเป็นพยาบาล" },
+ { cat:"รู้จักติวเตอร์", q:"Do you have a pet?", qth:"คุณมีสัตว์เลี้ยงไหม",
+   keys:[["pet"],["a","dog"],["a","cat"]],
+   a:"Yes! A little brown dog named Coco. She is very naughty.", ath:"มีค่ะ หมาสีน้ำตาลตัวเล็กชื่อโคโค่ ซนมาก" },
+ { cat:"รู้จักติวเตอร์", q:"What do you do on the weekend?", qth:"วันหยุดคุณทำอะไร",
+   keys:[["on","the","weekend"],["weekend"]],
+   a:"I usually go to a cafe and read a book.", ath:"ปกติไปนั่งคาเฟ่แล้วอ่านหนังสือ" },
+ { cat:"รู้จักติวเตอร์", q:"What is your favourite colour?", qth:"คุณชอบสีอะไร",
+   keys:[["favourite","colour"],["favorite","color"],["what","color"]],
+   a:"Blue, like the sea in Krabi.", ath:"สีน้ำเงิน เหมือนทะเลกระบี่" },
+ { cat:"รู้จักติวเตอร์", q:"Do you like music?", qth:"คุณชอบเพลงไหม",
+   keys:[["like","music"],["music"]],
+   a:"I love music. I listen to it when I walk to work.", ath:"ชอบมาก ฟังตอนเดินไปทำงานทุกวัน" },
+ { cat:"รู้จักติวเตอร์", q:"Are you busy?", qth:"คุณยุ่งไหม",
+   keys:[["are","you","busy"],["you","busy"]],
+   a:"Not at all. I always have time for you.", ath:"ไม่ยุ่งเลย ฉันมีเวลาให้คุณเสมอ" },
+ { cat:"รู้จักติวเตอร์", q:"How are you today?", qth:"วันนี้คุณเป็นยังไงบ้าง",
+   keys:[["how","are","you","today"],["are","you","ok"],["how","are","you","doing"],["how","have","you","been"]],
+   a:"I am great, thank you for asking! And you?", ath:"สบายดีมาก ขอบคุณที่ถาม แล้วคุณล่ะ" },
+
+/* --- ขอความช่วยเหลือเรื่องภาษา --- */
+ { cat:"ขอความช่วยเหลือ", q:"Could you repeat that, please?", qth:"ช่วยพูดอีกครั้งได้ไหม",
+   keys:[["repeat"],["say","again"],["one","more","time"]],
+   a:"Of course. Listen carefully.", ath:"ได้เลย ฟังดีๆ นะ", act:"repeat" },
+ { cat:"ขอความช่วยเหลือ", q:"Could you speak more slowly?", qth:"ช่วยพูดช้าลงได้ไหม",
+   keys:[["slowly"],["slow","down"],["speak","slower"]],
+   a:"Sure, I will speak slowly for you.", ath:"ได้ค่ะ เดี๋ยวพูดช้าๆ ให้", act:"slow" },
+ { cat:"ขอความช่วยเหลือ", q:"What should I say?", qth:"ผมควรพูดว่าอะไร",
+   keys:[["what","should","i","say"],["help","me","say"],["i","do","not","know","what"]],
+   a:"No problem — here is what you can say.", ath:"ไม่เป็นไร นี่คือประโยคที่พูดได้", act:"hint" },
+ { cat:"ขอความช่วยเหลือ", q:"I do not understand.", stmt:true, qth:"ผมไม่เข้าใจ",
+   keys:[["do","not","understand"],["dont","understand"],["no","understand"]],
+   a:"That is OK. Read the Thai text under my message — it is the translation.",
+   ath:"ไม่เป็นไรค่ะ ลองอ่านข้อความภาษาไทยใต้ประโยคของฉันดู นั่นคือคำแปล" },
+ { cat:"ขอความช่วยเหลือ", q:"How is my English?", qth:"ภาษาอังกฤษผมเป็นยังไงบ้าง",
+   keys:[["my","english"],["am","i","good"],["how","is","my"]],
+   a:"You are doing really well! Every day you speak, you get better.",
+   ath:"คุณทำได้ดีมาก! ทุกวันที่ได้พูด คุณเก่งขึ้นเรื่อยๆ" },
+ { cat:"ขอความช่วยเหลือ", q:"How can I learn English faster?", qth:"ทำยังไงให้เก่งเร็วขึ้น",
+   keys:[["learn","faster"],["how","can","i","learn"],["get","better"],["improve"]],
+   a:"Speak out loud every day, even ten minutes. That is the real secret.",
+   ath:"พูดออกเสียงดังๆ ทุกวัน แม้แค่สิบนาที นั่นคือเคล็ดลับจริงๆ" },
+ { cat:"ขอความช่วยเหลือ", q:"Is English difficult?", qth:"ภาษาอังกฤษยากไหม",
+   keys:[["is","english","difficult"],["english","hard"],["is","it","difficult"]],
+   a:"It is not easy, but you are already doing it. Keep going!",
+   ath:"ไม่ง่ายหรอก แต่คุณกำลังทำอยู่แล้วนี่ ไปต่อเลย!" },
+ { cat:"ขอความช่วยเหลือ", q:"Can you help me?", qth:"ช่วยผมหน่อยได้ไหม",
+   keys:[["can","you","help"],["help","me"]],
+   a:"Of course! What do you need help with?", ath:"ได้เลย! ต้องการให้ช่วยเรื่องอะไร" },
+ { cat:"ขอความช่วยเหลือ", q:"Can I ask you a question?", qth:"ขอถามอะไรหน่อยได้ไหม",
+   keys:[["ask","you","a","question"],["can","i","ask"]],
+   a:"Of course, please ask me anything!", ath:"ได้เลย ถามอะไรก็ได้!" },
+
+/* --- คุยเล่น --- */
+ { cat:"คุยเล่น", q:"How is the weather today?", qth:"วันนี้อากาศเป็นยังไง",
+   keys:[["the","weather"],["is","it","hot"],["is","it","raining"]],
+   a:"Hot and sunny, as always in Thailand!", ath:"ร้อนและแดดจ้า เหมือนเมืองไทยทุกวันนั่นแหละ" },
+ { cat:"คุยเล่น", q:"Do you like coffee?", qth:"คุณชอบกาแฟไหม",
+   keys:[["like","coffee"],["drink","coffee"],["coffee"]],
+   a:"Yes! Two cups every morning. I cannot work without it.",
+   ath:"ชอบ! วันละสองแก้วตอนเช้า ขาดไม่ได้เลย" },
+ { cat:"คุยเล่น", q:"Where should I travel in Thailand?", qth:"ควรไปเที่ยวที่ไหนดี",
+   keys:[["where","should","i","travel"],["where","to","go"],["good","place"]],
+   a:"Chiang Mai is beautiful, especially in the cool season. Have you been?",
+   ath:"เชียงใหม่สวยมาก โดยเฉพาะหน้าหนาว คุณเคยไปไหม" },
+ { cat:"คุยเล่น", q:"Do you play any sport?", qth:"คุณเล่นกีฬาไหม",
+   keys:[["play","sport"],["do","you","run"],["exercise"]],
+   a:"I run in the park every Sunday morning.", ath:"ฉันวิ่งในสวนทุกเช้าวันอาทิตย์" },
+ { cat:"คุยเล่น", q:"What time is it?", qth:"ตอนนี้กี่โมง",
+   keys:[["what","time","is","it"],["what","time"]],
+   a:"I have no clock here — but your phone knows!", ath:"ที่นี่ไม่มีนาฬิกา แต่โทรศัพท์คุณรู้แน่นอน!" },
+ { cat:"คุยเล่น", q:"Thank you very much.", stmt:true, qth:"ขอบคุณมาก",
+   keys:[["thank","you"],["thanks"]],
+   a:"You are very welcome. It is my pleasure.", ath:"ด้วยความยินดีค่ะ" },
+ { cat:"คุยเล่น", q:"See you tomorrow!", stmt:true, qth:"ไว้เจอกันพรุ่งนี้",
+   keys:[["see","you"],["goodbye"],["bye"]],
+   a:"See you tomorrow! Do not forget to practise.", ath:"เจอกันพรุ่งนี้! อย่าลืมฝึกนะ" }
+];
+
 const NUMS = ["one","two","three","four","five","six","seven","eight","nine","ten",
               "eleven","twelve","twenty","thirty","forty","fifty"];
 
 const SCENES = [
 { id:"intro", level:"L1", emoji:"🤝", title:"แนะนำตัวกับเพื่อนใหม่", sub:"บอกชื่อ บอกว่ามาจากไหน และถามกลับ", who:"Anna",
+  qa:[
+    {keys:[["how","long"],["how","long","here"]], a:"I have lived here for four years.", ath:"ฉันอยู่ที่นี่มาสี่ปีแล้ว"},
+    {keys:[["nice","to","meet"],["nice","meet","you"]], a:"Nice to meet you too!", ath:"ยินดีที่ได้รู้จักเช่นกัน"},
+    {keys:[["do","you","work","here"],["work","here"]], a:"No, I am just visiting a friend today.", ath:"เปล่าค่ะ วันนี้แค่มาหาเพื่อน"}
+  ],
   turns:[
     { bot:"Hello! My name is Anna. What is your name?", botTh:"สวัสดี ฉันชื่อแอนนา คุณชื่ออะไร",
       say:"บอกชื่อของคุณ", model:"My name is Somchai.", modelTh:"ผมชื่อสมชาย",
@@ -1033,6 +1156,12 @@ const SCENES = [
   ]},
 
 { id:"food", level:"L1", emoji:"🍜", title:"สั่งอาหารในร้าน", sub:"สั่งอาหาร ถามราคา และเก็บเงิน", who:"พนักงาน",
+  qa:[
+    {keys:[["recommend"],["what","is","good"],["most","popular"]], a:"The green curry is our most popular dish.", ath:"แกงเขียวหวานขายดีที่สุดค่ะ"},
+    {keys:[["is","it","spicy"],["spicy"]], a:"A little spicy, but I can make it mild for you.", ath:"เผ็ดนิดหน่อย แต่ทำให้ไม่เผ็ดได้นะคะ"},
+    {keys:[["how","long","wait"],["how","long"]], a:"About fifteen minutes.", ath:"ประมาณสิบห้านาทีค่ะ"},
+    {keys:[["where","is","the","toilet"],["toilet"],["bathroom"]], a:"It is at the back, on the left.", ath:"อยู่ด้านหลัง ทางซ้ายค่ะ"}
+  ],
   turns:[
     { bot:"Hello! Welcome. How many people?", botTh:"สวัสดีค่ะ ยินดีต้อนรับ มากี่คนคะ",
       say:"บอกจำนวนคน (เช่น สองคน)", model:"Two people, please.", modelTh:"สองคนครับ",
@@ -1071,6 +1200,12 @@ const SCENES = [
   ]},
 
 { id:"shop", level:"L1", emoji:"🛍️", title:"ซื้อของและต่อราคา", sub:"ถามราคา ต่อรอง แล้วจ่ายเงิน", who:"แม่ค้า",
+  qa:[
+    {keys:[["other","colour"],["other","color"],["another","colour"]], a:"Yes, we have black, white and blue.", ath:"มีค่ะ สีดำ ขาว และน้ำเงิน"},
+    {keys:[["can","i","try"],["try","it","on"]], a:"Of course! The fitting room is over there.", ath:"ได้เลยค่ะ ห้องลองอยู่ตรงโน้น"},
+    {keys:[["bigger","size"],["smaller","size"],["what","size"]], a:"We have small, medium and large.", ath:"มีไซซ์เล็ก กลาง ใหญ่ค่ะ"},
+    {keys:[["is","it","good","quality"],["quality"]], a:"Very good quality — one hundred percent cotton.", ath:"คุณภาพดีมากค่ะ ผ้าฝ้ายร้อยเปอร์เซ็นต์"}
+  ],
   turns:[
     { bot:"Hello! Can I help you?", botTh:"สวัสดีค่ะ ให้ช่วยอะไรไหมคะ",
       say:"บอกว่าขอดูก่อน", model:"I am just looking, thank you.", modelTh:"ขอดูก่อนครับ ขอบคุณ",
@@ -1109,6 +1244,11 @@ const SCENES = [
   ]},
 
 { id:"way", level:"L2", emoji:"🚕", title:"หลงทาง ถามทางคนอื่น", sub:"ขอความช่วยเหลือ และบอกว่าฟังไม่ทัน", who:"คนแปลกหน้า",
+  qa:[
+    {keys:[["is","it","far"],["how","far"]], a:"No, only about five minutes on foot.", ath:"ไม่ไกลครับ เดินประมาณห้านาที"},
+    {keys:[["can","i","walk"],["should","i","take","a","taxi"],["taxi"]], a:"You can walk. A taxi is not necessary.", ath:"เดินไปได้เลย ไม่ต้องนั่งแท็กซี่หรอก"},
+    {keys:[["where","is","the","bus"],["bus","stop"]], a:"The bus stop is just behind you.", ath:"ป้ายรถเมล์อยู่ข้างหลังคุณนั่นแหละ"}
+  ],
   turns:[
     { bot:"Hi! You look lost. Can I help you?", botTh:"สวัสดีครับ คุณดูเหมือนหลงทาง ให้ช่วยไหม",
       say:"บอกว่าใช่ คุณหลงทาง", model:"Yes, please. I am lost.", modelTh:"ครับ ช่วยหน่อย ผมหลงทาง",
@@ -1144,6 +1284,11 @@ const SCENES = [
   ]},
 
 { id:"work", level:"L2", emoji:"💼", title:"คุยเรื่องงานกับเพื่อนร่วมงาน", sub:"เล่าเรื่องงาน และนัดเจอกัน", who:"Tom",
+  qa:[
+    {keys:[["how","long","have","you","worked"],["how","long","here"]], a:"I have worked here for three years.", ath:"ผมทำงานที่นี่มาสามปีแล้ว"},
+    {keys:[["do","you","like","it","here"],["like","working","here"]], a:"Yes, the team is really friendly.", ath:"ชอบครับ ทีมงานเป็นกันเองมาก"},
+    {keys:[["what","time","do","you","finish"],["what","time","finish"]], a:"I usually finish at six.", ath:"ปกติเลิกงานหกโมงเย็น"}
+  ],
   turns:[
     { bot:"Hey! Good morning. What do you do here?", botTh:"เฮ้ อรุณสวัสดิ์ คุณทำงานอะไรที่นี่",
       say:"บอกว่าคุณทำงานอะไร", model:"I work at a factory.", modelTh:"ผมทำงานที่โรงงาน",
@@ -1177,6 +1322,11 @@ const SCENES = [
   ]},
 
 { id:"chat", level:"L2", emoji:"☕", title:"คุยเล่นกับฝรั่ง", sub:"คุยเรื่องอากาศ อาหาร และวันหยุด", who:"Mike",
+  qa:[
+    {keys:[["how","long","in","thailand"],["how","long","here"]], a:"Three weeks so far, and I love it.", ath:"สามสัปดาห์แล้ว และผมชอบมาก"},
+    {keys:[["have","you","tried"],["did","you","try"]], a:"Yes, I tried it last week. So good!", ath:"ลองแล้วเมื่อสัปดาห์ก่อน อร่อยมาก!"},
+    {keys:[["where","are","you","staying"],["your","hotel"]], a:"I am staying at a small hotel near the river.", ath:"ผมพักโรงแรมเล็กๆ ริมแม่น้ำ"}
+  ],
   turns:[
     { bot:"Hi! Wow, how is the weather today?", botTh:"หวัดดี ว้าว วันนี้อากาศเป็นยังไงบ้าง",
       say:"บอกว่าวันนี้ร้อนมาก", model:"It is very hot today.", modelTh:"วันนี้ร้อนมากเลย",
@@ -1212,6 +1362,11 @@ const SCENES = [
 /* ---------- ฉากระดับมืออาชีพ ---------- */
 
 { id:"meeting", level:"L4", emoji:"💼", title:"ประชุมกับทีมต่างชาติ", sub:"เสนอความเห็น ขอความชัดเจน และสรุปงาน", who:"หัวหน้าทีม",
+  qa:[
+    {keys:[["what","is","the","deadline"],["deadline"],["when","is","it","due"]], a:"The deadline is the end of this month.", ath:"กำหนดส่งคือสิ้นเดือนนี้"},
+    {keys:[["who","is","responsible"],["who","will","do"],["who","is","in","charge"]], a:"Marketing will lead, with support from your team.", ath:"ฝ่ายการตลาดจะเป็นเจ้าภาพ โดยมีทีมคุณช่วย"},
+    {keys:[["can","we","meet","again"],["next","meeting"]], a:"Yes, let us meet again on Friday at ten.", ath:"ได้ครับ เจอกันอีกทีวันศุกร์สิบโมง"}
+  ],
   turns:[
     { bot:"Good morning everyone. Thanks for joining. Shall we get started?",
       botTh:"อรุณสวัสดิ์ทุกคน ขอบคุณที่เข้าร่วม เริ่มกันเลยไหมครับ",
@@ -1250,6 +1405,12 @@ const SCENES = [
   ]},
 
 { id:"interview", level:"L4", emoji:"🧑‍💼", title:"สัมภาษณ์งาน", sub:"ตอบคำถามยอดฮิตให้ได้งาน", who:"HR",
+  qa:[
+    {keys:[["what","is","the","salary"],["salary"],["how","much","pay"]], a:"The range is forty to fifty thousand baht per month.", ath:"ช่วงเงินเดือนสี่หมื่นถึงห้าหมื่นบาทต่อเดือน"},
+    {keys:[["working","hours"],["what","time","start"],["what","are","the","hours"]], a:"Nine to six, Monday to Friday.", ath:"เก้าโมงถึงหกโมงเย็น จันทร์ถึงศุกร์"},
+    {keys:[["how","big","is","the","team"],["how","many","people"]], a:"The team has twelve people right now.", ath:"ตอนนี้ทีมมีสิบสองคน"},
+    {keys:[["when","will","you","decide"],["when","will","i","know"],["when","will","you"]], a:"We will contact you by next Friday.", ath:"เราจะติดต่อกลับภายในวันศุกร์หน้า"}
+  ],
   turns:[
     { bot:"Good morning. Thank you for coming in. Please tell me about yourself.",
       botTh:"อรุณสวัสดิ์ครับ ขอบคุณที่มา ช่วยเล่าเกี่ยวกับตัวคุณหน่อย",
@@ -1287,6 +1448,11 @@ const SCENES = [
   ]},
 
 { id:"deal", level:"L4", emoji:"🤝", title:"เจรจากับซัพพลายเออร์", sub:"ต่อรองราคาให้ได้ดีลที่ดีที่สุด", who:"ซัพพลายเออร์",
+  qa:[
+    {keys:[["what","is","included"],["does","it","include"]], a:"Delivery and one year of service are included.", ath:"รวมค่าจัดส่งและบริการหนึ่งปีครับ"},
+    {keys:[["how","long","delivery"],["when","can","you","deliver"],["delivery"]], a:"Delivery takes about two weeks.", ath:"จัดส่งใช้เวลาประมาณสองสัปดาห์"},
+    {keys:[["is","there","a","warranty"],["warranty"],["guarantee"]], a:"Yes, a full one-year warranty.", ath:"มีครับ รับประกันเต็มหนึ่งปี"}
+  ],
   turns:[
     { bot:"Thanks for meeting me. Our price for this order is one hundred thousand baht.",
       botTh:"ขอบคุณที่มาพบครับ ราคาสำหรับออเดอร์นี้คือหนึ่งแสนบาท",
@@ -1324,6 +1490,11 @@ const SCENES = [
   ]},
 
 { id:"client", level:"L4", emoji:"📞", title:"รับมือลูกค้าไม่พอใจ", sub:"รับฟัง ขอโทษ และแก้ปัญหาให้จบ", who:"ลูกค้า",
+  qa:[
+    {keys:[["what","is","your","order","number"],["order","number"]], a:"My order number is four four seven one.", ath:"เลขที่สั่งซื้อของผมคือ 4471"},
+    {keys:[["can","i","get","a","refund"],["refund"],["money","back"]], a:"I would rather have the product, but a discount would help.", ath:"ผมอยากได้ของมากกว่า แต่ถ้าลดราคาให้ก็ดี"},
+    {keys:[["when","did","you","order"],["when","did","you","buy"]], a:"I ordered it last Monday.", ath:"ผมสั่งไปเมื่อวันจันทร์ที่แล้ว"}
+  ],
   turns:[
     { bot:"Hello? I am calling because I am not happy. My order is three days late!",
       botTh:"ฮัลโหล ผมโทรมาเพราะผมไม่พอใจ ของผมช้าไปสามวันแล้ว",
@@ -2368,6 +2539,112 @@ function viewReview(){
     onDone:done });
 }
 
+/* ================== ติวเตอร์ตอบคำถามที่ผู้เรียนถามเอง ==================
+   ไม่ได้ใช้ AI บนเซิร์ฟเวอร์ — จับใจความจากคำสำคัญในคำถาม แล้วเลือกคำตอบที่ตรงที่สุด
+   ลำดับการค้นหา: คำถามเฉพาะฉากที่กำลังคุยอยู่ → คลังคำตอบกลาง → คำถามพิเศษ → เดาจากคำขึ้นต้น */
+
+const QUESTION_WORDS = ["what","where","when","who","why","how","which","whose"];
+const QUESTION_AUX   = ["do","does","did","can","could","are","is","am","was","were",
+                        "will","would","have","has","should","may","shall"];
+
+/* “What does ___ mean?” — ค้นคำแปลจากคำศัพท์ทั้ง 300 ประโยคในหลักสูตร */
+function lookupMeaning(text){
+  const n = norm(text);
+  const m = n.match(/what does (.+?) mean/) || n.match(/what is the meaning of (.+)/)
+         || n.match(/what means (.+)/) || n.match(/meaning of (.+)/);
+  if(!m) return null;
+  const term = m[1].trim();
+  if(!term) return null;
+  let hit = null;
+  COURSE.forEach(u => u.words.forEach(w=>{
+    const en = norm(w.en);
+    if(en === term) hit = hit || w;
+    else if(!hit && en.split(" ").includes(term) && norm(w.en).split(" ").length <= 3) hit = w;
+  }));
+  if(!hit) UPGRADES.forEach(x=>{ if(!hit && norm(x.native).includes(term) && term.length > 3) hit = {en:x.native, th:x.th}; });
+  if(hit) return { a:`“${hit.en}” means: ${hit.th}`, ath:`“${hit.en}” แปลว่า ${hit.th}`, found:true };
+  return { a:`Sorry, “${term}” is not in our lessons yet.`,
+           ath:`ขอโทษค่ะ คำว่า “${term}” ยังไม่มีในบทเรียน ลองถามคำอื่นดูนะ`, found:false };
+}
+
+function matchList(list, words, text){
+  let best = null, bestScore = 0;
+  (list || []).forEach(item=>{
+    (item.keys || []).forEach(k=>{
+      if(k.length && k.every(x => words.includes(x))){
+        /* ชุดคำที่ยาวกว่าได้เปรียบบ้าง แต่ความเหมือนกับรูปคำถามจริงสำคัญกว่า
+           ไม่งั้น “How old are you?” จะถูก “How are you?” คว้าไปตอบ */
+        const sc = k.length * 3 + scoreSpeech(item.q || item.a, text) / 4;
+        if(sc > bestScore){ bestScore = sc; best = item; }
+      }
+    });
+  });
+  return best;
+}
+
+/* ctx = { scene, turn, lastBot }  (ไม่มีก็ได้ ถ้าถามนอกบทสนทนา) */
+function answerQuestion(text, ctx){
+  ctx = ctx || {};
+  const words = norm(text).split(" ").filter(Boolean);
+  if(!words.length) return { a:"I did not hear anything.", ath:"ไม่ได้ยินเสียงเลยค่ะ", kind:"none" };
+
+  const meaning = lookupMeaning(text);
+  if(meaning) return { ...meaning, kind:"meaning" };
+
+  const isQuestion = QUESTION_WORDS.includes(words[0]) || QUESTION_AUX.includes(words[0])
+                     || /\?$/.test(String(text).trim());
+
+  /* ประโยคบอกเล่าห้ามไปคว้าคำตอบของคำถามมาตอบ
+     ยกเว้นวลีที่ตอบได้อยู่แล้วอย่าง “Thank you” หรือ “See you” (ทำเครื่องหมาย stmt ไว้) */
+  const pool = isQuestion ? ASKS : ASKS.filter(a => a.stmt);
+  const sceneHit = isQuestion && ctx.scene && matchList(ctx.scene.qa, words, text);
+  if(sceneHit) return { ...sceneHit, kind:"scene" };
+
+  const hit = matchList(pool, words, text);
+  if(hit){
+    const out = { a:hit.a, ath:hit.ath, q:hit.q, kind:"known", act:hit.act };
+    if(hit.act === "hint" && ctx.turn)
+      out.a = `You can say: “${ctx.turn.model}”`, out.ath = `พูดว่า “${ctx.turn.model}” — ${ctx.turn.modelTh}`;
+    if(hit.act === "repeat" && ctx.lastBot)
+      out.a = ctx.lastBot, out.ath = "ฟังอีกครั้งนะคะ";
+    return out;
+  }
+
+  /* ไม่เจอในคลัง */
+  if(!isQuestion)
+    return { kind:"notquestion",
+      a:"That sounds more like a sentence than a question.",
+      ath:"อันนี้ฟังดูเหมือนประโยคบอกเล่า ไม่ใช่คำถาม — คำถามต้องขึ้นต้นด้วย What / Where / How / Do you / Can you" };
+
+  const generic = {
+    what:  { a:"Hmm, that is a good question. I am not sure about that one!", ath:"อืม เป็นคำถามที่ดีนะ แต่ฉันไม่แน่ใจเรื่องนั้น" },
+    where: { a:"I am not sure where. Maybe you can look it up?", ath:"ไม่แน่ใจว่าที่ไหน ลองหาข้อมูลดูนะ" },
+    when:  { a:"I do not know exactly when, sorry!", ath:"ไม่รู้แน่ชัดว่าเมื่อไหร่ ขอโทษนะ" },
+    why:   { a:"That is an interesting question. What do you think?", ath:"เป็นคำถามที่น่าสนใจ แล้วคุณคิดว่ายังไงล่ะ" },
+    how:   { a:"There are many ways. Practice is the most important one!", ath:"มีหลายวิธี แต่การฝึกฝนสำคัญที่สุด" },
+    who:   { a:"I am not sure who, sorry.", ath:"ไม่แน่ใจว่าใคร ขอโทษนะ" }
+  }[words[0]] || { a:"Good question! I do not know the answer to that one.", ath:"คำถามดีนะ แต่ฉันไม่รู้คำตอบเรื่องนั้น" };
+  return { ...generic, kind:"generic" };
+}
+
+/* ตรวจว่าคำถามที่ผู้เรียนพูด ถูกรูปประโยคคำถามไหม ถ้าไม่ ให้แก้เป็นภาษาไทย */
+function checkQuestionForm(text, matched){
+  const words = norm(text).split(" ").filter(Boolean);
+  if(!words.length) return null;
+  const startsRight = QUESTION_WORDS.includes(words[0]) || QUESTION_AUX.includes(words[0]);
+
+  if(matched && matched.q && scoreSpeech(matched.q, text) < 80)
+    return { fix: matched.q,
+      why: startsRight ? "เข้าใจแล้ว แต่ประโยคคำถามที่ถูกต้องคือแบบนี้"
+                       : "ประโยคคำถามภาษาอังกฤษต้องขึ้นต้นด้วยคำถามหรือกริยาช่วย" };
+
+  if(!startsRight)
+    return { fix:null,
+      why:"ประโยคคำถามต้องขึ้นต้นด้วย What / Where / When / Why / How หรือ Do you / Can you / Are you" };
+
+  return null;
+}
+
 /* ================== หน้าคุยกับติวเตอร์ ================== */
 /* ตรวจคำตอบแบบเข้มงวด: ต้องมีโครงประโยคที่ถูกต้อง ไม่ใช่แค่พูดยาวๆ แล้วผ่าน */
 function judgeTurn(said, t){
@@ -2414,7 +2691,16 @@ function talkPicker(){
         ตอบผิดจะบอกให้แก้ ตอบมั่วไม่ผ่านนะครับ
       </div>
     </div>
+    <div class="card" style="border:2px dashed var(--brand)">
+      <b>❓ ถามติวเตอร์อะไรก็ได้</b>
+      <div class="small muted" style="margin-top:4px">
+        ไม่ต้องรอให้แอปสั่ง — ถามเองเลย ติวเตอร์แอนนาจะตอบเป็นภาษาอังกฤษพร้อมคำแปลไทย
+        และถ้าคุณตั้งประโยคคำถามผิด จะบอกให้ด้วยว่าที่ถูกต้องพูดยังไง
+      </div>
+      <div class="row"><button class="btn primary wide" id="freeAsk">🎤 เริ่มถาม</button></div>
+    </div>
     <div id="scenes"></div>`;
+  $("#freeAsk").onclick = ()=>askPanel({ ctx:{}, onClose: ()=>render() });
   const box = $("#scenes");
   LEVELS.forEach(L=>{
     const list = scenesOf(L.id);
@@ -2483,6 +2769,7 @@ function talkScene(){
       <button class="btn sm" id="mode">⌨️ พิมพ์</button>
       <button class="btn sm ghost" id="skip">⏭ ข้าม</button>
     </div>
+    <div class="row"><button class="btn sm wide" id="askBtn">❓ ถามติวเตอร์เอง (ถามอะไรก็ได้)</button></div>
     <div id="hintBox"></div>
     <div id="input"></div>
     <div id="fb"></div>`;
@@ -2494,6 +2781,17 @@ function talkScene(){
     speak(turn.model, true);
   };
   $("#skip").onclick = ()=>{ T.total++; nextTurn(); };
+  $("#askBtn").onclick = ()=>{
+    const lastBot = [...T.msgs].reverse().find(m => m.who === "bot");
+    askPanel({
+      ctx: { scene: sc, turn, lastBot: lastBot && lastBot.en },
+      onAsk: (q, ans)=>{
+        T.msgs.push({who:"me", en:q});
+        T.msgs.push({who:"bot", en:ans.a, th:ans.ath});
+      },
+      onClose: ()=>render()
+    });
+  };
 
   let typing = !SR_OK;
   $("#mode").onclick = ()=>{ typing = !typing; $("#mode").textContent = typing ? "🎤 เสียง" : "⌨️ พิมพ์"; drawInput(); };
@@ -2594,6 +2892,126 @@ function talkScene(){
   }
 
   function nextTurn(){ T.tries = 0; T.pos++; render(); }
+}
+
+/* ---------- แผง "ถามติวเตอร์เอง": ผู้เรียนถามอะไรก็ได้ ติวเตอร์ตอบ ---------- */
+function askPanel(cfg){
+  const log = [];
+  const cats = [...new Set(ASKS.map(a => a.cat))];
+  let typing = !SR_OK, cat = cats[0];
+
+  function draw(){
+    setTitle("ถามติวเตอร์", "ถามอะไรก็ได้ แอนนาจะตอบให้", true);
+    scr().innerHTML = `
+      <div class="card">
+        <div class="chat" id="qchat">
+          ${log.length ? "" : `<div class="msg sys">ลองถามอะไรก็ได้เป็นภาษาอังกฤษ เช่น “Where are you from?”<br>ถ้านึกไม่ออก กดคำถามตัวอย่างด้านล่างได้เลย</div>`}
+        </div>
+      </div>
+      <div class="card">
+        <div class="row">
+          <button class="btn sm" id="qmode">${typing ? "🎤 เสียง" : "⌨️ พิมพ์"}</button>
+          <button class="btn sm ghost" id="qdone">${cfg.ctx && cfg.ctx.turn ? "↩ กลับไปคุยต่อ" : "✕ ปิด"}</button>
+        </div>
+        <div id="qinput"></div>
+        <div id="qfb"></div>
+      </div>
+      <div class="sect-title">คำถามตัวอย่าง — กดเพื่อถามได้เลย</div>
+      <div id="qcats" class="levelbar" style="flex-wrap:wrap"></div>
+      <div id="qlist"></div>`;
+
+    const chat = $("#qchat");
+    log.forEach(m=>{
+      const b = el(`<div class="msg ${m.who}">${esc(m.en)}${m.th ? `<span class="th">${esc(m.th)}</span>` : ""}</div>`);
+      if(m.who === "bot") b.onclick = ()=>speak(m.en);
+      chat.appendChild(b);
+    });
+
+    const cb = $("#qcats");
+    cats.forEach(c=>{
+      const b = el(`<button class="lvbtn ${c===cat?"on":""}" style="flex:0 0 auto; padding:8px 12px"><span class="lvn">${esc(c)}</span></button>`);
+      b.onclick = ()=>{ cat = c; draw(); };
+      cb.appendChild(b);
+    });
+    const list = $("#qlist");
+    ASKS.filter(a => a.cat === cat).forEach(a=>{
+      const b = el(`<button class="unit" style="padding:10px 12px">
+          <div class="meta"><b style="font-size:14.5px">${esc(a.q)}</b><span>${esc(a.qth)}</span></div>
+          <div class="tiny muted">ถาม</div></button>`);
+      b.onclick = ()=>{ speak(a.q); ask(a.q, [a.q]); };
+      list.appendChild(b);
+    });
+
+    $("#qmode").onclick = ()=>{ typing = !typing; draw(); };
+    $("#qdone").onclick = ()=>{ cfg.onClose && cfg.onClose(); };
+    drawInput();
+  }
+
+  function drawInput(){
+    const box = $("#qinput");
+    if(typing){
+      box.innerHTML = `<input type="text" id="qin" placeholder="พิมพ์คำถามภาษาอังกฤษ เช่น Where are you from?" autocomplete="off" autocapitalize="off">
+        <div class="row"><button class="btn primary" id="qgo">ถาม</button></div>`;
+      $("#qgo").onclick = ()=>ask($("#qin").value, [$("#qin").value]);
+      $("#qin").onkeydown = (e)=>{ if(e.key === "Enter") ask($("#qin").value, [$("#qin").value]); };
+    }else{
+      box.innerHTML = `<button class="mic" id="qmic">🎤</button>
+        <div class="center small muted" id="qh">กดไมค์ แล้วถามเป็นภาษาอังกฤษ</div>`;
+      $("#qmic").onclick = ()=>{
+        const btn = $("#qmic");
+        btn.classList.add("listening"); btn.textContent = "⏹"; $("#qh").textContent = "กำลังฟัง...";
+        listen(
+          (alts)=>{ btn.classList.remove("listening"); btn.textContent = "🎤"; ask(alts[0] || "", alts); },
+          (err)=>{ btn.classList.remove("listening"); btn.textContent = "🎤";
+                   $("#qfb").innerHTML = `<div class="feedback mid">${esc(micErrText(err))}</div>`; },
+          ()=>{ btn.classList.remove("listening"); btn.textContent = "🎤";
+                $("#qh").textContent = "กดไมค์ แล้วถามเป็นภาษาอังกฤษ"; }
+        );
+      };
+    }
+  }
+
+  function ask(text, alts){
+    text = String(text || "").trim();
+    if(!text) return;
+
+    /* เลือกตัวเลือกที่เครื่องได้ยินซึ่งตรงคลังคำตอบมากที่สุด */
+    let ans = null, used = text;
+    (alts || [text]).forEach(a=>{
+      const r = answerQuestion(a, cfg.ctx);
+      const rank = { meaning:4, scene:4, known:3, generic:2, notquestion:1, none:0 };
+      if(!ans || rank[r.kind] > rank[ans.kind]){ ans = r; used = a; }
+    });
+
+    log.push({ who:"me", en:used });
+    log.push({ who:"bot", en:ans.a, th:ans.ath });
+    S.totalSpoken = (S.totalSpoken || 0) + 1;
+    if(ans.kind === "known" || ans.kind === "scene" || ans.kind === "meaning") addXP(1);
+    save();
+    if(cfg.onAsk) cfg.onAsk(used, ans);
+    draw();
+
+    setTimeout(()=>speak(ans.a, ans.act === "slow"), 250);
+
+    /* บอกว่าคำถามที่พูดถูกรูปไหม ถ้าไม่ ให้ประโยคที่ถูกต้อง */
+    const matched = ASKS.find(a => a.q === ans.q);
+    const chk = checkQuestionForm(used, matched);
+    const fb = $("#qfb");
+    if(chk){
+      fb.innerHTML = `<div class="feedback mid">${esc(chk.why)}
+        ${chk.fix ? `<div class="heard">ประโยคที่ถูกคือ: “${esc(chk.fix)}”</div>` : ""}</div>`;
+      if(chk.fix){
+        const row = el(`<div class="row"><button class="btn sm">🔊 ฟังประโยคที่ถูก</button></div>`);
+        row.firstElementChild.onclick = ()=>speak(chk.fix, true);
+        fb.appendChild(row);
+      }
+    }else{
+      fb.innerHTML = `<div class="feedback good">ถามได้ถูกต้องแล้ว 👍</div>`;
+    }
+    $("#qchat").lastElementChild.scrollIntoView({block:"nearest"});
+  }
+
+  draw();
 }
 
 /* ---------- สรุปผลท้ายฉาก ---------- */

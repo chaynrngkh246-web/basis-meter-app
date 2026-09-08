@@ -355,6 +355,115 @@ await t('ทุกฉากสนทนามีเฉลยและวิธ�
   if (bad.length) throw new Error('ตาที่ข้อมูลไม่ครบ: ' + bad.slice(0, 3));
 });
 
+await t('ถามเอง: ติวเตอร์ตอบคำถามเรื่องตัวเองได้', async () => {
+  const r = await page.evaluate(() => [
+    answerQuestion('Where are you from?', {}),
+    answerQuestion('What is your name?', {}),
+    answerQuestion('Do you like Thai food?', {}),
+    answerQuestion('How old are you?', {})
+  ]);
+  if (!/Canada/.test(r[0].a)) throw new Error('ตอบเรื่องมาจากไหนผิด: ' + r[0].a);
+  if (!/Anna/.test(r[1].a)) throw new Error('ตอบชื่อผิด: ' + r[1].a);
+  if (!/Pad kra pao|favourite/i.test(r[2].a)) throw new Error('ตอบเรื่องอาหารผิด: ' + r[2].a);
+  if (!/twenty/.test(r[3].a)) throw new Error('ตอบอายุผิด: ' + r[3].a);
+  if (r.some(x => !x.ath)) throw new Error('บางคำตอบไม่มีคำแปลไทย');
+});
+
+await t('ถามเอง: ถามคำแปลศัพท์แล้วค้นจากบทเรียนให้', async () => {
+  const r = await page.evaluate(() => answerQuestion('What does delicious mean?', {}));
+  if (!r.found) throw new Error('หาคำไม่เจอ: ' + r.a);
+  if (!/อร่อย/.test(r.ath)) throw new Error('คำแปลผิด: ' + r.ath);
+  const miss = await page.evaluate(() => answerQuestion('What does zzzqqq mean?', {}));
+  if (miss.found) throw new Error('คำที่ไม่มีในบทเรียนไม่ควรเจอ');
+});
+
+await t('ถามเอง: คำถามเฉพาะสถานการณ์ตอบตามฉากที่กำลังคุย', async () => {
+  const r = await page.evaluate(() => {
+    const food = SCENES.find(s => s.id === 'food');
+    const shop = SCENES.find(s => s.id === 'shop');
+    return [
+      answerQuestion('What do you recommend?', { scene: food }),
+      answerQuestion('Can I try it on?', { scene: shop }),
+      answerQuestion('What do you recommend?', {})
+    ];
+  });
+  if (!/green curry/i.test(r[0].a)) throw new Error('ร้านอาหารตอบผิด: ' + r[0].a);
+  if (!/fitting room/i.test(r[1].a)) throw new Error('ร้านเสื้อผ้าตอบผิด: ' + r[1].a);
+  if (r[2].kind === 'scene') throw new Error('ตอบแบบเฉพาะฉากทั้งที่ไม่ได้อยู่ในฉาก');
+});
+
+await t('ถามเอง: ขอความช่วยเหลือแล้วได้ประโยคของตาที่กำลังเล่นอยู่', async () => {
+  const r = await page.evaluate(() => {
+    const sc = SCENES[0];
+    return answerQuestion('What should I say?', { scene: sc, turn: sc.turns[0] });
+  });
+  if (!/My name is/.test(r.a)) throw new Error('ไม่ได้ใบ้ประโยคของตานั้น: ' + r.a);
+});
+
+await t('ถามเอง: ตั้งประโยคคำถามผิด ต้องบอกประโยคที่ถูก', async () => {
+  const r = await page.evaluate(() => {
+    const matched = ASKS.find(a => /Where are you from/.test(a.q));
+    return {
+      bad: checkQuestionForm('you from where', matched),
+      notQ: checkQuestionForm('i am from thailand', null),
+      good: checkQuestionForm('Where are you from?', matched)
+    };
+  });
+  if (!r.bad || r.bad.fix !== 'Where are you from?') throw new Error('ไม่แก้ประโยคให้: ' + JSON.stringify(r.bad));
+  if (!r.notQ || !/ขึ้นต้นด้วย/.test(r.notQ.why)) throw new Error('ไม่เตือนเรื่องรูปประโยคคำถาม');
+  if (r.good) throw new Error('ถามถูกแล้วยังขึ้นว่าผิด');
+});
+
+await t('ถามเอง: พูดประโยคบอกเล่าแทนคำถาม ต้องบอกว่าไม่ใช่คำถาม', async () => {
+  const r = await page.evaluate(() => answerQuestion('I like coffee very much', {}));
+  if (r.kind !== 'notquestion') throw new Error('ไม่ทักว่าไม่ใช่คำถาม: ' + r.kind + ' / ' + r.a);
+});
+
+await t('ถามเอง: ใช้งานได้จริงในหน้าจอ ทั้งจากในบทสนทนาและโหมดอิสระ', async () => {
+  await page.click('[data-tab="talk"]');
+  await page.waitForSelector('#freeAsk', { timeout: 3000 });
+  await page.click('#freeAsk');
+  await page.waitForSelector('#qmic', { timeout: 3000 });
+  await page.evaluate(() => { window.__nextSaid = 'Where are you from?'; });
+  await page.click('#qmic');
+  await page.waitForTimeout(500);
+  const chat = await page.innerText('#qchat');
+  if (!/Canada/.test(chat)) throw new Error('ติวเตอร์ไม่ตอบ: ' + chat.slice(0, 80));
+  if (!/แคนาดา/.test(chat)) throw new Error('ไม่มีคำแปลไทยในคำตอบ');
+  if (!/ถามได้ถูกต้อง/.test(await page.innerText('#qfb'))) throw new Error('ไม่ยืนยันว่าถามถูก');
+
+  const suggestions = await page.locator('#qlist .unit').count();
+  if (suggestions < 5) throw new Error('คำถามตัวอย่างน้อยไป: ' + suggestions);
+
+  await page.click('#qdone');
+  await page.waitForSelector('.unit', { timeout: 3000 });
+  await page.locator('#scenes .unit').first().click();
+  await page.waitForSelector('#askBtn', { timeout: 3000 });
+  await page.click('#askBtn');
+  await page.waitForSelector('#qmic', { timeout: 3000 });
+  await page.evaluate(() => { window.__nextSaid = 'What should I say?'; });
+  await page.click('#qmic');
+  await page.waitForTimeout(500);
+  if (!/My name is/.test(await page.innerText('#qchat'))) throw new Error('ในบทสนทนาไม่ใบ้ประโยคให้');
+  await page.click('#qdone');
+  await page.waitForSelector('#micBtn', { timeout: 3000 });
+  const chatBack = await page.innerText('#chat');
+  if (!/What should I say/.test(chatBack)) throw new Error('คำถามที่ถามไม่ถูกบันทึกลงบทสนทนา');
+});
+
+await t('ทุกคำตอบของติวเตอร์มีคำแปลไทยครบ', async () => {
+  const bad = await page.evaluate(() => {
+    const out = [];
+    ASKS.forEach(a => { if (!a.a || !a.ath || !a.q || !a.qth || !a.keys.length) out.push(a.q || '?'); });
+    SCENES.forEach(sc => (sc.qa || []).forEach(x => { if (!x.a || !x.ath || !x.keys.length) out.push(sc.id); }));
+    return out;
+  });
+  if (bad.length) throw new Error('ข้อมูลไม่ครบ: ' + bad.slice(0, 3));
+  const n = await page.evaluate(() => ({ asks: ASKS.length, qa: SCENES.filter(s => s.qa && s.qa.length).length }));
+  if (n.asks < 30) throw new Error('คลังคำตอบน้อยไป: ' + n.asks);
+  if (n.qa !== 10) throw new Error('ฉากที่มีคำถามเฉพาะ: ' + n.qa);
+});
+
 await t('แท็บตั้งค่าเปิดได้', async () => {
   await page.click('[data-tab="me"]');
   await page.waitForSelector('#rate', { timeout: 3000 });
