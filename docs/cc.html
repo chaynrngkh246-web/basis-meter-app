@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เบ้าฝา &amp; กำลังอัด</title>
+<meta name="description" content="คำนวณปริมาตรเบ้าฝาและอัตราส่วนกำลังอัดสำหรับงานแต่งเครื่องมอเตอร์ไซค์">
+<meta name="theme-color" content="#E7EAEC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1113" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="เบ้าฝา">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2288%22>%F0%9F%8F%8D</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  img { max-width: 100%; }
+
+  :root {
+    color-scheme: light dark;
+    --ground: #E7EAEC;
+    --panel: #FFFFFF;
+    --panel-2: #F1F4F5;
+    --ink: #12171A;
+    --ink-2: #59646A;
+    --ink-3: #8A9499;
+    --line: #D2D8DB;
+    --line-2: #E3E7E9;
+    --accent: #C4231C;
+    --accent-soft: #FAEAE8;
+    --good: #1B6E4A;
+    --sans: "Bai Jamjuree", "Noto Sans Thai", system-ui, -apple-system, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0E1113;
+      --panel: #171B1E;
+      --panel-2: #1D2326;
+      --ink: #E7ECEE;
+      --ink-2: #9AA5AA;
+      --ink-3: #6E797E;
+      --line: #2C3337;
+      --line-2: #222A2D;
+      --accent: #FF5A4D;
+      --accent-soft: #2B1613;
+      --good: #4BC38B;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0E1113;
+    --panel: #171B1E;
+    --panel-2: #1D2326;
+    --ink: #E7ECEE;
+    --ink-2: #9AA5AA;
+    --ink-3: #6E797E;
+    --line: #2C3337;
+    --line-2: #222A2D;
+    --accent: #FF5A4D;
+    --accent-soft: #2B1613;
+    --good: #4BC38B;
+  }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    padding-inline: 16px;
+    padding-block: 22px 40px;
+    padding-bottom: calc(40px + env(safe-area-inset-bottom));
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap {
+    max-width: 460px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  header { display: flex; flex-direction: column; gap: 2px; }
+  h1 {
+    font-size: 21px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .sub { font-size: 12.5px; color: var(--ink-2); }
+
+  section { display: flex; flex-direction: column; gap: 10px; }
+  .lbl {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    color: var(--ink-3);
+  }
+  .flbl { font-size: 10.5px; font-weight: 500; color: var(--ink-3); }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cell { display: flex; flex-direction: column; gap: 5px; }
+  .field {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 9px 11px;
+  }
+  .field:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .field input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: none;
+    padding: 0;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .field input:focus { outline: none; }
+  .unit { font-size: 10.5px; color: var(--ink-3); flex: none; }
+
+  .fuels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .fuel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding: 8px 2px 7px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    color: var(--ink-2);
+    font-family: var(--sans);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .fuel small {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    font-weight: 400;
+    color: var(--ink-3);
+  }
+  .fuel[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .fuel[aria-pressed="true"] small { color: var(--accent); }
+  .fuel:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .result {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .result .lbl { color: var(--ink-2); }
+  .big { display: flex; align-items: baseline; gap: 7px; margin-top: 2px; flex-wrap: wrap; }
+  .big b {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 42px;
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -1.5px;
+  }
+  .big span { font-size: 13px; color: var(--ink-2); }
+  .over b { color: var(--accent); }
+  .note { font-size: 12px; color: var(--accent); line-height: 1.45; margin-top: 6px; }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line-2);
+  }
+  .stat { display: flex; flex-direction: column; gap: 1px; }
+  .stat .k { font-size: 10px; color: var(--ink-3); }
+  .stat .v {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--ink-3);
+    padding: 0 0 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  th.r, td.r { text-align: right; }
+  td { padding: 8px 0; border-bottom: 1px solid var(--line-2); font-size: 13.5px; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr[data-on="1"] td { color: var(--accent); font-weight: 600; }
+  td.r { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  .rev {
+    background: var(--panel-2);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .revout { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .revout .v {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+  .revout .k { font-size: 12px; color: var(--ink-2); }
+  .fit { font-size: 12px; color: var(--ink-2); }
+  .fit b { color: var(--good); font-weight: 600; }
+  .fit.risk b { color: var(--accent); }
+
+  details { border-top: 1px solid var(--line); padding-top: 12px; }
+  summary {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-2);
+    cursor: pointer;
+    list-style: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: " ↓"; color: var(--ink-3); }
+  details[open] summary::after { content: " ↑"; }
+  .eq {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 2;
+    color: var(--ink-2);
+    margin-top: 8px;
+    overflow-x: auto;
+  }
+  .eq b { color: var(--ink); font-weight: 500; }
+  .fine { font-size: 11.5px; color: var(--ink-3); margin-top: 8px; line-height: 1.6; }
+
+  @media (max-width: 360px) {
+    .fuels { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>เบ้าฝา &amp; กำลังอัด</h1>
+    <div class="sub">ใส่สเปกเครื่อง แล้วดูว่าต้องคว้านเบ้าฝากี่ซีซี</div>
+  </header>
+
+  <section>
+    <div class="lbl">สเปกเครื่อง</div>
+    <div class="grid2">
+      <div class="cell">
+        <label class="flbl" for="bore">ขนาดลูกสูบ</label>
+        <div class="field">
+          <input id="bore" type="text" inputmode="decimal" value="53">
+          <span class="unit">มม.</span>
+        </div>
+      </div>
+      <div class="cell">
+        <label class="flbl" for="stroke">ระยะชัก</label>
+        <div class="field">
+          <input id="stroke" type="text" inputmode="decimal" value="54">
+          <span class="unit">มม.</span>
+        </div>
+      </div>
+      <div class="cell">
+        <label class="flbl" for="gasket">ความหนาประเก็น</label>
+        <div class="field">
+          <input id="gasket" type="text" inputmode="decimal" value="0.5">
+          <span class="unit">มม.</span>
+        </div>
+      </div>
+      <div class="cell">
+        <label class="flbl" for="pocket">หลบวาล์ว</label>
+        <div class="field">
+          <input id="pocket" type="text" inputmode="decimal" value="0.5">
+          <span class="unit">ซีซี</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="lbl">น้ำมันที่จะใช้</div>
+    <div class="fuels" id="fuels">
+      <button class="fuel" type="button" data-cr="9" aria-pressed="false">91<small>9.0</small></button>
+      <button class="fuel" type="button" data-cr="10" aria-pressed="true">95<small>10.0</small></button>
+      <button class="fuel" type="button" data-cr="11" aria-pressed="false">E20<small>11.0</small></button>
+      <button class="fuel" type="button" data-cr="12.5" aria-pressed="false">E85<small>12.5</small></button>
+      <button class="fuel" type="button" data-cr="custom" aria-pressed="false">เอง<small>ปรับ</small></button>
+    </div>
+    <div class="cell" id="customWrap" hidden>
+      <label class="flbl" for="customCr">กำลังอัดที่ต้องการ</label>
+      <div class="field">
+        <input id="customCr" type="text" inputmode="decimal" value="11.5">
+        <span class="unit">: 1</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="result" id="result">
+    <div class="lbl">ปริมาตรเบ้าฝาที่ต้องทำ</div>
+    <div class="big">
+      <b id="head" class="num">11.63</b>
+      <span>ซีซี &nbsp;·&nbsp; ที่กำลังอัด <span id="crShow" class="num">10.0</span>:1</span>
+    </div>
+    <div class="note" id="note" hidden></div>
+    <div class="stats">
+      <div class="stat">
+        <span class="k">ความจุเครื่อง</span>
+        <span class="v" id="disp">119.13</span>
+      </div>
+      <div class="stat">
+        <span class="k">ห้องเผาไหม้ Vc</span>
+        <span class="v" id="chamber">13.24</span>
+      </div>
+      <div class="stat">
+        <span class="k">ประเก็น Vg</span>
+        <span class="v" id="gask">1.10</span>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <div class="lbl">เทียบทุกเกรด</div>
+    <table>
+      <thead>
+        <tr>
+          <th>น้ำมัน</th>
+          <th class="r">กำลังอัด</th>
+          <th class="r">เบ้าฝา (ซีซี)</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr data-cr="9"><td>เบนซิน / แก๊สโซฮอล์ 91</td><td class="r">9.0:1</td><td class="r">13.29</td></tr>
+        <tr data-cr="10" data-on="1"><td>แก๊สโซฮอล์ 95</td><td class="r">10.0:1</td><td class="r">11.63</td></tr>
+        <tr data-cr="11"><td>แก๊สโซฮอล์ E20</td><td class="r">11.0:1</td><td class="r">10.31</td></tr>
+        <tr data-cr="12.5"><td>แก๊สโซฮอล์ E85</td><td class="r">12.5:1</td><td class="r">8.76</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="lbl">ย้อนกลับ — วัดเบ้าฝามาแล้ว</div>
+    <div class="rev">
+      <div class="cell">
+        <label class="flbl" for="measured">เบ้าฝาที่วัดได้จริง</label>
+        <div class="field">
+          <input id="measured" type="text" inputmode="decimal" value="12.5">
+          <span class="unit">ซีซี</span>
+        </div>
+      </div>
+      <div class="revout">
+        <span class="k">กำลังอัดที่ได้</span>
+        <span class="v" id="revCr">9.45<span style="font-size:14px">:1</span></span>
+      </div>
+      <div class="fit" id="fit">เติมได้ตั้งแต่ <b>แก๊สโซฮอล์ 95</b> ขึ้นไป</div>
+    </div>
+  </section>
+
+  <details>
+    <summary>วิธีคิด</summary>
+    <div class="eq">
+      D = ลูกสูบ, L = ระยะชัก, T = ประเก็น (แปลง มม. → ซม. ก่อน)<br>
+      <b>Vs</b> = π/4 × D² × L<br>
+      <b>Vg</b> = π/4 × D² × T<br>
+      <b>Vc</b> = Vs ÷ (CR − 1)<br>
+      <b>เบ้าฝา</b> = Vc − Vg − หลบวาล์ว
+    </div>
+    <div class="fine">
+      Vg คิดจากรูประเก็นเท่ากับปากกระบอกสูบ ถ้ารูจริงต่างจากนี้มากค่าจะเพี้ยนเล็กน้อย ·
+      ยังไม่รวมระยะลูกสูบโผล่/จมปากเสื้อ (deck clearance) ถ้าเครื่องคุณมี ให้บวกเข้าไปในช่องหลบวาล์ว
+    </div>
+  </details>
+</div>
+
+<script>
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'headcc.v1';
+  var GRADES = [
+    { cr: 9, short: 'แก๊สโซฮอล์ 91' },
+    { cr: 10, short: 'แก๊สโซฮอล์ 95' },
+    { cr: 11, short: 'E20' },
+    { cr: 12.5, short: 'E85' }
+  ];
+  var inputs = ['bore', 'stroke', 'gasket', 'pocket', 'customCr', 'measured'];
+  var fuel = '10';
+
+  function num(id) {
+    var v = parseFloat($(id).value.replace(',', '.'));
+    return isFinite(v) ? v : NaN;
+  }
+  function fmt(v) { return isFinite(v) ? v.toFixed(2) : '—'; }
+
+  function geometry() {
+    var bore = num('bore') / 10;
+    var stroke = num('stroke') / 10;
+    var gasket = num('gasket') / 10;
+    var area = (Math.PI / 4) * bore * bore;
+    return {
+      ok: bore > 0 && stroke > 0 && gasket >= 0,
+      displacement: area * stroke,
+      gasketCc: area * gasket
+    };
+  }
+
+  function headFor(cr, g, pocket) {
+    if (!g.ok || !(cr > 1) || !(pocket >= 0)) return NaN;
+    return g.displacement / (cr - 1) - g.gasketCc - pocket;
+  }
+
+  function activeCr() {
+    return fuel === 'custom' ? num('customCr') : parseFloat(fuel);
+  }
+
+  function render() {
+    var g = geometry();
+    var pocket = num('pocket');
+    var cr = activeCr();
+
+    $('disp').textContent = fmt(g.ok ? g.displacement : NaN);
+    $('gask').textContent = fmt(g.ok ? g.gasketCc : NaN);
+    $('chamber').textContent = fmt(g.ok && cr > 1 ? g.displacement / (cr - 1) : NaN);
+    $('crShow').textContent = isFinite(cr) ? cr.toFixed(1) : '—';
+
+    var head = headFor(cr, g, pocket);
+    $('head').textContent = fmt(head);
+    if (isFinite(head) && head <= 0) $('result').classList.add('over');
+    else $('result').classList.remove('over');
+
+    var note = $('note');
+    if (!isFinite(head)) {
+      note.textContent = 'กรอกตัวเลขให้ครบทุกช่อง (กำลังอัดต้องมากกว่า 1)';
+      note.hidden = false;
+    } else if (head <= 0) {
+      note.textContent = 'ประเก็นกับหลบวาล์วกินปริมาตรเกินห้องเผาไหม้ที่ต้องการแล้ว — ต้องลดความหนาประเก็น หรือลดกำลังอัดเป้าหมายลง';
+      note.hidden = false;
+    } else {
+      note.hidden = true;
+    }
+
+    var rows = $('tbody').querySelectorAll('tr');
+    for (var i = 0; i < rows.length; i++) {
+      var rowCr = parseFloat(rows[i].dataset.cr);
+      rows[i].querySelector('td.r + td.r').textContent = fmt(headFor(rowCr, g, pocket));
+      if (rowCr === cr) rows[i].setAttribute('data-on', '1');
+      else rows[i].removeAttribute('data-on');
+    }
+
+    var measured = num('measured');
+    var chamber = measured + g.gasketCc + pocket;
+    var actual = g.ok && chamber > 0 ? (g.displacement + chamber) / chamber : NaN;
+    $('revCr').innerHTML = (isFinite(actual) ? actual.toFixed(2) : '—') +
+      '<span style="font-size:14px">:1</span>';
+
+    var fit = $('fit');
+    if (!isFinite(actual)) {
+      fit.textContent = 'กรอกเบ้าฝาที่วัดได้';
+      fit.classList.remove('risk');
+    } else {
+      var match = null;
+      for (var j = 0; j < GRADES.length; j++) {
+        if (GRADES[j].cr >= actual) { match = GRADES[j]; break; }
+      }
+      if (match) {
+        fit.classList.remove('risk');
+        fit.innerHTML = 'เติมได้ตั้งแต่ <b>' + match.short + '</b> ขึ้นไป';
+      } else {
+        fit.classList.add('risk');
+        fit.innerHTML = 'เกินช่วงของ <b>E85</b> — เสี่ยงน็อค';
+      }
+    }
+
+    save();
+  }
+
+  function save() {
+    try {
+      var data = { fuel: fuel };
+      for (var i = 0; i < inputs.length; i++) data[inputs[i]] = $(inputs[i]).value;
+      localStorage.setItem(KEY, JSON.stringify(data));
+    } catch (e) { /* เบราว์เซอร์ปิดที่เก็บข้อมูล — ข้ามไป */ }
+  }
+
+  function restore() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return;
+      var data = JSON.parse(raw);
+      for (var i = 0; i < inputs.length; i++) {
+        if (typeof data[inputs[i]] === 'string') $(inputs[i]).value = data[inputs[i]];
+      }
+      if (data.fuel) setFuel(String(data.fuel), false);
+    } catch (e) { /* ค่าเสีย — ใช้ค่าตั้งต้น */ }
+  }
+
+  function setFuel(value, focusCustom) {
+    fuel = value;
+    var btns = $('fuels').querySelectorAll('.fuel');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', String(btns[i].dataset.cr === value));
+    }
+    $('customWrap').hidden = value !== 'custom';
+    if (value === 'custom' && focusCustom) $('customCr').focus();
+  }
+
+  $('fuels').addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('.fuel') : null;
+    if (!btn) return;
+    setFuel(btn.dataset.cr, true);
+    render();
+  });
+
+  for (var i = 0; i < inputs.length; i++) {
+    $(inputs[i]).addEventListener('input', render);
+  }
+
+  restore();
+  render();
+</script>
+</body>
+</html>
